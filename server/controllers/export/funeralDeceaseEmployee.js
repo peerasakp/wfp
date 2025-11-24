@@ -12,12 +12,13 @@ const createPdfFuneralDeceaseEmployee = async (req, res, next) => {
 
     try {
         const puppeteer = require('puppeteer');
-        browser = await puppeteer.launch({
-            executablePath: '/usr/bin/chromium-browser',
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-file-access-from-files'],
-            // timeout: 5000,
-            headless: true,
-        });
+        browser = await puppeteer.launch()
+        //     {
+        //     executablePath: '/usr/bin/chromium-browser',
+        //     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-file-access-from-files'],
+        //     // timeout: 5000,
+        //     headless: true,
+        // });
 
         const cssData = await ejs.renderFile('./templateExport/template.css.ejs', {
             fontPath: process.env.fileAccess,
