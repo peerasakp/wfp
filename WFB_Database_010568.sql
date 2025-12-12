@@ -901,6 +901,29 @@ UNLOCK TABLES;
 /*!50001 SET collation_connection      = @saved_col_connection */;
 
 --
+-- Table structure for table `activity_logs`
+--
+
+DROP TABLE IF EXISTS `activity_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `activity_logs` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) DEFAULT NULL,
+  `action` varchar(255) NOT NULL,
+  `before_data` json DEFAULT NULL,
+  `after_data` json DEFAULT NULL,
+  `detail` json DEFAULT NULL,
+  `ip_address` varchar(50) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `fk_activity_logs_users1_idx` (`user_id`),
+  CONSTRAINT `fk_activity_logs_users1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Final view structure for view `view_reimbursements`
 --
 

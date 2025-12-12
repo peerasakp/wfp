@@ -1,5 +1,6 @@
 const sequelizePaginate = require('sequelize-paginate');
 var DataTypes = require("sequelize").DataTypes;
+var _activityLogs = require("./activity_logs");
 var _categories = require("./categories");
 var _children = require("./children");
 var _childrenInfomation = require("./children_infomation");
@@ -29,6 +30,7 @@ var _welfareTypes = require("./welfare_types");
 var _viewDashboard = require("./view_dashboard");
 
 function initModels(sequelize) {
+  var activityLogs = _activityLogs(sequelize, DataTypes);
   var categories = _categories(sequelize, DataTypes);
   var children = _children(sequelize, DataTypes);
   var childrenInfomation = _childrenInfomation(sequelize, DataTypes);
@@ -57,6 +59,8 @@ function initModels(sequelize) {
   var welfareTypes = _welfareTypes(sequelize, DataTypes);
   var viewDashboard = _viewDashboard(sequelize, DataTypes);
 
+  activityLogs.belongsTo(users, { as: "user", foreignKey: "user_id"});
+  users.hasMany(activityLogs, { as: "activity_logs", foreignKey: "user_id"});
   categories.belongsToMany(reimbursementsEmployeeDeceased, { as: 'reimbursements_employee_deceased_id_reimbursements_employee_deceaseds', through: reimbursementsEmployeeDeceasedHasCategories, foreignKey: "categories_id", otherKey: "reimbursements_employee_deceased_id" });
   childrenInfomation.belongsToMany(reimbursementsChildrenEducation, { as: 'reimbursements_children_education_id_reimbursements_children_educations', through: reimbursementsChildrenEducationHasChildrenInfomation, foreignKey: "children_infomation_id", otherKey: "reimbursements_children_education_id" });
   permissions.belongsToMany(roles, { as: 'roles_id_roles', through: permissionsHasRoles, foreignKey: "permissions_id", otherKey: "roles_id" });
@@ -125,6 +129,7 @@ function initModels(sequelize) {
   welfareTypes.hasMany(categories, { as: "categories", foreignKey: "welfare_types_id"});
 
   return {
+    activityLogs,
     categories,
     children,
     childrenInfomation,
