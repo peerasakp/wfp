@@ -8,19 +8,17 @@ const { createPdfFuneralDeceaseEmployee } = require('../controllers/export/funer
 const { fetchDataFuneralDeceaseEmployee } = require('../middleware/export/funeralDeceaseEmployee');
 const { createPdfChildrenEducation } = require('../controllers/export/childrenEducation');
 const { fetchDatareimChildrenEducation } = require('../middleware/export/childrenEducation');
-const { logExport } = require('../middleware/activityLog');
+router.get('/health-check-up/:id', fetchDataHealthCheckup, createPdfGeneral);
 
-router.get('/health-check-up/:id', logExport('HEALTH_CHECK_UP'), fetchDataHealthCheckup, createPdfGeneral);
+router.get('/dental/:id', fetchDataDental, createPdfGeneral);
 
-router.get('/dental/:id', logExport('DENTAL'), fetchDataDental, createPdfGeneral);
+router.get('/medical/:id', fetchDataMedical, createPdfGeneral);
 
-router.get('/medical/:id', logExport('MEDICAL'), fetchDataMedical, createPdfGeneral);
+router.get('/various/:id', fetchDataVarious, createPdfAssist);
 
-router.get('/various/:id', logExport('VARIOUS_ASSIST'), fetchDataVarious, createPdfAssist);
+router.get('/various-Funeral-Family/:id', fetchDataFuneralFamily, createPdfAssist);
 
-router.get('/various-Funeral-Family/:id', logExport('VARIOUS_FUNERAL_FAMILY'), fetchDataFuneralFamily, createPdfAssist);
+router.get('/funeral-Decease-Employee/:id', fetchDataFuneralDeceaseEmployee, createPdfFuneralDeceaseEmployee);
 
-router.get('/funeral-Decease-Employee/:id', logExport('FUNERAL_EMPLOYEE'), fetchDataFuneralDeceaseEmployee, createPdfFuneralDeceaseEmployee);
-
-router.get('/Children-Education/:id', logExport('CHILDREN_EDUCATION'), fetchDatareimChildrenEducation, createPdfChildrenEducation);
+router.get('/Children-Education/:id', fetchDatareimChildrenEducation, createPdfChildrenEducation);
 module.exports = router;
