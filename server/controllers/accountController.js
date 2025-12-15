@@ -6,6 +6,7 @@ const ActiveDirectory = require('activedirectory');
 
 const { initLogger } = require('../logger');
 const logger = initLogger('AccountController');
+const { createActivityLog } = require('../middleware/activityLog');
 const { getpathMenu, getpathMenuEditor } = require('../enum/format');
 const permissionType = require('../enum/permission')
 const { Op } = require('sequelize')
@@ -128,6 +129,20 @@ exports.login = async (req, res, next) => {
                     user.redirectTo = "user_management_list";
                 }
                 logger.info('Complete', { method, data: { username } });
+                // PDPA / Audit: Log การเข้าสู่ระบบ (LOGIN)
+                await createActivityLog(req, {
+                    action: 'LOGIN',
+                    userId: user.id,
+                    afterData: {
+                        userId: user.id,
+                        name: user.name,
+                        roleId: user.roleId,
+                    },
+                    detail: {
+                        event: 'LOGIN_SUCCESS',
+                    },
+                });
+
                 return res.status(200).send({ user, accessToken: token });
             }
             logger.info('Password is Incorrect', {

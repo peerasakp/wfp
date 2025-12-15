@@ -4,6 +4,7 @@ const { Op, col } = require('sequelize')
 const { initLogger } = require('../logger');
 const logger = initLogger('UserController');
 const { isNullOrEmpty } = require('../controllers/utility');
+const { createActivityLog } = require('../middleware/activityLog');
 
 class Controller extends BaseController {
     constructor() {
@@ -151,6 +152,14 @@ class Controller extends BaseController {
                 delete user.datas.employee_type;
                 delete user.datas.first_working_date;
                 logger.info('Complete', { method, data: { id } });
+                // VIEW: ดูรายละเอียดผู้ใช้รายคน
+                await createActivityLog(req, {
+                    action: 'VIEW',
+                    detail: {
+                        event: 'USER_VIEW',
+                        targetUserId: dataId,
+                    },
+                });
                 res.status(200).json(user);
             } else {
                 logger.info('Data not found', {
@@ -269,6 +278,18 @@ class Controller extends BaseController {
                 if (!isNullOrEmpty(child)) return itemsReturned
                 return newItemUser;
             });
+
+            // CREATE: บันทึกการสร้างผู้ใช้ใหม่
+            await createActivityLog(req, {
+                action: 'CREATE',
+                beforeData: null,
+                afterData: result,
+                detail: {
+                    event: 'USER_CREATE',
+                    targetUserId: result?.id,
+                },
+            });
+
             res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
         }
         catch (error) {
@@ -289,6 +310,11 @@ class Controller extends BaseController {
         const dataId = req.params['id'];
         var itemsReturned = null;
         try {
+              // ดึงข้อมูลก่อนแก้ไข เพื่อเก็บไว้ใน before_data (Audit)
+            const beforeUser = await users.findByPk(dataId, {
+                raw: true,
+            });
+
             const result = await sequelize.transaction(async t => {
                 const [updated] = await users.update(dataUpdate, {
                     where: {
@@ -352,6 +378,24 @@ class Controller extends BaseController {
             });
             if (result) {
                 logger.info('Complete', { method, data: { id } });
+                     // ดึงข้อมูลหลังแก้ไข เพื่อเก็บไว้ใน after_data
+                const afterUser = await users.findByPk(dataId, {
+                    raw: true,
+                });
+
+                // บันทึก before_data / after_data เฉพาะกรณีมีการเปลี่ยนแปลงจริง ๆ
+                const hasChanged = JSON.stringify(beforeUser) !== JSON.stringify(afterUser);
+
+                await createActivityLog(req, {
+                    action: 'UPDATE',
+                    beforeData: hasChanged ? beforeUser : null,
+                    afterData: hasChanged ? afterUser : null,
+                    detail: {
+                        event: 'USER_UPDATE',
+                        targetUserId: dataId,
+                    },
+                });
+
                 return res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
             }
             res.status(400).json({ newItem: result, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
@@ -370,6 +414,11 @@ class Controller extends BaseController {
         const dataId = req.params['id'];
         const dataUpdate = new Date();
         try {
+              // ดึงข้อมูลก่อนลบ (soft delete) เพื่อใช้ใน before_data
+            const beforeUser = await users.findByPk(dataId, {
+                raw: true,
+            });
+
             const [updated] = await users.update({ deleted_at: dataUpdate }, {
                 where: {
                     'id': dataId,
@@ -380,6 +429,16 @@ class Controller extends BaseController {
                 logger.info('Completed', {
                     method,
                     data: { id, dataId },
+                });
+                // PDPA / Audit: Log การลบผู้ใช้ (DELETE)
+                await createActivityLog(req, {
+                    action: 'DELETE',
+                    beforeData: beforeUser,
+                    afterData: null,
+                    detail: {
+                        event: 'USER_DELETE',
+                        targetUserId: dataId,
+                    },
                 });
                 res.status(201).json({ updatedItem: updatedItem, message: "สำเร็จ" });
             } else {
