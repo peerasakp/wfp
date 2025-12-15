@@ -46,6 +46,8 @@ import { Notify } from "quasar";
 import accountService from 'src/boot/service/accountService';
 import { useMenuStore } from 'src/stores/menuStore';
 import { useRouter } from 'vue-router';
+const NOTICE_MESSAGE = "ระบบมีการบันทึกข้อมูลการเข้าใช้งานและกิจกรรมที่เกิดขึ้นภายในระบบ เพื่อใช้ในการตรวจสอบและรักษาความปลอดภัย ทั้งนี้ข้อมูลจะถูกจัดเก็บตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล";
+
 const model = ref({
     username: null,
     password: null,
@@ -96,6 +98,15 @@ async function login() {
             authStore.roleName = result.data?.user?.roleName;
             menuStore.setPath(result.data?.user?.path);
             menuStore.setPathEditor(result.data?.user?.pathEditor);
+
+            // PDPA notice: แจ้งให้ผู้ใช้ทราบว่ามีการบันทึกกิจกรรมเพื่อความปลอดภัย/การปฏิบัติตามกฎระเบียบ
+            Notify.create({
+                message: NOTICE_MESSAGE,
+                type: "warning",
+                position: "top",
+                multiLine: true,
+                timeout: 8000,
+            });
             if(result?.data?.user?.redirectTo){
               router.push({ name: result?.data?.user?.redirectTo });
             }
