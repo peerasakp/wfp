@@ -4,7 +4,16 @@ var htmlToPdf = require("html-pdf-node");
 const ejs = require("ejs");
 const path = require('path');
 const { bahttext } = require('bahttext');
+const fs = require('fs');
 require('dotenv').config();
+
+// Detect Chromium path based on environment
+const getChromiumPath = () => {
+    if (fs.existsSync('/usr/bin/chromium-browser')) return '/usr/bin/chromium-browser';
+    if (fs.existsSync('/usr/bin/chromium')) return '/usr/bin/chromium';
+    return undefined;
+};
+
 const createPdfChildrenEducation = async (req, res, next) => {
     const method = 'CreateGeneralData';
     const { id } = req.user;
@@ -12,8 +21,9 @@ const createPdfChildrenEducation = async (req, res, next) => {
 
     try {
         const puppeteer = require('puppeteer');
+        const chromiumPath = getChromiumPath();
         browser = await puppeteer.launch({
-            executablePath: '/usr/bin/chromium-browser',
+            ...(chromiumPath && { executablePath: chromiumPath }),
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-file-access-from-files'],
             // timeout: 5000,
             headless: true,

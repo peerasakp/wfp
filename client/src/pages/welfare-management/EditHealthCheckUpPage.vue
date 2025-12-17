@@ -126,12 +126,121 @@
             </q-card-section>
             <q-separator />
             <q-card-section class="row wrap q-col-gutter-y-md font-medium font-16 text-grey-7">
-              <p class="col-12 q-mb-none">1. ใบเสร็จรับเงิน</p>
-              <p class="col-12 q-mb-none">2. ใบรับรองแพทย์</p>
+              <!-- Receipt File -->
+              <div class="col-12">
+                <p class="q-mb-sm">1. ใบเสร็จรับเงิน</p>
+                <div v-if="isView && model.fileReceipt" class="q-ml-md">
+                  <q-chip
+                    color="blue-1"
+                    text-color="blue-9"
+                    icon="description"
+                    class="q-mb-xs"
+                  >
+                    {{ getFileName(model.fileReceipt) }}
+                  </q-chip>
+                  <div class="q-gutter-xs">
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      color="blue-7"
+                      icon="visibility"
+                      size="sm"
+                      @click="previewFile(model.fileReceipt)"
+                    >
+                      <q-tooltip>ดูตัวอย่าง</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      color="green-7"
+                      icon="download"
+                      size="sm"
+                      @click="downloadFile(model.fileReceipt)"
+                    >
+                      <q-tooltip>ดาวน์โหลด</q-tooltip>
+                    </q-btn>
+                  </div>
+                </div>
+                <div v-else-if="isView" class="q-ml-md text-grey-5 font-14">
+                  ไม่มีไฟล์
+                </div>
+              </div>
+              <!-- Medical Certificate File -->
+              <div class="col-12">
+                <p class="q-mb-sm">2. ใบรับรองแพทย์</p>
+                <div v-if="isView && model.fileMedicalCertificate" class="q-ml-md">
+                  <q-chip
+                    color="blue-1"
+                    text-color="blue-9"
+                    icon="description"
+                    class="q-mb-xs"
+                  >
+                    {{ getFileName(model.fileMedicalCertificate) }}
+                  </q-chip>
+                  <div class="q-gutter-xs">
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      color="blue-7"
+                      icon="visibility"
+                      size="sm"
+                      @click="previewFile(model.fileMedicalCertificate)"
+                    >
+                      <q-tooltip>ดูตัวอย่าง</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      color="green-7"
+                      icon="download"
+                      size="sm"
+                      @click="downloadFile(model.fileMedicalCertificate)"
+                    >
+                      <q-tooltip>ดาวน์โหลด</q-tooltip>
+                    </q-btn>
+                  </div>
+                </div>
+                <div v-else-if="isView" class="q-ml-md text-grey-5 font-14">
+                  ไม่มีไฟล์
+                </div>
+              </div>
             </q-card-section>
           </q-card>
         </div>
       </div>
+
+      <!-- File Preview Dialog -->
+      <q-dialog v-model="previewDialog.show" maximized>
+        <q-card class="bg-grey-10">
+          <q-bar class="bg-grey-9">
+            <div class="text-white">{{ previewDialog.fileName }}</div>
+            <q-space />
+            <q-btn dense flat icon="close" color="white" v-close-popup>
+              <q-tooltip>ปิด</q-tooltip>
+            </q-btn>
+          </q-bar>
+          <q-card-section class="full-height row justify-center items-center">
+            <q-spinner v-if="previewDialog.loading" color="white" size="50px" />
+            <img
+              v-else-if="previewDialog.type === 'image'"
+              :src="previewDialog.url"
+              style="max-width: 90%; max-height: 90vh; object-fit: contain;"
+            />
+            <iframe
+              v-else-if="previewDialog.type === 'pdf'"
+              :src="previewDialog.url"
+              style="width: 90%; height: 90vh; border: none;"
+            />
+            <div v-else class="text-white text-h6">
+              ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
     </template>
     <!--Action Slot -->
     <template v-slot:action>
@@ -182,6 +291,8 @@ const route = useRoute();
 const model = ref({
   createFor: null,
   fundReceipt: null,
+  fileReceipt: null,
+  fileMedicalCertificate: null,
   claimByEligible: [
     {
       fundEligible: null,
@@ -199,6 +310,15 @@ const model = ref({
 });
 const userData = ref({});
 const remaining = ref({});
+
+// File preview refs
+const previewDialog = ref({
+  show: false,
+  loading: false,
+  url: null,
+  type: null,
+  fileName: null,
+});
 let options = ref([]);
 const isLoading = ref(false);
 const isError = ref({});
@@ -352,6 +472,8 @@ async function fetchDataEdit() {
           status: returnedData?.status,
           fundReceipt: returnedData?.fundReceipt,
           fundSumRequest: returnedData?.fundSumRequest,
+          fileReceipt: returnedData?.fileReceipt,
+          fileMedicalCertificate: returnedData?.fileMedicalCertificate,
           claimByEligible: [
             {
               fundEligible: returnedData?.fundDecree,
@@ -585,6 +707,84 @@ async function submit(actionId) {
     }
   });
 }
+// File helper functions
+function getFileName(fileName) {
+  if (!fileName) return '';
+  const parts = fileName.split('-');
+  if (parts.length > 2) {
+    return parts.slice(2).join('-');
+  }
+  return fileName;
+}
+
+function getFileType(fileName) {
+  if (!fileName) return 'unknown';
+  const ext = fileName.split('.').pop().toLowerCase();
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+  if (ext === 'pdf') return 'pdf';
+  return 'unknown';
+}
+
+async function previewFile(fileName) {
+  if (!fileName) return;
+  previewDialog.value = {
+    show: true,
+    loading: true,
+    url: null,
+    type: getFileType(fileName),
+    fileName: getFileName(fileName),
+  };
+  try {
+    const response = await healthCheckUpWelfareService.getFileByName(fileName);
+    const mimeType = getFileType(fileName) === 'pdf' ? 'application/pdf' : 'image/jpeg';
+    const blob = new Blob([response.data], { type: mimeType });
+    previewDialog.value.url = URL.createObjectURL(blob);
+    previewDialog.value.loading = false;
+  } catch {
+    Notify.create({
+      message: 'ไม่สามารถโหลดตัวอย่างไฟล์ได้',
+      position: 'bottom-left',
+      type: 'negative',
+    });
+    previewDialog.value.show = false;
+  }
+}
+
+async function downloadFile(fileName) {
+  if (!fileName) return;
+  const notify = Notify.create({
+    message: 'กำลังดาวน์โหลด...',
+    position: 'top-right',
+    spinner: true,
+    type: 'info',
+  });
+  try {
+    const response = await healthCheckUpWelfareService.getFileByName(fileName);
+    const blob = new Blob([response.data]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = getFileName(fileName);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    Notify.create({
+      message: 'ดาวน์โหลดสำเร็จ',
+      position: 'top-right',
+      type: 'positive',
+    });
+  } catch {
+    Notify.create({
+      message: 'ดาวน์โหลดไม่สำเร็จกรุณาลองอีกครั้ง',
+      position: 'top-right',
+      type: 'negative',
+    });
+  } finally {
+    notify();
+  }
+}
+
 async function init() {
   isView.value = route.meta.isView;
   isLoading.value = true;

@@ -88,6 +88,10 @@
               " class="text-dark q-py-sm q-px-xs cursor-pointer">
               <q-icon :name="outlinedDownload" size="xs" color="blue" />
             </a>
+            <a @click.stop.prevent="showEvidence(props.row.id, props.row.categoryName)"
+              class="text-dark q-py-sm q-px-xs cursor-pointer" title="ดูหลักฐาน">
+              <q-icon :name="outlinedAttachment" size="xs" color="green" />
+            </a>
           </q-td>
         </template>
 
@@ -106,6 +110,91 @@
 
   </ListLayout>
 
+  <!-- Evidence Dialog -->
+  <q-dialog v-model="evidenceDialog.show" persistent>
+    <q-card style="min-width: 400px; max-width: 600px;">
+      <q-card-section class="row items-center q-pb-none">
+        <div class="text-h6">หลักฐานที่แนบ</div>
+        <q-space />
+        <q-btn icon="close" flat round dense v-close-popup />
+      </q-card-section>
+
+      <q-card-section>
+        <q-spinner v-if="evidenceDialog.loading" color="primary" size="40px" class="q-mx-auto block" />
+        
+        <div v-else-if="!evidenceDialog.hasEvidence" class="text-center text-grey">
+          <q-icon name="folder_open" size="50px" />
+          <p>ไม่มีหลักฐานที่แนบ</p>
+        </div>
+
+        <div v-else>
+          <!-- Receipt File -->
+          <div v-if="evidenceDialog.fileReceipt" class="q-mb-md">
+            <p class="text-weight-medium q-mb-sm">1. ใบเสร็จรับเงิน</p>
+            <div class="row items-center q-gutter-sm">
+              <q-chip color="blue-2" text-color="blue-9" :label="getFileName(evidenceDialog.fileReceipt)" size="sm" />
+              <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewEvidence(evidenceDialog.fileReceipt)" title="ดูตัวอย่าง" />
+              <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadEvidence(evidenceDialog.fileReceipt)" title="ดาวน์โหลด" />
+            </div>
+            <!-- Inline image preview -->
+            <img v-if="evidenceDialog.fileReceiptUrl && isImageFile(evidenceDialog.fileReceipt)" 
+              :src="evidenceDialog.fileReceiptUrl" 
+              style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; margin-top: 8px;"
+              @click="previewEvidence(evidenceDialog.fileReceipt)"
+            />
+          </div>
+
+          <!-- Medical Certificate File -->
+          <div v-if="evidenceDialog.fileMedicalCertificate">
+            <p class="text-weight-medium q-mb-sm">2. ใบรับรองแพทย์</p>
+            <div class="row items-center q-gutter-sm">
+              <q-chip color="green-2" text-color="green-9" :label="getFileName(evidenceDialog.fileMedicalCertificate)" size="sm" />
+              <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewEvidence(evidenceDialog.fileMedicalCertificate)" title="ดูตัวอย่าง" />
+              <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadEvidence(evidenceDialog.fileMedicalCertificate)" title="ดาวน์โหลด" />
+            </div>
+            <!-- Inline image preview -->
+            <img v-if="evidenceDialog.fileMedicalUrl && isImageFile(evidenceDialog.fileMedicalCertificate)" 
+              :src="evidenceDialog.fileMedicalUrl" 
+              style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; margin-top: 8px;"
+              @click="previewEvidence(evidenceDialog.fileMedicalCertificate)"
+            />
+          </div>
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn flat label="ปิด" color="primary" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <!-- Full Preview Dialog -->
+  <q-dialog v-model="previewDialog.show" maximized>
+    <q-card class="bg-grey-9">
+      <q-card-section class="row items-center q-pb-none">
+        <div class="text-h6 text-white">{{ previewDialog.fileName }}</div>
+        <q-space />
+        <q-btn icon="download" flat round dense color="white" @click="downloadEvidence(previewDialog.serverFileName)" />
+        <q-btn icon="close" flat round dense color="white" v-close-popup />
+      </q-card-section>
+      <q-card-section class="flex flex-center" style="height: calc(100vh - 80px);">
+        <img 
+          v-if="previewDialog.type === 'image'" 
+          :src="previewDialog.url" 
+          style="max-width: 100%; max-height: 100%; object-fit: contain;"
+        />
+        <iframe 
+          v-else-if="previewDialog.type === 'pdf'" 
+          :src="previewDialog.url" 
+          style="width: 100%; height: 100%; border: none;"
+        />
+        <div v-else class="text-white text-center">
+          <q-icon name="description" size="100px" />
+          <p class="q-mt-md">ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้</p>
+        </div>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
 
 </template>
 
@@ -127,8 +216,10 @@ import {
   outlinedVisibility,
   outlinedDelete,
   outlinedDownload,
+  outlinedAttachment,
 } from "@quasar/extras/material-icons-outlined";
 import reimbursementWelfareService from "src/boot/service/reimbursementWelfareService";
+import healthCheckUpWelfareService from "src/boot/service/healthCheckUpWelfareService";
 
 const router = useRouter();
 const route = useRoute();
@@ -144,6 +235,26 @@ const filter = ref({
   dateSelected: null,
   welfareName: null,
   statusName: null,
+});
+
+// Evidence dialog state
+const evidenceDialog = ref({
+  show: false,
+  loading: false,
+  hasEvidence: false,
+  fileReceipt: null,
+  fileMedicalCertificate: null,
+  fileReceiptUrl: null,
+  fileMedicalUrl: null,
+});
+
+// Preview dialog state
+const previewDialog = ref({
+  show: false,
+  url: null,
+  type: null,
+  fileName: null,
+  serverFileName: null,
 });
 let optionStatus = [
   { statusId: 2, name: "รอตรวจสอบ" },
@@ -501,6 +612,170 @@ async function downloadData(requestId, categoryName, welfareType) {
     });
   }
   finally {
+    notify();
+  }
+}
+
+// Evidence functions
+function getFileName(filename) {
+  if (!filename) return '';
+  return filename.replace(/^\d+-/, '');
+}
+
+function getFileType(filename) {
+  if (!filename) return 'unknown';
+  const ext = filename.split('.').pop().toLowerCase();
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+  if (ext === 'pdf') return 'pdf';
+  return 'unknown';
+}
+
+function isImageFile(filename) {
+  return getFileType(filename) === 'image';
+}
+
+async function showEvidence(requestId, categoryName) {
+  evidenceDialog.value = {
+    show: true,
+    loading: true,
+    hasEvidence: false,
+    fileReceipt: null,
+    fileMedicalCertificate: null,
+    fileReceiptUrl: null,
+    fileMedicalUrl: null,
+  };
+
+  try {
+    // Currently only health check up welfare has evidence files
+    if (categoryName == "สวัสดิการค่าตรวจสุขภาพประจำปี") {
+      const result = await healthCheckUpWelfareService.getWelfareById(requestId);
+      const data = result.data.datas;
+      
+      evidenceDialog.value.fileReceipt = data?.fileReceipt || null;
+      evidenceDialog.value.fileMedicalCertificate = data?.fileMedicalCertificate || null;
+      evidenceDialog.value.hasEvidence = !!(data?.fileReceipt || data?.fileMedicalCertificate);
+
+      // Load image previews
+      if (data?.fileReceipt && isImageFile(data.fileReceipt)) {
+        loadEvidencePreview(data.fileReceipt, 'receipt');
+      }
+      if (data?.fileMedicalCertificate && isImageFile(data.fileMedicalCertificate)) {
+        loadEvidencePreview(data.fileMedicalCertificate, 'medical');
+      }
+    } else {
+      // Other welfare types don't have evidence files yet
+      evidenceDialog.value.hasEvidence = false;
+    }
+  } catch (error) {
+    Notify.create({
+      message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการโหลดข้อมูล',
+      position: 'bottom-left',
+      type: 'negative',
+    });
+  } finally {
+    evidenceDialog.value.loading = false;
+  }
+}
+
+async function loadEvidencePreview(filename, type) {
+  try {
+    const result = await healthCheckUpWelfareService.getFileByName(filename);
+    const ext = filename.split('.').pop().toLowerCase();
+    let mimeType = 'image/jpeg';
+    if (ext === 'png') mimeType = 'image/png';
+    
+    const blob = new Blob([result.data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    
+    if (type === 'receipt') {
+      evidenceDialog.value.fileReceiptUrl = url;
+    } else {
+      evidenceDialog.value.fileMedicalUrl = url;
+    }
+  } catch (error) {
+    console.error('Error loading preview:', error);
+  }
+}
+
+async function previewEvidence(filename) {
+  if (!filename) return;
+  
+  const notify = Notify.create({
+    message: 'กำลังโหลดไฟล์...',
+    position: 'top-right',
+    spinner: true,
+    type: 'info',
+  });
+  
+  try {
+    const result = await healthCheckUpWelfareService.getFileByName(filename);
+    const fileType = getFileType(filename);
+    
+    let mimeType = 'application/octet-stream';
+    if (fileType === 'image') {
+      const ext = filename.split('.').pop().toLowerCase();
+      if (ext === 'png') mimeType = 'image/png';
+      else mimeType = 'image/jpeg';
+    } else if (fileType === 'pdf') {
+      mimeType = 'application/pdf';
+    }
+    
+    const blob = new Blob([result.data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    
+    previewDialog.value = {
+      show: true,
+      url: url,
+      type: fileType,
+      fileName: getFileName(filename),
+      serverFileName: filename,
+    };
+  } catch (error) {
+    Notify.create({
+      message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการโหลดไฟล์',
+      position: 'top-right',
+      type: 'negative',
+    });
+  } finally {
+    notify();
+  }
+}
+
+async function downloadEvidence(filename) {
+  if (!filename) return;
+  
+  const notify = Notify.create({
+    message: 'กำลังดาวน์โหลด...',
+    position: 'top-right',
+    spinner: true,
+    type: 'info',
+  });
+  
+  try {
+    const result = await healthCheckUpWelfareService.getFileByName(filename);
+    
+    const ext = filename.split('.').pop().toLowerCase();
+    let mimeType = 'application/octet-stream';
+    if (ext === 'pdf') mimeType = 'application/pdf';
+    else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
+    else if (ext === 'png') mimeType = 'image/png';
+    
+    const blob = new Blob([result.data], { type: mimeType });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = getFileName(filename);
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (error) {
+    Notify.create({
+      message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการดาวน์โหลด',
+      position: 'top-right',
+      type: 'negative',
+    });
+  } finally {
     notify();
   }
 }

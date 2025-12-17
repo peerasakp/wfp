@@ -9,6 +9,45 @@ const category = require('../enum/category');
 const welfareType = require('../enum/welfareType');
 const { permissionsHasRoles, reimbursementsGeneral, categories,users, sequelize } = require('../models/mariadb');
 const { sendMail } = require('../helper/mail');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// File upload configuration
+const fileFolder = path.join(__dirname, '..', 'public', 'upload', 'health-checkup');
+
+// Ensure directory exists
+if (!fs.existsSync(fileFolder)) {
+    fs.mkdirSync(fileFolder, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: function (req, file, callback) {
+        callback(null, fileFolder);
+    },
+    filename: function (req, file, callback) {
+        const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        callback(null, Date.now() + '-' + originalname);
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('อัปโหลดได้เฉพาะ PDF, JPG, JPEG, PNG เท่านั้น'), false);
+    }
+};
+
+const uploadFiles = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+}).fields([
+    { name: 'fileReceipt', maxCount: 1 },
+    { name: 'fileMedicalCertificate', maxCount: 1 }
+]);
 
 const authPermission = async (req, res, next) => {
     const method = 'AuthPermission';
@@ -583,6 +622,165 @@ const deletedMiddleware = async (req, res, next) => {
         next(error);
     }
 }
+// File upload handler
+const handleFileUpload = (req, res, next) => {
+    const method = 'HandleFileUpload';
+    uploadFiles(req, res, (err) => {
+        if (err) {
+            logger.error(`File upload error: ${err.message}`, { method });
+            return res.status(400).json({ message: err.message });
+        }
+        next();
+    });
+};
+
+// Get file by name
+const getFileByName = async (req, res, next) => {
+    const method = 'getFileByName';
+    try {
+        const { fileName } = req.query;
+
+        if (!fileName) {
+            return res.status(400).json({ message: 'fileName is required' });
+        }
+
+        const filePath = path.join(fileFolder, fileName);
+
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ message: 'ไม่พบไฟล์' });
+        }
+
+        const fileBuffer = fs.readFileSync(filePath);
+        const sanitizedFileName = fileName.replace(/^\d+-/, '');
+        const encodedFileName = encodeURIComponent(sanitizedFileName);
+        const ext = path.extname(fileName).toLowerCase();
+        
+        let contentType = 'application/octet-stream';
+        if (ext === '.pdf') contentType = 'application/pdf';
+        else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+        else if (ext === '.png') contentType = 'image/png';
+
+        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedFileName}`);
+        res.setHeader('Content-Type', contentType);
+        res.send(fileBuffer);
+    } catch (error) {
+        logger.error(`Error ${error.message}`, { method });
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+// Delete file helper
+const deleteFileFromDisk = (fileName) => {
+    if (!fileName) return;
+    const filePath = path.join(fileFolder, fileName);
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+    }
+};
+
+// Upload files for existing record
+const uploadFilesForRecord = async (req, res, next) => {
+    const method = 'uploadFilesForRecord';
+    try {
+        const dataId = req.params['id'];
+        const { id } = req.user;
+
+        // Get current record
+        const record = await reimbursementsGeneral.findOne({
+            where: { id: dataId, categories_id: category.healthCheckup }
+        });
+
+        if (!record) {
+            return res.status(404).json({ message: 'ไม่พบข้อมูล' });
+        }
+
+        const currentData = record.toJSON();
+        const updateData = {};
+
+        // Handle file receipt upload
+        if (req.files && req.files.fileReceipt && req.files.fileReceipt[0]) {
+            // Delete old file if exists
+            if (currentData.file_receipt) {
+                deleteFileFromDisk(currentData.file_receipt);
+            }
+            updateData.file_receipt = req.files.fileReceipt[0].filename;
+        }
+
+        // Handle medical certificate upload
+        if (req.files && req.files.fileMedicalCertificate && req.files.fileMedicalCertificate[0]) {
+            // Delete old file if exists
+            if (currentData.file_medical_certificate) {
+                deleteFileFromDisk(currentData.file_medical_certificate);
+            }
+            updateData.file_medical_certificate = req.files.fileMedicalCertificate[0].filename;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: 'กรุณาอัปโหลดไฟล์' });
+        }
+
+        updateData.updated_by = id;
+
+        await reimbursementsGeneral.update(updateData, {
+            where: { id: dataId }
+        });
+
+        logger.info('Files uploaded successfully', { method, data: { id, dataId } });
+        res.status(200).json({ 
+            message: 'อัปโหลดไฟล์สำเร็จ',
+            files: {
+                fileReceipt: updateData.file_receipt || currentData.file_receipt,
+                fileMedicalCertificate: updateData.file_medical_certificate || currentData.file_medical_certificate
+            }
+        });
+    } catch (error) {
+        logger.error(`Error ${error.message}`, { method });
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+// Delete specific file from record
+const deleteFileFromRecord = async (req, res, next) => {
+    const method = 'deleteFileFromRecord';
+    try {
+        const dataId = req.params['id'];
+        const { fileType } = req.body; // 'receipt' or 'medical_certificate'
+        const { id } = req.user;
+
+        if (!['receipt', 'medical_certificate'].includes(fileType)) {
+            return res.status(400).json({ message: 'ประเภทไฟล์ไม่ถูกต้อง' });
+        }
+
+        const record = await reimbursementsGeneral.findOne({
+            where: { id: dataId, categories_id: category.healthCheckup }
+        });
+
+        if (!record) {
+            return res.status(404).json({ message: 'ไม่พบข้อมูล' });
+        }
+
+        const currentData = record.toJSON();
+        const fieldName = fileType === 'receipt' ? 'file_receipt' : 'file_medical_certificate';
+        
+        if (currentData[fieldName]) {
+            deleteFileFromDisk(currentData[fieldName]);
+            
+            await reimbursementsGeneral.update(
+                { [fieldName]: null, updated_by: id },
+                { where: { id: dataId } }
+            );
+
+            logger.info('File deleted successfully', { method, data: { id, dataId, fileType } });
+            res.status(200).json({ message: 'ลบไฟล์สำเร็จ' });
+        } else {
+            res.status(404).json({ message: 'ไม่พบไฟล์ที่ต้องการลบ' });
+        }
+    } catch (error) {
+        logger.error(`Error ${error.message}`, { method });
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
 module.exports = {
     authPermission,
     bindFilter,
@@ -595,5 +793,9 @@ module.exports = {
     authPermissionEditor,
     checkNullValue,
     checkUpdateRemaining,
-    checkFullPerTimes
+    checkFullPerTimes,
+    handleFileUpload,
+    uploadFilesForRecord,
+    deleteFileFromRecord,
+    getFileByName
 };

@@ -97,6 +97,14 @@ module.exports = function(sequelize, DataTypes) {
         model: 'categories',
         key: 'id'
       }
+    },
+    file_receipt: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_medical_certificate: {
+      type: DataTypes.STRING(255),
+      allowNull: true
     }
   }, {
     sequelize,

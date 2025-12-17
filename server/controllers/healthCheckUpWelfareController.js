@@ -179,6 +179,8 @@ class Controller extends BaseController {
           [col("fund_eligible_sum"), "fundEligibleSum"],
           [col("request_date"), "requestDate"],
           [col("status"), "status"],
+          [col("file_receipt"), "fileReceipt"],
+          [col("file_medical_certificate"), "fileMedicalCertificate"],
           [col("created_by_user.id"), "userId"],
           [col("created_by_user.name"), "name"],
           [col("created_by_user.position.name"), "position"],
