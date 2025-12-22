@@ -10,7 +10,7 @@ const sequelize = new Sequelize(
     process.env.PASSWORD_MARIA,
     {
         host: process.env.HOST_MARIA,
-        dialect: process.env.DIALECT_MARIA,
+        dialect: process.env.DIALECT_MARIA || 'mariadb',
         port: process.env.PORT_MARIA,
         // logging: false,
         logging: (msg, options) => logger.info(msg.replace(/(\r\n|\r|\n)/g, ' '), { method: options.type ?? null, data: { where: options.where ?? null, bind: options.bind ?? null } }),
