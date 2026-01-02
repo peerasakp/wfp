@@ -8,17 +8,21 @@ const { createPdfFuneralDeceaseEmployee } = require('../controllers/export/funer
 const { fetchDataFuneralDeceaseEmployee } = require('../middleware/export/funeralDeceaseEmployee');
 const { createPdfChildrenEducation } = require('../controllers/export/childrenEducation');
 const { fetchDatareimChildrenEducation } = require('../middleware/export/childrenEducation');
+const { authldap, login, signed } = require('../middleware/e-signature/esign.middleware.js');
+
 router.get('/health-check-up/:id', fetchDataHealthCheckup, createPdfGeneral);
 
 router.get('/dental/:id', fetchDataDental, createPdfGeneral);
 
 router.get('/medical/:id', fetchDataMedical, createPdfGeneral);
 
-router.get('/various/:id', fetchDataVarious, createPdfAssist);
+// this is fxcking general อยู่ดีๆก็อยากจะตั้งชื่อประหลาดขึ้นมา
+router.get('/various/:id', fetchDataVarious, signed, createPdfAssist);
 
 router.get('/various-Funeral-Family/:id', fetchDataFuneralFamily, createPdfAssist);
 
 router.get('/funeral-Decease-Employee/:id', fetchDataFuneralDeceaseEmployee, createPdfFuneralDeceaseEmployee);
 
 router.get('/Children-Education/:id', fetchDatareimChildrenEducation, createPdfChildrenEducation);
+
 module.exports = router;

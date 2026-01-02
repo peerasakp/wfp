@@ -1,9 +1,9 @@
 const { initLogger } = require('../../logger');
 const logger = initLogger('ExportAssistCreate');
-var htmlToPdf = require("html-pdf-node");
 const ejs = require("ejs");
 const path = require('path');
 const { bahttext } = require('bahttext');
+const { sign } = require('crypto');
 require('dotenv').config();
 const createPdfAssist = async (req, res, next) => {
     const method = 'CreateAssistData';
@@ -20,6 +20,13 @@ const createPdfAssist = async (req, res, next) => {
         //     headless: true,
         // }
         //);
+        const data = {
+            body: req.body.datas,
+            sign: req.body.eSign,
+            async: true,
+            bahttext,
+            path: process.env.fileAccess
+        }
 
         const cssData = await ejs.renderFile('./templateExport/template.css.ejs', {
             fontPath: process.env.fileAccess,
@@ -29,12 +36,14 @@ const createPdfAssist = async (req, res, next) => {
 
         const receipt = await ejs.renderFile('./templateExport/receiptExport.html.ejs', {
             body: req.body.datas,
+            sign: eSign,
             async: true,
             bahttext,
             path: process.env.fileAccess,
         });
         const receiptFuneralSupport = await ejs.renderFile('./templateExport/receiptFuneralSupportExport.html.ejs', {
             body: req.body.datas,
+            sign: eSign,
             async: true,
             bahttext,
             path: process.env.fileAccess,
