@@ -14,7 +14,7 @@ const path = require('path');
 const fs = require('fs');
 
 // File upload configuration
-const fileFolder = path.join(__dirname, '..', 'public', 'upload', 'health-checkup');
+const fileFolder = path.join(__dirname, '..', 'public', 'upload', 'health-check-up-welfare');
 
 // Ensure directory exists
 if (!fs.existsSync(fileFolder)) {
@@ -678,6 +678,49 @@ const deleteFileFromDisk = (fileName) => {
     }
 };
 
+// Sanitize filename - remove special characters and spaces, preserve Thai characters
+const sanitizeFileName = (name) => {
+    if (!name || name.trim() === '') return 'unknown';
+    // Replace spaces with underscores, preserve Thai characters (U+0E00 to U+0E7F) and alphanumeric
+    // Remove only truly problematic characters for filenames
+    return name
+        .replace(/\s+/g, '_')
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '') // Remove Windows forbidden characters
+        .replace(/_{2,}/g, '_')
+        .trim() || 'unknown';
+};
+
+// Generate receipt filename: receipt-{date}-{userName}.{extension}
+const generateReceiptFileName = (originalFileName, userName, requestDate) => {
+    const ext = path.extname(originalFileName);
+    const date = requestDate ? requestDate.replace(/-/g, '') : new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const sanitizedUserName = sanitizeFileName(userName);
+    return `receipt-${date}-${sanitizedUserName}${ext}`;
+};
+
+// Rename file helper
+const renameFile = (oldFileName, newFileName) => {
+    if (!oldFileName || !newFileName) return null;
+    const oldPath = path.join(fileFolder, oldFileName);
+    const newPath = path.join(fileFolder, newFileName);
+    
+    if (fs.existsSync(oldPath)) {
+        // If new filename already exists, add timestamp to make it unique
+        if (fs.existsSync(newPath)) {
+            const ext = path.extname(newFileName);
+            const nameWithoutExt = path.basename(newFileName, ext);
+            const uniqueFileName = `${nameWithoutExt}-${Date.now()}${ext}`;
+            const uniquePath = path.join(fileFolder, uniqueFileName);
+            fs.renameSync(oldPath, uniquePath);
+            return uniqueFileName;
+        } else {
+            fs.renameSync(oldPath, newPath);
+            return newFileName;
+        }
+    }
+    return null;
+};
+
 // Upload files for existing record
 const uploadFilesForRecord = async (req, res, next) => {
     const method = 'uploadFilesForRecord';
@@ -685,9 +728,16 @@ const uploadFilesForRecord = async (req, res, next) => {
         const dataId = req.params['id'];
         const { id } = req.user;
 
-        // Get current record
+        // Get current record with user information
         const record = await reimbursementsGeneral.findOne({
-            where: { id: dataId, categories_id: category.healthCheckup }
+            where: { id: dataId, categories_id: category.healthCheckup },
+            include: [
+                {
+                    model: users,
+                    as: 'created_by_user',
+                    attributes: ['name']
+                }
+            ]
         });
 
         if (!record) {
@@ -703,7 +753,38 @@ const uploadFilesForRecord = async (req, res, next) => {
             if (currentData.file_receipt) {
                 deleteFileFromDisk(currentData.file_receipt);
             }
-            updateData.file_receipt = req.files.fileReceipt[0].filename;
+            
+            // Get the temporary filename from multer
+            const tempFileName = req.files.fileReceipt[0].filename;
+            
+            // Get user name - try from included user, or fetch directly if not available
+            let userName = currentData.created_by_user?.name;
+            if (!userName || userName.trim() === '') {
+                // If user name is not loaded, fetch it directly
+                const userRecord = await users.findByPk(currentData.created_by);
+                if (userRecord) {
+                    userName = userRecord.name;
+                }
+            }
+            
+            // Fallback to 'unknown' if still no name
+            if (!userName || userName.trim() === '') {
+                userName = 'unknown';
+            }
+            
+            // Generate new filename: receipt-{date}-{userName}.{extension}
+            const requestDate = currentData.request_date || null;
+            const newFileName = generateReceiptFileName(tempFileName, userName, requestDate);
+            
+            // Rename the file
+            const finalFileName = renameFile(tempFileName, newFileName);
+            
+            if (finalFileName) {
+                updateData.file_receipt = finalFileName;
+            } else {
+                // If rename failed, use the temp filename
+                updateData.file_receipt = tempFileName;
+            }
         }
 
         // Handle medical certificate upload

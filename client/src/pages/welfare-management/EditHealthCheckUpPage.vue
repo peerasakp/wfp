@@ -129,7 +129,7 @@
               <!-- Receipt File -->
               <div class="col-12">
                 <p class="q-mb-sm">1. ใบเสร็จรับเงิน</p>
-                <div v-if="isView && model.fileReceipt" class="q-ml-md">
+                <div v-if="model.fileReceipt" class="q-ml-md">
                   <q-chip
                     color="blue-1"
                     text-color="blue-9"
@@ -163,14 +163,14 @@
                     </q-btn>
                   </div>
                 </div>
-                <div v-else-if="isView" class="q-ml-md text-grey-5 font-14">
+                <div v-else class="q-ml-md text-grey-5 font-14">
                   ไม่มีไฟล์
                 </div>
               </div>
               <!-- Medical Certificate File -->
               <div class="col-12">
                 <p class="q-mb-sm">2. ใบรับรองแพทย์</p>
-                <div v-if="isView && model.fileMedicalCertificate" class="q-ml-md">
+                <div v-if="model.fileMedicalCertificate" class="q-ml-md">
                   <q-chip
                     color="blue-1"
                     text-color="blue-9"
@@ -203,8 +203,18 @@
                       <q-tooltip>ดาวน์โหลด</q-tooltip>
                     </q-btn>
                   </div>
+                  <!-- Inline Image Preview for Medical Certificate -->
+                  <div v-if="isImageFile(model.fileMedicalCertificate)" class="q-mt-sm">
+                    <img 
+                      :src="fileMedicalPreviewUrl" 
+                      style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd;"
+                      @click="previewFile(model.fileMedicalCertificate)"
+                      v-if="fileMedicalPreviewUrl"
+                    />
+                    <q-spinner v-else color="primary" size="30px" />
+                  </div>
                 </div>
-                <div v-else-if="isView" class="q-ml-md text-grey-5 font-14">
+                <div v-else class="q-ml-md text-grey-5 font-14">
                   ไม่มีไฟล์
                 </div>
               </div>
@@ -319,6 +329,10 @@ const previewDialog = ref({
   type: null,
   fileName: null,
 });
+
+// Inline preview URLs for view mode
+const fileReceiptPreviewUrl = ref(null);
+const fileMedicalPreviewUrl = ref(null);
 let options = ref([]);
 const isLoading = ref(false);
 const isError = ref({});
@@ -501,6 +515,14 @@ async function fetchDataEdit() {
         row.value[2].isInput = true;
         row.value[2].fundEligible = returnedData?.fundEligible;
         row.value[2].fundEligibleName = returnedData?.fundEligibleName;
+        
+        // Load inline previews for image files
+        if (returnedData?.fileReceipt) {
+          loadInlinePreview(returnedData.fileReceipt, 'receipt');
+        }
+        if (returnedData?.fileMedicalCertificate) {
+          loadInlinePreview(returnedData.fileMedicalCertificate, 'medical');
+        }
       }
     } catch (error) {
       router.replace({ name: "welfare_management_list" });
@@ -708,13 +730,18 @@ async function submit(actionId) {
   });
 }
 // File helper functions
-function getFileName(fileName) {
-  if (!fileName) return '';
-  const parts = fileName.split('-');
-  if (parts.length > 2) {
-    return parts.slice(2).join('-');
+function getFileName(filename) {
+  if (!filename) return '';
+  // Handle new format: receipt-YYYYMMDD-UserName.ext
+  if (filename.startsWith('receipt-')) {
+    // Extract the user name and extension from receipt-YYYYMMDD-UserName.ext
+    const match = filename.match(/^receipt-\d{8}-(.+)$/);
+    if (match && match[1]) {
+      return match[1]; // Return UserName.ext
+    }
   }
-  return fileName;
+  // Fallback: remove timestamp prefix for old format
+  return filename.replace(/^\d+-/, '');
 }
 
 function getFileType(fileName) {
@@ -723,6 +750,32 @@ function getFileType(fileName) {
   if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
   if (ext === 'pdf') return 'pdf';
   return 'unknown';
+}
+
+function isImageFile(filename) {
+  return getFileType(filename) === 'image';
+}
+
+async function loadInlinePreview(filename, type) {
+  if (!filename || !isImageFile(filename)) return;
+  
+  try {
+    const result = await healthCheckUpWelfareService.getFileByName(filename);
+    const ext = filename.split('.').pop().toLowerCase();
+    let mimeType = 'image/jpeg';
+    if (ext === 'png') mimeType = 'image/png';
+    
+    const blob = new Blob([result.data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    
+    if (type === 'receipt') {
+      fileReceiptPreviewUrl.value = url;
+    } else {
+      fileMedicalPreviewUrl.value = url;
+    }
+  } catch (error) {
+    console.error('Error loading preview:', error);
+  }
 }
 
 async function previewFile(fileName) {

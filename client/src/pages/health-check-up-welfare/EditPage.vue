@@ -226,16 +226,6 @@
                   </div>
                   <span v-else-if="isView && !model.fileReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <!-- Inline Image Preview for Receipt -->
-                <div v-if="isView && model.fileReceipt && isImageFile(model.fileReceipt)" class="q-mt-sm">
-                  <img 
-                    :src="fileReceiptPreviewUrl" 
-                    style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd;"
-                    @click="previewFile(null, model.fileReceipt)"
-                    v-if="fileReceiptPreviewUrl"
-                  />
-                  <q-spinner v-else color="primary" size="30px" />
-                </div>
               </div>
 
               <!-- Medical Certificate File Upload -->
@@ -798,6 +788,15 @@ function abortFilterFn() {
 
 function getFileName(filename) {
   if (!filename) return '';
+  // Handle new format: receipt-YYYYMMDD-UserName.ext
+  if (filename.startsWith('receipt-')) {
+    // Extract the user name and extension from receipt-YYYYMMDD-UserName.ext
+    const match = filename.match(/^receipt-\d{8}-(.+)$/);
+    if (match && match[1]) {
+      return match[1]; // Return UserName.ext
+    }
+  }
+  // Fallback: remove timestamp prefix for old format
   return filename.replace(/^\d+-/, '');
 }
 
