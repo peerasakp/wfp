@@ -579,6 +579,8 @@ CREATE TABLE `reimbursements_general` (
   `updated_by` bigint(20) NOT NULL,
   `created_by` bigint(20) NOT NULL,
   `categories_id` bigint(20) NOT NULL,
+  `file_receipt` varchar(255) DEFAULT NULL,
+  `file_medical_certificate` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_reimbursements_general_users1_idx` (`created_by`),
   KEY `fk_reimbursements_general_categories1_idx` (`categories_id`),
