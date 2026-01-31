@@ -2,6 +2,7 @@ const { initLogger } = require('../../logger');
 const logger = initLogger('ExportAssistCreate');
 const ejs = require("ejs");
 const { bahttext } = require('bahttext');
+const { sign } = require('jsonwebtoken');
 require('dotenv').config();
 
 
@@ -47,6 +48,7 @@ const createPdfAssist = async (req, res, next) => {
         const data = {
             body: req.body.datas,
             sign: req.body.esign,
+            signedAt: req.body.signedAt,
             bahttext,
             path: process.env.fileAccess
         }
@@ -60,6 +62,7 @@ const createPdfAssist = async (req, res, next) => {
         const html = await ejs.renderFile('./templateExport/assistExport.html.ejs', {
             body: req.body.datas,
             sign: req.body.esign,
+            signedAt: req.body.signedAt,
             receipt: receipt,
             receiptFuneralSupport: receiptFuneralSupport,
             async: true,

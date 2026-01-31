@@ -52,10 +52,29 @@ const signed = async (req, res, next) => {
             }
         )
         req.body.esign = respone.data
+        req.body.signedAt = signedDate()
         next()
     }catch(error){
         console.log("signed error : ",error);
     }
+}
+
+// signedDate()
+// This function is used to calculate signed date.
+const signedDate = () => {
+    const today = new Date(
+        new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok'})
+    )
+    const monthsTH = [
+        'มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+        'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'
+    ]
+    const formatedDate = {
+        day: today.getDate(),
+        month: monthsTH[today.getMonth()],
+        year: today.getFullYear() + 543
+    }
+    return formatedDate
 }
 
 module.exports = {
