@@ -1,8 +1,6 @@
 const { initLogger } = require('../../logger');
 const logger = initLogger('ExportAssistCreate');
-var htmlToPdf = require("html-pdf-node");
 const ejs = require("ejs");
-const path = require('path');
 const { bahttext } = require('bahttext');
 const fs = require('fs');
 require('dotenv').config();
@@ -29,26 +27,53 @@ const createPdfAssist = async (req, res, next) => {
             headless: true,
         });
 
+        // //////////////////////////////////
+
+
+
+        const base64String = req.body.esign.result.SIGN_BASE64;
+
+        var base64Data = base64String.replace(/^data:image\/png;base64,/, "");
+
+        // require("fs").writeFile("out3.png", base64Data, 'base64', function (err) {
+        //     console.log(err);
+        // });
+
+
+
+        // Usage
+        //     const myFile = base64ToImageFile(req.body.esign.result.SIGN_BASE64, "image.png");
+
+        //////////////////////////////////
+
+
+        const puppeteer = require('puppeteer');
+        browser = await puppeteer.launch()
+        //     {
+        //     executablePath: '/usr/bin/chromium-browser',
+        //     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-file-access-from-files'],
+        //     // timeout: 5000,
+        //     headless: true,
+        // }
+        //);
+        const data = {
+            body: req.body.datas,
+            sign: req.body.esign,
+            signedAt: req.body.signedAt,
+            bahttext,
+            path: process.env.fileAccess
+        }
         const cssData = await ejs.renderFile('./templateExport/template.css.ejs', {
             fontPath: process.env.fileAccess,
             fontSize: 14,
             textColor: '#333',
         });
-
-        const receipt = await ejs.renderFile('./templateExport/receiptExport.html.ejs', {
-            body: req.body.datas,
-            async: true,
-            bahttext,
-            path: process.env.fileAccess,
-        });
-        const receiptFuneralSupport = await ejs.renderFile('./templateExport/receiptFuneralSupportExport.html.ejs', {
-            body: req.body.datas,
-            async: true,
-            bahttext,
-            path: process.env.fileAccess,
-        });
+        const receipt = await ejs.renderFile('./templateExport/receiptExport.html.ejs', data, { async: true });
+        const receiptFuneralSupport = await ejs.renderFile('./templateExport/receiptFuneralSupportExport.html.ejs', data, { async: true });
         const html = await ejs.renderFile('./templateExport/assistExport.html.ejs', {
             body: req.body.datas,
+            sign: req.body.esign,
+            signedAt: req.body.signedAt,
             receipt: receipt,
             receiptFuneralSupport: receiptFuneralSupport,
             async: true,

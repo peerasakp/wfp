@@ -34,4 +34,5 @@ router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, che
 router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
 
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsGeneralController.delete);
+
 module.exports = router;
