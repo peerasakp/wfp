@@ -16,7 +16,6 @@ router.get('/dental/:id', fetchDataDental, createPdfGeneral);
 
 router.get('/medical/:id', fetchDataMedical, createPdfGeneral);
 
-// this is fxcking general อยู่ดีๆก็อยากจะตั้งชื่อประหลาดขึ้นมา
 router.get('/various/:id', fetchDataVarious, signed, createPdfAssist);
 
 router.get('/various-Funeral-Family/:id', fetchDataFuneralFamily, createPdfAssist);
