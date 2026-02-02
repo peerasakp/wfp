@@ -23,42 +23,46 @@ const healthCheck = composer([
 ])
 
 // กรณีเจ็บป่วย
-const medical = async () => {
-    fetchDataMedical
-    await signed
+const medical = composer([
+    fetchDataMedical,
+    signed,
     createPdfGeneral
-}
+])
+
 // ทำฟัน
-const dental = async () => {
-    fetchDataDental
-    await signed
+const dental = composer([
+    fetchDataDental,
+    signed,
     createPdfGeneral
-}
+])
+
 // ค่าสงเคราะห์ต่าง ๆ
-const various = async () => {
-    fetchDataVarious
-    await signed
+const various = composer([
+    fetchDataVarious,
+    signed,
     createPdfAssist
-}
+])
+    
 // สงเคราะห์การศึกษาบุตร
-const childEducation = async () => {
-    fetchDatareimChildrenEducation
-    await signed
+const childEducation = composer([
+    fetchDatareimChildrenEducation,
+    signed,
     createPdfChildrenEducation
-} 
+])
 
 // สงเคราะห์การเสียชีวิตครอบครัว 
-const funeralFamily = async () => {
-    fetchDataFuneralFamily
-    await signed
+const funeralFamily = composer([
+    fetchDataFuneralFamily,
+    signed,
     createPdfAssist
-}
+])
 
 // สงเคราะห์การเสียชีวิตผู้ปฏิบัติงาน
-const funeralEmployee = async () => {
-    fetchDataFuneralDeceaseEmployee
-    createPdfFuneralDeceaseEmployee
-}
+const funeralEmployee = composer([
+    fetchDataFuneralDeceaseEmployee,
+    createPdfFuneralDeceaseEmployee 
+])
+
 module.exports = {
     healthCheck,
     medical,

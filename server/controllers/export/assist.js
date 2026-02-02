@@ -2,7 +2,6 @@ const { initLogger } = require('../../logger');
 const logger = initLogger('ExportAssistCreate');
 const ejs = require("ejs");
 const { bahttext } = require('bahttext');
-const { sign } = require('jsonwebtoken');
 require('dotenv').config();
 
 
@@ -18,12 +17,8 @@ const createPdfAssist = async (req, res, next) => {
 
         // //////////////////////////////////
 
-
-
-        const base64String = req.body.esign.result.SIGN_BASE64;
-
-        var base64Data = base64String.replace(/^data:image\/png;base64,/, "");
-
+        // const base64String = req.body.esign.result.SIGN_BASE64;
+        // var base64Data = base64String.replace(/^data:image\/png;base64,/, "");
         // require("fs").writeFile("out3.png", base64Data, 'base64', function (err) {
         //     console.log(err);
         // });
@@ -37,6 +32,11 @@ const createPdfAssist = async (req, res, next) => {
 
 
         const puppeteer = require('puppeteer');
+        const fs = require('fs');
+        const path = require('path');
+        
+        const outDoucment_Directory = path.join(__dirname, '../../document')
+
         browser = await puppeteer.launch()
         //     {
         //     executablePath: '/usr/bin/chromium-browser',
@@ -70,18 +70,28 @@ const createPdfAssist = async (req, res, next) => {
             cssStyles: `<style>${cssData}</style>`,
         });
 
+        const fileName = `welfare_${req.body?.datas?.reimNumber}.pdf`;
+        const filePath = path.join(outDoucment_Directory, fileName);
+
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: 'networkidle0' });
-        const pdfBuffer = await page.pdf({ format: 'A4' });
-        await browser.close();
-
-        res.writeHead(200, {
-            "Content-Type": "application/pdf",
-            "Content-Disposition": `attachment; filename="welfare_${req.body?.datas?.reimNumber}.pdf"`,
+        await page.pdf({ 
+            path: filePath,
+            format: 'A4' 
         });
-        res.end(pdfBuffer);
+
+        await browser.close();
+        // res.writeHead(200, {
+        //     "Content-Type": "application/pdf",
+        //     "Content-Disposition": `attachment; filename="welfare_${req.body?.datas?.reimNumber}.pdf"`,
+        // });
+        // res.end(pdfBuffer);
 
         logger.info('Complete', { method, data: { id } });
+        res.status(200).json({
+            success: true,
+            fileName,
+        });
     } catch (error) {
         if (browser) {
             await browser.close();
