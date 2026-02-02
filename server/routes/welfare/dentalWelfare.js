@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const reimbursementsGeneralController = require('../controllers/healthCheckUpWelfareController');
+const reimbursementsGeneralController = require('../../controllers/dentalWelfareController');
 const {
     authPermission,
     bindFilter,
@@ -14,7 +14,7 @@ const {
     checkNullValue,
     checkUpdateRemaining,
     checkFullPerTimes
-} = require('../middleware/healthCheckUpWelfare')
+} = require('../../middleware/dentalWelfare')
 
 router.get('/', authPermission, bindFilter, reimbursementsGeneralController.list);
 router.get('/remaining', authPermission, getRemaining, reimbursementsGeneralController.getRemaining);
@@ -27,5 +27,4 @@ router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, che
 router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
 
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsGeneralController.delete);
-
 module.exports = router;

@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const reimbursementsEmployeeDeceasedController = require('../controllers/funeralWelfareEmployeeDeceasedController');
+const reimbursementsEmployeeDeceasedController = require('../../controllers/funeralWelfareEmployeeDeceasedController');
 const {
     authPermission,
     bindFilter,
@@ -14,7 +14,7 @@ const {
     checkNullValue,
     checkUpdateRemaining,
     checkFullPerTimes
-} = require('../middleware/funeralWelfareEmployeeDeceased')
+} = require('../../middleware/funeralWelfareEmployeeDeceased')
 
 router.get('/', authPermission, bindFilter, reimbursementsEmployeeDeceasedController.list);
 router.get('/remaining', authPermission, getRemaining, reimbursementsEmployeeDeceasedController.getRemaining);

@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const reimbursementsAssistController = require('../controllers/variousWelfareController');
+const reimbursementsAssistController = require('../../controllers/variousWelfareController');
 const {
     authPermission,
     bindFilter,
@@ -14,9 +14,9 @@ const {
     checkNullValue,
     checkUpdateRemaining,
     checkFullPerTimes
-} = require('../middleware/variousWelfare')
+} = require('../../middleware/variousWelfare')
 
-const { various } = require('../middleware/pdf-management/pdfManagement.middleware')
+const { various } = require('../../middleware/pdf-management/pdfManagement.middleware')
 
 router.get('/', authPermission, bindFilter, reimbursementsAssistController.list);
 router.get('/remaining', authPermission, getRemaining, reimbursementsAssistController.getRemaining);

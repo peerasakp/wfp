@@ -6,7 +6,7 @@ const {
   getName,
   getByName,
   deleteFile
-} = require("../middleware/file");
+} = require("../../middleware/file");
 
 router.get("/", getName);
 router.get("/get-by-name", getByName);

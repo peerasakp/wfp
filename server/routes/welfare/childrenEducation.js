@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const reimbursementChildrenEducationController = require('../controllers/reimbursementChildrenEducationController');
+const reimbursementChildrenEducationController = require('../../controllers/reimbursementChildrenEducationController');
 const { authPermission,
         bindFilter,
         getRemaining, 
@@ -12,7 +12,7 @@ const { authPermission,
         authPermissionEditor, 
         checkNullValue,
         checkUpdateRemaining 
-    } = require('../middleware/childrenEducation');
+    } = require('../../middleware/childrenEducation');
 
 router.get('/', authPermission, bindFilter, reimbursementChildrenEducationController.list);
 router.get('/remaining/', authPermission, getRemaining , reimbursementChildrenEducationController.getRemainingChildFund);
