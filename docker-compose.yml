@@ -36,7 +36,6 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - ./WFB_Database_010568.sql:/docker-entrypoint-initdb.d/WFB_Database_010568.sql
-      - ./server/migrations/add_file_columns_to_reimbursements_general.sql:/docker-entrypoint-initdb.d/02_add_file_columns.sql
       - mysql_data:/var/lib/mysql
     expose:
       - "3306"

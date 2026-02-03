@@ -99,7 +99,13 @@ app.use("/home", auth, homeRouter);
 // error handling
 app.use((error, req, res, next) => {
   logger.error(`Internal Server Error: ${error.message}`);
-  res.status(500).send("Internal Server Error");
+  const status = error.status ?? error.statusCode ?? 500;
+  const message = error.message || "Internal Server Error";
+  if (req.headers["accept"]?.includes("application/json")) {
+    res.status(status).json({ message });
+  } else {
+    res.status(status).send(message);
+  }
 });
 app.listen(process.env.PORT, () => {
   console.log(`Server running at http://localhost:${process.env.PORT}`);

@@ -1177,16 +1177,26 @@ async function submit(actionId) {
         }
         isValid = true;
       } catch (error) {
+        const data = error?.response?.data;
         if (error?.response?.status == 400) {
-          if (Object.keys(error?.response?.data?.errors ?? {}).length) {
+          const errObj = data?.errors ?? {};
+          if (Object.keys(errObj).length) {
             isError.value = {
               ...isError.value,
-              ...error.response?.data?.errors,
+              ...errObj,
             };
           }
         }
+        const errMsg =
+          data?.message ??
+          (typeof data === "string" ? data : null) ??
+          (data?.errors && typeof data.errors === "object"
+            ? Object.values(data.errors).filter(Boolean).join("<br/>")
+            : null) ??
+          error?.message ??
+          "เกิดข้อผิดพลาดกรุณาลองอีกครั้ง";
         Swal.fire({
-          html: error?.response?.data?.message ?? `เกิดข้อผิดพลาดกรุณาลองอีกครั้ง`,
+          html: errMsg,
           icon: "error",
           confirmButtonText: "ตกลง",
           customClass: {

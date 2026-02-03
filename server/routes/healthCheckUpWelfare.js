@@ -23,8 +23,8 @@ const {
 router.get('/', authPermission, bindFilter, reimbursementsGeneralController.list);
 router.get('/remaining', authPermission, getRemaining, reimbursementsGeneralController.getRemaining);
 router.get('/file/get-by-name', authPermission, getFileByName);
-router.get('/:id', authPermission, byIdMiddleWare, reimbursementsGeneralController.getById);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsGeneralController.getById);
+router.get('/:id', authPermission, byIdMiddleWare, reimbursementsGeneralController.getById);
 
 router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create);
 router.post('/file/upload/:id', authPermission, handleFileUpload, uploadFilesForRecord);
