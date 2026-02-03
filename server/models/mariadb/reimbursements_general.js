@@ -105,6 +105,18 @@ module.exports = function(sequelize, DataTypes) {
     file_medical_certificate: {
       type: DataTypes.STRING(255),
       allowNull: true
+    },
+    file_supervisor_letter: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_receipt_patient_visit: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_medical_certificate_patient_visit: {
+      type: DataTypes.STRING(255),
+      allowNull: true
     }
   }, {
     sequelize,

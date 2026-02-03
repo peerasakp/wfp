@@ -41,7 +41,10 @@ const uploadFiles = multer({
     limits: { fileSize: 10 * 1024 * 1024 }
 }).fields([
     { name: 'fileReceipt', maxCount: 1 },
-    { name: 'fileMedicalCertificate', maxCount: 1 }
+    { name: 'fileMedicalCertificate', maxCount: 1 },
+    { name: 'fileSupervisorLetter', maxCount: 1 },
+    { name: 'fileReceiptPatientVisit', maxCount: 1 },
+    { name: 'fileMedicalCertificatePatientVisit', maxCount: 1 }
 ]);
 
 const authPermission = async (req, res, next) => {
@@ -921,10 +924,30 @@ const uploadFilesForRecord = async (req, res, next) => {
             updateData.file_receipt = finalFileName || tempFileName;
         }
         if (req.files && req.files.fileMedicalCertificate && req.files.fileMedicalCertificate[0]) {
-            if (currentData.file_medical_certificate) {
-                deleteFileFromDisk(currentData.file_medical_certificate);
-            }
+            if (currentData.file_medical_certificate) deleteFileFromDisk(currentData.file_medical_certificate);
             updateData.file_medical_certificate = req.files.fileMedicalCertificate[0].filename;
+        }
+        if (req.files && req.files.fileSupervisorLetter && req.files.fileSupervisorLetter[0]) {
+            if (currentData.file_supervisor_letter) deleteFileFromDisk(currentData.file_supervisor_letter);
+            updateData.file_supervisor_letter = req.files.fileSupervisorLetter[0].filename;
+        }
+        if (req.files && req.files.fileReceiptPatientVisit && req.files.fileReceiptPatientVisit[0]) {
+            if (currentData.file_receipt_patient_visit) deleteFileFromDisk(currentData.file_receipt_patient_visit);
+            const tempFileName = req.files.fileReceiptPatientVisit[0].filename;
+            let userName = currentData.created_by_user?.name;
+            if (!userName || userName.trim() === '') {
+                const userRecord = await users.findByPk(currentData.created_by);
+                if (userRecord) userName = userRecord.name;
+            }
+            if (!userName || userName.trim() === '') userName = 'unknown';
+            const requestDate = currentData.request_date || null;
+            const newFileName = 'visit-' + generateReceiptFileName(tempFileName, userName, requestDate);
+            const finalFileName = renameFile(tempFileName, newFileName);
+            updateData.file_receipt_patient_visit = finalFileName || tempFileName;
+        }
+        if (req.files && req.files.fileMedicalCertificatePatientVisit && req.files.fileMedicalCertificatePatientVisit[0]) {
+            if (currentData.file_medical_certificate_patient_visit) deleteFileFromDisk(currentData.file_medical_certificate_patient_visit);
+            updateData.file_medical_certificate_patient_visit = req.files.fileMedicalCertificatePatientVisit[0].filename;
         }
         if (Object.keys(updateData).length === 0) {
             return res.status(400).json({ message: 'กรุณาอัปโหลดไฟล์' });
@@ -935,8 +958,11 @@ const uploadFilesForRecord = async (req, res, next) => {
         res.status(200).json({
             message: 'อัปโหลดไฟล์สำเร็จ',
             files: {
-                fileReceipt: updateData.file_receipt || currentData.file_receipt,
-                fileMedicalCertificate: updateData.file_medical_certificate || currentData.file_medical_certificate
+                fileReceipt: updateData.file_receipt ?? currentData.file_receipt,
+                fileMedicalCertificate: updateData.file_medical_certificate ?? currentData.file_medical_certificate,
+                fileSupervisorLetter: updateData.file_supervisor_letter ?? currentData.file_supervisor_letter,
+                fileReceiptPatientVisit: updateData.file_receipt_patient_visit ?? currentData.file_receipt_patient_visit,
+                fileMedicalCertificatePatientVisit: updateData.file_medical_certificate_patient_visit ?? currentData.file_medical_certificate_patient_visit
             }
         });
     } catch (error) {
@@ -951,7 +977,14 @@ const deleteFileFromRecord = async (req, res, next) => {
         const dataId = req.params['id'];
         const { fileType } = req.body;
         const { id } = req.user;
-        if (!['receipt', 'medical_certificate'].includes(fileType)) {
+        const fieldMap = {
+            receipt: 'file_receipt',
+            medical_certificate: 'file_medical_certificate',
+            supervisor_letter: 'file_supervisor_letter',
+            receipt_patient_visit: 'file_receipt_patient_visit',
+            medical_certificate_patient_visit: 'file_medical_certificate_patient_visit'
+        };
+        if (!fieldMap[fileType]) {
             return res.status(400).json({ message: 'ประเภทไฟล์ไม่ถูกต้อง' });
         }
         const record = await reimbursementsGeneral.findOne({
@@ -961,7 +994,7 @@ const deleteFileFromRecord = async (req, res, next) => {
             return res.status(404).json({ message: 'ไม่พบข้อมูล' });
         }
         const currentData = record.toJSON();
-        const fieldName = fileType === 'receipt' ? 'file_receipt' : 'file_medical_certificate';
+        const fieldName = fieldMap[fileType];
         if (currentData[fieldName]) {
             deleteFileFromDisk(currentData[fieldName]);
             await reimbursementsGeneral.update(

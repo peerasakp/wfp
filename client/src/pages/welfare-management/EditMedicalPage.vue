@@ -187,6 +187,7 @@
             </q-card-section>
             <q-separator />
             <q-card-section class="row wrap q-col-gutter-y-md font-medium font-16 text-grey-7">
+              <p class="col-12 q-mb-sm q-mt-none font-bold text-black">ประสบอุบัติเหตุขณะปฏิบัติหน้าที่</p>
               <div class="col-12">
                 <p class="q-mb-xs">1. ใบสำคัญรับเงิน</p>
                 <div v-if="model.fileReceipt" class="row items-center q-gutter-sm q-mb-sm">
@@ -194,11 +195,7 @@
                   <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileReceipt)" title="ดูตัวอย่าง" />
                   <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceipt)" title="ดาวน์โหลด" />
                 </div>
-                <img v-if="model.fileReceipt && isImageFile(model.fileReceipt) && fileReceiptPreviewUrl"
-                  :src="fileReceiptPreviewUrl"
-                  style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; margin-top: 4px;"
-                  @click="previewFile(model.fileReceipt)"
-                />
+                <img v-if="model.fileReceipt && isImageFile(model.fileReceipt) && fileReceiptPreviewUrl" :src="fileReceiptPreviewUrl" style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; margin-top: 4px;" @click="previewFile(model.fileReceipt)" />
                 <p v-else-if="!model.fileReceipt" class="text-grey-5 font-14 q-mb-none">ไม่มีไฟล์แนบ</p>
               </div>
               <div class="col-12">
@@ -208,16 +205,38 @@
                   <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileMedicalCertificate)" title="ดูตัวอย่าง" />
                   <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileMedicalCertificate)" title="ดาวน์โหลด" />
                 </div>
-                <img v-if="model.fileMedicalCertificate && isImageFile(model.fileMedicalCertificate) && fileMedicalPreviewUrl"
-                  :src="fileMedicalPreviewUrl"
-                  style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; margin-top: 4px;"
-                  @click="previewFile(model.fileMedicalCertificate)"
-                />
+                <img v-if="model.fileMedicalCertificate && isImageFile(model.fileMedicalCertificate) && fileMedicalPreviewUrl" :src="fileMedicalPreviewUrl" style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; margin-top: 4px;" @click="previewFile(model.fileMedicalCertificate)" />
                 <p v-else-if="!model.fileMedicalCertificate" class="text-grey-5 font-14 q-mb-none">ไม่มีไฟล์แนบ</p>
               </div>
-              <p class="col-12 q-mb-none font-bold text-black">ประสบอุบัติเหตุขณะปฏิบัติหน้าที่</p>
-              <p class="col-12 q-mb-none">3. หนังสือรับรองของหัวหน้าส่วนงาน</p>
-              <p class="col-12 q-mb-none font-bold text-black">ค่าเยี่ยมไข้ผู้ปฏิบัติงาน</p>
+              <div class="col-12">
+                <p class="q-mb-xs">3. หนังสือรับรองของหัวหน้าส่วนงาน</p>
+                <div v-if="model.fileSupervisorLetter" class="row items-center q-gutter-sm q-mb-sm">
+                  <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileSupervisorLetter)" size="sm" />
+                  <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileSupervisorLetter)" title="ดูตัวอย่าง" />
+                  <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileSupervisorLetter)" title="ดาวน์โหลด" />
+                </div>
+                <p v-else class="text-grey-5 font-14 q-mb-none">ไม่มีไฟล์แนบ</p>
+              </div>
+              <p class="col-12 q-mb-sm q-mt-sm font-bold text-black">ค่าเยี่ยมไข้ผู้ปฏิบัติงาน</p>
+              <div class="col-12">
+                <p class="q-mb-xs">1. ใบสำคัญรับเงิน</p>
+                <div v-if="model.fileReceiptPatientVisit" class="row items-center q-gutter-sm q-mb-sm">
+                  <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileReceiptPatientVisit)" size="sm" />
+                  <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileReceiptPatientVisit)" title="ดูตัวอย่าง" />
+                  <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceiptPatientVisit)" title="ดาวน์โหลด" />
+                </div>
+                <p v-else class="text-grey-5 font-14 q-mb-none">ไม่มีไฟล์แนบ</p>
+              </div>
+              <div class="col-12">
+                <p class="q-mb-xs">2. ใบรับรองแพทย์</p>
+                <div v-if="model.fileMedicalCertificatePatientVisit" class="row items-center q-gutter-sm q-mb-sm">
+                  <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileMedicalCertificatePatientVisit)" size="sm" />
+                  <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileMedicalCertificatePatientVisit)" title="ดูตัวอย่าง" />
+                  <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileMedicalCertificatePatientVisit)" title="ดาวน์โหลด" />
+                </div>
+                <img v-if="model.fileMedicalCertificatePatientVisit && isImageFile(model.fileMedicalCertificatePatientVisit) && fileMedicalVisitPreviewUrl" :src="fileMedicalVisitPreviewUrl" style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; margin-top: 4px;" @click="previewFile(model.fileMedicalCertificatePatientVisit)" />
+                <p v-else-if="!model.fileMedicalCertificatePatientVisit" class="text-grey-5 font-14 q-mb-none">ไม่มีไฟล์แนบ</p>
+              </div>
             </q-card-section>
           </q-card>
         </div>
@@ -300,6 +319,9 @@ const model = ref({
   endDate: null,
   fileReceipt: null,
   fileMedicalCertificate: null,
+  fileSupervisorLetter: null,
+  fileReceiptPatientVisit: null,
+  fileMedicalCertificatePatientVisit: null,
 });
 const userData = ref({});
 const remaining = ref({
@@ -317,6 +339,7 @@ const isView = ref(false);
 const userInitialData = ref([]);
 const fileReceiptPreviewUrl = ref(null);
 const fileMedicalPreviewUrl = ref(null);
+const fileMedicalVisitPreviewUrl = ref(null);
 const previewDialog = ref({ show: false, url: null, type: null, fileName: null, serverFileName: null });
 const isEdit = computed(() => {
   return !isNaN(route.params.id);
@@ -495,10 +518,14 @@ async function fetchDataEdit() {
           fundEligibleSum: returnedData?.fundEligibleSum,
           fileReceipt: returnedData?.fileReceipt,
           fileMedicalCertificate: returnedData?.fileMedicalCertificate,
+          fileSupervisorLetter: returnedData?.fileSupervisorLetter,
+          fileReceiptPatientVisit: returnedData?.fileReceiptPatientVisit,
+          fileMedicalCertificatePatientVisit: returnedData?.fileMedicalCertificatePatientVisit,
         };
         if (isView.value) {
           if (returnedData?.fileReceipt) loadInlinePreview(returnedData.fileReceipt, 'receipt');
           if (returnedData?.fileMedicalCertificate) loadInlinePreview(returnedData.fileMedicalCertificate, 'medical');
+          if (returnedData?.fileMedicalCertificatePatientVisit) loadInlinePreview(returnedData.fileMedicalCertificatePatientVisit, 'medicalVisit');
         }
         userData.value = {
           name: returnedData?.user.name,
@@ -651,6 +678,10 @@ async function downloadData() {
 }
 function getFileName(filename) {
   if (!filename) return '';
+  if (filename.startsWith('visit-receipt-')) {
+    const match = filename.match(/^visit-receipt-\d{8}-(.+)$/);
+    if (match && match[1]) return match[1];
+  }
   if (filename.startsWith('receipt-')) {
     const match = filename.match(/^receipt-\d{8}-(.+)$/);
     if (match && match[1]) return match[1];
@@ -676,7 +707,8 @@ async function loadInlinePreview(filename, type) {
     const blob = new Blob([result.data], { type: mimeType });
     const url = URL.createObjectURL(blob);
     if (type === 'receipt') fileReceiptPreviewUrl.value = url;
-    else fileMedicalPreviewUrl.value = url;
+    else if (type === 'medical') fileMedicalPreviewUrl.value = url;
+    else if (type === 'medicalVisit') fileMedicalVisitPreviewUrl.value = url;
   } catch (error) {
     console.error('Error loading preview:', error);
   }

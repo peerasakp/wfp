@@ -145,19 +145,39 @@
           </div>
 
           <!-- Medical Certificate File -->
-          <div v-if="evidenceDialog.fileMedicalCertificate">
+          <div v-if="evidenceDialog.fileMedicalCertificate" class="q-mb-md">
             <p class="text-weight-medium q-mb-sm">2. ใบรับรองแพทย์</p>
             <div class="row items-center q-gutter-sm">
               <q-chip color="blue-2" text-color="blue-9" :label="getFileName(evidenceDialog.fileMedicalCertificate)" size="sm" />
               <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewEvidence(evidenceDialog.fileMedicalCertificate)" title="ดูตัวอย่าง" />
               <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadEvidence(evidenceDialog.fileMedicalCertificate)" title="ดาวน์โหลด" />
             </div>
-            <!-- Inline image preview -->
-            <img v-if="evidenceDialog.fileMedicalUrl && isImageFile(evidenceDialog.fileMedicalCertificate)" 
-              :src="evidenceDialog.fileMedicalUrl" 
-              style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; margin-top: 8px;"
-              @click="previewEvidence(evidenceDialog.fileMedicalCertificate)"
-            />
+            <img v-if="evidenceDialog.fileMedicalUrl && isImageFile(evidenceDialog.fileMedicalCertificate)" :src="evidenceDialog.fileMedicalUrl" style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; margin-top: 8px;" @click="previewEvidence(evidenceDialog.fileMedicalCertificate)" />
+          </div>
+          <!-- Medical welfare: supervisor letter + patient visit files -->
+          <div v-if="evidenceDialog.fileSupervisorLetter" class="q-mb-md">
+            <p class="text-weight-medium q-mb-sm">3. หนังสือรับรองของหัวหน้าส่วนงาน</p>
+            <div class="row items-center q-gutter-sm">
+              <q-chip color="blue-2" text-color="blue-9" :label="getFileName(evidenceDialog.fileSupervisorLetter)" size="sm" />
+              <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewEvidence(evidenceDialog.fileSupervisorLetter)" title="ดูตัวอย่าง" />
+              <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadEvidence(evidenceDialog.fileSupervisorLetter)" title="ดาวน์โหลด" />
+            </div>
+          </div>
+          <div v-if="evidenceDialog.fileReceiptPatientVisit" class="q-mb-md">
+            <p class="text-weight-medium q-mb-sm">ค่าเยี่ยมไข้ 1. ใบสำคัญรับเงิน</p>
+            <div class="row items-center q-gutter-sm">
+              <q-chip color="blue-2" text-color="blue-9" :label="getFileName(evidenceDialog.fileReceiptPatientVisit)" size="sm" />
+              <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewEvidence(evidenceDialog.fileReceiptPatientVisit)" title="ดูตัวอย่าง" />
+              <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadEvidence(evidenceDialog.fileReceiptPatientVisit)" title="ดาวน์โหลด" />
+            </div>
+          </div>
+          <div v-if="evidenceDialog.fileMedicalCertificatePatientVisit" class="q-mb-md">
+            <p class="text-weight-medium q-mb-sm">ค่าเยี่ยมไข้ 2. ใบรับรองแพทย์</p>
+            <div class="row items-center q-gutter-sm">
+              <q-chip color="blue-2" text-color="blue-9" :label="getFileName(evidenceDialog.fileMedicalCertificatePatientVisit)" size="sm" />
+              <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewEvidence(evidenceDialog.fileMedicalCertificatePatientVisit)" title="ดูตัวอย่าง" />
+              <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadEvidence(evidenceDialog.fileMedicalCertificatePatientVisit)" title="ดาวน์โหลด" />
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -247,6 +267,9 @@ const evidenceDialog = ref({
   hasEvidence: false,
   fileReceipt: null,
   fileMedicalCertificate: null,
+  fileSupervisorLetter: null,
+  fileReceiptPatientVisit: null,
+  fileMedicalCertificatePatientVisit: null,
   fileReceiptUrl: null,
   fileMedicalUrl: null,
   evidenceSource: null,
@@ -623,6 +646,10 @@ async function downloadData(requestId, categoryName, welfareType) {
 // Evidence functions
 function getFileName(filename) {
   if (!filename) return '';
+  if (filename.startsWith('visit-receipt-')) {
+    const match = filename.match(/^visit-receipt-\d{8}-(.+)$/);
+    if (match && match[1]) return match[1];
+  }
   if (filename.startsWith('receipt-')) {
     const match = filename.match(/^receipt-\d{8}-(.+)$/);
     if (match && match[1]) return match[1];
@@ -656,6 +683,9 @@ async function showEvidence(requestId, categoryName) {
     hasEvidence: false,
     fileReceipt: null,
     fileMedicalCertificate: null,
+    fileSupervisorLetter: null,
+    fileReceiptPatientVisit: null,
+    fileMedicalCertificatePatientVisit: null,
     fileReceiptUrl: null,
     fileMedicalUrl: null,
     evidenceSource: null,
@@ -681,14 +711,13 @@ async function showEvidence(requestId, categoryName) {
     if (data) {
       evidenceDialog.value.fileReceipt = data?.fileReceipt || null;
       evidenceDialog.value.fileMedicalCertificate = data?.fileMedicalCertificate || null;
-      evidenceDialog.value.hasEvidence = !!(data?.fileReceipt || data?.fileMedicalCertificate);
+      evidenceDialog.value.fileSupervisorLetter = data?.fileSupervisorLetter || null;
+      evidenceDialog.value.fileReceiptPatientVisit = data?.fileReceiptPatientVisit || null;
+      evidenceDialog.value.fileMedicalCertificatePatientVisit = data?.fileMedicalCertificatePatientVisit || null;
+      evidenceDialog.value.hasEvidence = !!(data?.fileReceipt || data?.fileMedicalCertificate || data?.fileSupervisorLetter || data?.fileReceiptPatientVisit || data?.fileMedicalCertificatePatientVisit);
 
-      if (data?.fileReceipt && isImageFile(data.fileReceipt)) {
-        loadEvidencePreview(data.fileReceipt, 'receipt');
-      }
-      if (data?.fileMedicalCertificate && isImageFile(data.fileMedicalCertificate)) {
-        loadEvidencePreview(data.fileMedicalCertificate, 'medical');
-      }
+      if (data?.fileReceipt && isImageFile(data.fileReceipt)) loadEvidencePreview(data.fileReceipt, 'receipt');
+      if (data?.fileMedicalCertificate && isImageFile(data.fileMedicalCertificate)) loadEvidencePreview(data.fileMedicalCertificate, 'medical');
     }
   } catch (error) {
     Notify.create({
