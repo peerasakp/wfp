@@ -200,13 +200,113 @@
             </q-card-section>
             <q-separator />
             <q-card-section class="row wrap q-col-gutter-y-md font-medium font-16 text-grey-7">
-              <p class="col-12 q-mb-none font-bold text-black">ประสบอุบัติเหตุขณะปฏิบัติหน้าที่</p>
-              <p class="col-12 q-mb-none">1. ใบสำคัญรับเงิน</p>
-              <p class="col-12 q-mb-none">2. ใบรับรองแพทย์</p>
-              <p class="col-12 q-mb-none">3. หนังสือรับรองของหัวหน้าส่วนงาน</p>
-              <p class="col-12 q-mb-none font-bold text-black">ค่าเยี่ยมไข้ผู้ปฏิบัติงาน</p>
-              <p class="col-12 q-mb-none">1. ใบสำคัญรับเงิน</p>
-              <p class="col-12 q-mb-none">2. ใบรับรองแพทย์</p>
+              <div class="col-12">
+                <div class="row items-center justify-between q-mb-xs">
+                  <span>1. ใบสำคัญรับเงิน</span>
+                  <div v-if="!isView">
+                    <input
+                      ref="fileReceiptInput"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      style="display: none"
+                      @change="handleFileReceiptChange"
+                    />
+                    <q-btn
+                      v-if="!fileReceipt.name && !model.fileReceipt"
+                      outline
+                      color="primary"
+                      size="sm"
+                      no-caps
+                      icon="upload"
+                      label="อัปโหลด"
+                      @click="triggerFileReceiptUpload"
+                      :loading="fileReceipt.uploading"
+                    />
+                    <div v-else class="row items-center q-gutter-x-sm">
+                      <q-chip
+                        removable
+                        color="blue-2"
+                        text-color="blue-9"
+                        @remove="removeFileReceipt"
+                        :label="fileReceipt.name || getFileName(model.fileReceipt)"
+                        class="q-ma-none"
+                        size="sm"
+                      />
+                      <q-btn flat dense round icon="visibility" color="primary" size="sm"
+                        @click="previewFile(fileReceipt.file, model.fileReceipt)" title="ดูตัวอย่าง" />
+                      <q-btn v-if="model.fileReceipt" flat dense round icon="download" color="primary" size="sm"
+                        @click="downloadFile(model.fileReceipt)" title="ดาวน์โหลด" />
+                    </div>
+                  </div>
+                  <div v-else-if="isView && model.fileReceipt" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileReceipt)"
+                      class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm"
+                      @click="previewFile(null, model.fileReceipt)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm"
+                      @click="downloadFile(model.fileReceipt)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else-if="isView && !model.fileReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="row items-center justify-between q-mb-sm">
+                  <span>2. ใบรับรองแพทย์</span>
+                  <div v-if="!isView">
+                    <input
+                      ref="fileMedicalInput"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      style="display: none"
+                      @change="handleFileMedicalChange"
+                    />
+                    <q-btn
+                      v-if="!fileMedical.name && !model.fileMedicalCertificate"
+                      outline
+                      color="primary"
+                      size="sm"
+                      no-caps
+                      icon="upload"
+                      label="อัปโหลด"
+                      @click="triggerFileMedicalUpload"
+                      :loading="fileMedical.uploading"
+                    />
+                    <div v-else class="row items-center q-gutter-x-sm">
+                      <q-chip
+                        removable
+                        color="blue-2"
+                        text-color="blue-9"
+                        @remove="removeFileMedical"
+                        :label="fileMedical.name || getFileName(model.fileMedicalCertificate)"
+                        class="q-ma-none"
+                        size="sm"
+                      />
+                      <q-btn flat dense round icon="visibility" color="primary" size="sm"
+                        @click="previewFile(fileMedical.file, model.fileMedicalCertificate)" title="ดูตัวอย่าง" />
+                      <q-btn v-if="model.fileMedicalCertificate" flat dense round icon="download" color="primary" size="sm"
+                        @click="downloadFile(model.fileMedicalCertificate)" title="ดาวน์โหลด" />
+                    </div>
+                  </div>
+                  <div v-else-if="isView && model.fileMedicalCertificate" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileMedicalCertificate)"
+                      class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm"
+                      @click="previewFile(null, model.fileMedicalCertificate)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm"
+                      @click="downloadFile(model.fileMedicalCertificate)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else-if="isView && !model.fileMedicalCertificate" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                </div>
+                <div v-if="isView && model.fileMedicalCertificate && isImageFile(model.fileMedicalCertificate)" class="q-mt-sm">
+                  <img
+                    :src="fileMedicalPreviewUrl"
+                    style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd;"
+                    @click="previewFile(null, model.fileMedicalCertificate)"
+                    v-if="fileMedicalPreviewUrl"
+                  />
+                  <q-spinner v-else color="primary" size="30px" />
+                </div>
+              </div>
             </q-card-section>
           </q-card>
         </div>
@@ -226,6 +326,25 @@
       </div>
     </template>
   </PageLayout>
+  <q-dialog v-model="previewDialog.show" maximized>
+    <q-card class="bg-grey-9">
+      <q-card-section class="row items-center q-pb-none">
+        <div class="text-h6 text-white">{{ previewDialog.fileName }}</div>
+        <q-space />
+        <q-btn icon="download" flat round dense color="white" @click="downloadFile(previewDialog.serverFileName)" v-if="previewDialog.serverFileName" />
+        <q-btn icon="close" flat round dense color="white" v-close-popup />
+      </q-card-section>
+      <q-card-section class="flex flex-center" style="height: calc(100vh - 80px);">
+        <img v-if="previewDialog.type === 'image'" :src="previewDialog.url" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+        <iframe v-else-if="previewDialog.type === 'pdf'" :src="previewDialog.url" style="width: 100%; height: 100%; border: none;" />
+        <div v-else class="text-white text-center">
+          <q-icon name="description" size="100px" />
+          <p class="q-mt-md">ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้</p>
+          <q-btn color="primary" label="ดาวน์โหลด" @click="downloadFile(previewDialog.serverFileName)" v-if="previewDialog.serverFileName" />
+        </div>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 <style scoped>
 .q-table--bordered {
@@ -264,6 +383,8 @@ const model = ref({
   fundSumRequestPatientVisit: null,
   startDate: null,
   endDate: null,
+  fileReceipt: null,
+  fileMedicalCertificate: null,
 });
 const userData = ref({});
 const remaining = ref({
@@ -279,6 +400,13 @@ const canRequest = ref({
 });
 const isView = ref(false);
 const userInitialData = ref([]);
+const fileReceiptInput = ref(null);
+const fileMedicalInput = ref(null);
+const fileReceipt = ref({ file: null, name: null, uploading: false });
+const fileMedical = ref({ file: null, name: null, uploading: false });
+const previewDialog = ref({ show: false, url: null, type: null, fileName: null, serverFileName: null });
+const fileReceiptPreviewUrl = ref(null);
+const fileMedicalPreviewUrl = ref(null);
 const isEdit = computed(() => {
   return !isNaN(route.params.id);
 });
@@ -473,7 +601,13 @@ async function fetchDataEdit() {
           endDate: isView.value === true ? formatDateThaiSlash(returnedData?.endDate) : formatDateSlash(returnedData?.endDate),
           fundSumRequest: returnedData?.fundSumRequest,
           fundEligibleSum: returnedData?.fundEligibleSum,
+          fileReceipt: returnedData?.fileReceipt,
+          fileMedicalCertificate: returnedData?.fileMedicalCertificate,
         };
+        if (isView.value) {
+          if (returnedData?.fileReceipt) loadInlinePreview(returnedData.fileReceipt, 'receipt');
+          if (returnedData?.fileMedicalCertificate) loadInlinePreview(returnedData.fileMedicalCertificate, 'medical');
+        }
         userData.value = {
           name: returnedData?.user.name,
           position: returnedData?.user.position,
@@ -645,6 +779,178 @@ async function filterFn(val, update) {
 function abortFilterFn() {
   // console.log('delayed filter aborted')
 }
+function getFileName(filename) {
+  if (!filename) return '';
+  if (filename.startsWith('receipt-')) {
+    const match = filename.match(/^receipt-\d{8}-(.+)$/);
+    if (match && match[1]) return match[1];
+  }
+  return filename.replace(/^\d+-/, '');
+}
+function getFileType(filename) {
+  if (!filename) return 'unknown';
+  const ext = filename.split('.').pop().toLowerCase();
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+  if (ext === 'pdf') return 'pdf';
+  return 'unknown';
+}
+function isImageFile(filename) {
+  return getFileType(filename) === 'image';
+}
+async function loadInlinePreview(filename, type) {
+  if (!filename || !isImageFile(filename)) return;
+  try {
+    const result = await medicalWelfareService.getFileByName(filename);
+    const ext = filename.split('.').pop().toLowerCase();
+    let mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
+    const blob = new Blob([result.data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    if (type === 'receipt') fileReceiptPreviewUrl.value = url;
+    else fileMedicalPreviewUrl.value = url;
+  } catch (error) {
+    console.error('Error loading preview:', error);
+  }
+}
+async function previewFile(localFile, serverFileName) {
+  if (localFile) {
+    const fileType = getFileType(localFile.name);
+    previewDialog.value = { show: true, url: URL.createObjectURL(localFile), type: fileType, fileName: localFile.name, serverFileName: null };
+    return;
+  }
+  if (serverFileName) {
+    const notify = Notify.create({ message: 'กำลังโหลดไฟล์...', position: 'top-right', spinner: true, type: 'info' });
+    try {
+      const result = await medicalWelfareService.getFileByName(serverFileName);
+      const fileType = getFileType(serverFileName);
+      let mimeType = 'application/octet-stream';
+      if (fileType === 'image') {
+        const ext = serverFileName.split('.').pop().toLowerCase();
+        mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
+      } else if (fileType === 'pdf') mimeType = 'application/pdf';
+      const blob = new Blob([result.data], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      previewDialog.value = { show: true, url, type: fileType, fileName: getFileName(serverFileName), serverFileName };
+    } catch (error) {
+      Notify.create({ message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการโหลดไฟล์', position: 'top-right', type: 'negative' });
+    } finally {
+      notify();
+    }
+  }
+}
+function triggerFileReceiptUpload() {
+  fileReceiptInput.value?.click();
+}
+function triggerFileMedicalUpload() {
+  fileMedicalInput.value?.click();
+}
+async function handleFileReceiptChange(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  fileReceipt.value.file = file;
+  fileReceipt.value.name = file.name;
+  if (isEdit.value && route.params.id) {
+    await uploadFileToServer('receipt', file);
+  } else {
+    Notify.create({ message: 'เลือกไฟล์สำเร็จ จะอัปโหลดหลังจากบันทึกข้อมูล', position: 'bottom-left', type: 'info' });
+  }
+}
+async function handleFileMedicalChange(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  fileMedical.value.file = file;
+  fileMedical.value.name = file.name;
+  if (isEdit.value && route.params.id) {
+    await uploadFileToServer('medical', file);
+  } else {
+    Notify.create({ message: 'เลือกไฟล์สำเร็จ จะอัปโหลดหลังจากบันทึกข้อมูล', position: 'bottom-left', type: 'info' });
+  }
+}
+async function uploadFileToServer(type, file) {
+  const formData = new FormData();
+  if (type === 'receipt') {
+    fileReceipt.value.uploading = true;
+    formData.append('fileReceipt', file);
+  } else {
+    fileMedical.value.uploading = true;
+    formData.append('fileMedicalCertificate', file);
+  }
+  try {
+    const result = await medicalWelfareService.uploadFile(route.params.id, formData);
+    if (result.data.files) {
+      if (result.data.files.fileReceipt) model.value.fileReceipt = result.data.files.fileReceipt;
+      if (result.data.files.fileMedicalCertificate) model.value.fileMedicalCertificate = result.data.files.fileMedicalCertificate;
+    }
+    Notify.create({ message: 'อัปโหลดไฟล์สำเร็จ', position: 'bottom-left', type: 'positive' });
+  } catch (error) {
+    Notify.create({ message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการอัปโหลดไฟล์', position: 'bottom-left', type: 'negative' });
+    if (type === 'receipt') { fileReceipt.value.file = null; fileReceipt.value.name = null; }
+    else { fileMedical.value.file = null; fileMedical.value.name = null; }
+  } finally {
+    if (type === 'receipt') fileReceipt.value.uploading = false;
+    else fileMedical.value.uploading = false;
+  }
+}
+async function removeFileReceipt() {
+  if (model.value.fileReceipt && isEdit.value && route.params.id) {
+    try {
+      await medicalWelfareService.deleteFile(route.params.id, 'receipt');
+      model.value.fileReceipt = null;
+      Notify.create({ message: 'ลบไฟล์สำเร็จ', position: 'bottom-left', type: 'positive' });
+    } catch (error) {
+      Notify.create({ message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการลบไฟล์', position: 'bottom-left', type: 'negative' });
+      return;
+    }
+  }
+  fileReceipt.value.file = null;
+  fileReceipt.value.name = null;
+  if (fileReceiptInput.value) fileReceiptInput.value.value = '';
+}
+async function removeFileMedical() {
+  if (model.value.fileMedicalCertificate && isEdit.value && route.params.id) {
+    try {
+      await medicalWelfareService.deleteFile(route.params.id, 'medical_certificate');
+      model.value.fileMedicalCertificate = null;
+      Notify.create({ message: 'ลบไฟล์สำเร็จ', position: 'bottom-left', type: 'positive' });
+    } catch (error) {
+      Notify.create({ message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการลบไฟล์', position: 'bottom-left', type: 'negative' });
+      return;
+    }
+  }
+  fileMedical.value.file = null;
+  fileMedical.value.name = null;
+  if (fileMedicalInput.value) fileMedicalInput.value.value = '';
+}
+async function downloadFile(fileName) {
+  if (!fileName) return;
+  const notify = Notify.create({ message: 'กำลังดาวน์โหลด...', position: 'top-right', spinner: true, type: 'info' });
+  try {
+    const result = await medicalWelfareService.getFileByName(fileName);
+    const contentDisposition = result.headers['content-disposition'];
+    let downloadFileName = getFileName(fileName);
+    if (contentDisposition) {
+      const matches = contentDisposition.match(/filename\*=UTF-8''(.+)/);
+      if (matches?.[1]) downloadFileName = decodeURIComponent(matches[1]);
+    }
+    const ext = fileName.split('.').pop().toLowerCase();
+    let mimeType = 'application/octet-stream';
+    if (ext === 'pdf') mimeType = 'application/pdf';
+    else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
+    else if (ext === 'png') mimeType = 'image/png';
+    const blob = new Blob([result.data], { type: mimeType });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = downloadFileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (error) {
+    Notify.create({ message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์', position: 'top-right', type: 'negative' });
+  } finally {
+    notify();
+  }
+}
 async function submit(actionId) {
   let validate = false;
   if (!model.value.selectedAccident && !model.value.selectedPatientVisit) {
@@ -779,8 +1085,19 @@ async function submit(actionId) {
         });
       }
     },
-  }).then((result) => {
+  }).then(async (result) => {
     if (isValid && result.isConfirmed) {
+      const newRecordId = fetch.data?.newItem?.id || route.params.id;
+      if (newRecordId && (fileReceipt.value.file || fileMedical.value.file)) {
+        try {
+          const formData = new FormData();
+          if (fileReceipt.value.file) formData.append('fileReceipt', fileReceipt.value.file);
+          if (fileMedical.value.file) formData.append('fileMedicalCertificate', fileMedical.value.file);
+          await medicalWelfareService.uploadFile(newRecordId, formData);
+        } catch (error) {
+          console.error('File upload error:', error);
+        }
+      }
       Swal.fire({
         html: fetch.data?.message ?? `สำเร็จ`,
         icon: "success",

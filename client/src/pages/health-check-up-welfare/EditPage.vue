@@ -254,8 +254,8 @@
                     <div v-else class="row items-center q-gutter-x-sm">
                       <q-chip
                         removable
-                        color="green-2"
-                        text-color="green-9"
+                        color="blue-2"
+                        text-color="blue-9"
                         @remove="removeFileMedical"
                         :label="fileMedical.name || getFileName(model.fileMedicalCertificate)"
                         class="q-ma-none"
@@ -286,8 +286,8 @@
                   </div>
                   <div v-else-if="isView && model.fileMedicalCertificate" class="row items-center q-gutter-x-sm">
                     <q-chip
-                      color="green-2"
-                      text-color="green-9"
+                      color="blue-2"
+                      text-color="blue-9"
                       :label="getFileName(model.fileMedicalCertificate)"
                       class="q-ma-none"
                       size="sm"

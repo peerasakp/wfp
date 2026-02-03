@@ -148,7 +148,7 @@
           <div v-if="evidenceDialog.fileMedicalCertificate">
             <p class="text-weight-medium q-mb-sm">2. ใบรับรองแพทย์</p>
             <div class="row items-center q-gutter-sm">
-              <q-chip color="green-2" text-color="green-9" :label="getFileName(evidenceDialog.fileMedicalCertificate)" size="sm" />
+              <q-chip color="blue-2" text-color="blue-9" :label="getFileName(evidenceDialog.fileMedicalCertificate)" size="sm" />
               <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewEvidence(evidenceDialog.fileMedicalCertificate)" title="ดูตัวอย่าง" />
               <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadEvidence(evidenceDialog.fileMedicalCertificate)" title="ดาวน์โหลด" />
             </div>
@@ -220,6 +220,9 @@ import {
 } from "@quasar/extras/material-icons-outlined";
 import reimbursementWelfareService from "src/boot/service/reimbursementWelfareService";
 import healthCheckUpWelfareService from "src/boot/service/healthCheckUpWelfareService";
+import medicalWelfareService from "src/boot/service/medicalWelfareService";
+import dentalWelfareService from "src/boot/service/dentalWelfareService";
+import welfareManagementService from "src/boot/service/welfareManagementService";
 
 const router = useRouter();
 const route = useRoute();
@@ -237,7 +240,7 @@ const filter = ref({
   statusName: null,
 });
 
-// Evidence dialog state
+// Evidence dialog state (evidenceSource: 'healthCheckUp' | 'medical' | 'dental')
 const evidenceDialog = ref({
   show: false,
   loading: false,
@@ -246,6 +249,7 @@ const evidenceDialog = ref({
   fileMedicalCertificate: null,
   fileReceiptUrl: null,
   fileMedicalUrl: null,
+  evidenceSource: null,
 });
 
 // Preview dialog state
@@ -619,6 +623,10 @@ async function downloadData(requestId, categoryName, welfareType) {
 // Evidence functions
 function getFileName(filename) {
   if (!filename) return '';
+  if (filename.startsWith('receipt-')) {
+    const match = filename.match(/^receipt-\d{8}-(.+)$/);
+    if (match && match[1]) return match[1];
+  }
   return filename.replace(/^\d+-/, '');
 }
 
@@ -634,6 +642,13 @@ function isImageFile(filename) {
   return getFileType(filename) === 'image';
 }
 
+function getEvidenceFileService() {
+  const source = evidenceDialog.value.evidenceSource;
+  if (source === 'medical') return medicalWelfareService;
+  if (source === 'dental') return dentalWelfareService;
+  return healthCheckUpWelfareService;
+}
+
 async function showEvidence(requestId, categoryName) {
   evidenceDialog.value = {
     show: true,
@@ -643,28 +658,37 @@ async function showEvidence(requestId, categoryName) {
     fileMedicalCertificate: null,
     fileReceiptUrl: null,
     fileMedicalUrl: null,
+    evidenceSource: null,
   };
 
   try {
-    // Currently only health check up welfare has evidence files
+    let data = null;
+
     if (categoryName == "สวัสดิการค่าตรวจสุขภาพประจำปี") {
+      evidenceDialog.value.evidenceSource = 'healthCheckUp';
       const result = await healthCheckUpWelfareService.getWelfareById(requestId);
-      const data = result.data.datas;
-      
+      data = result.data.datas;
+    } else if (categoryName == "สวัสดิการกรณีเจ็บป่วย") {
+      evidenceDialog.value.evidenceSource = 'medical';
+      const result = await welfareManagementService.dataMedicalById(requestId);
+      data = result.data.datas;
+    } else if (categoryName == "สวัสดิการค่าทำฟันเพื่อการรักษา ยกเว้นทันตกรรมเพื่อความสวยงาม") {
+      evidenceDialog.value.evidenceSource = 'dental';
+      const result = await welfareManagementService.dataDentalById(requestId);
+      data = result.data.datas;
+    }
+
+    if (data) {
       evidenceDialog.value.fileReceipt = data?.fileReceipt || null;
       evidenceDialog.value.fileMedicalCertificate = data?.fileMedicalCertificate || null;
       evidenceDialog.value.hasEvidence = !!(data?.fileReceipt || data?.fileMedicalCertificate);
 
-      // Load image previews
       if (data?.fileReceipt && isImageFile(data.fileReceipt)) {
         loadEvidencePreview(data.fileReceipt, 'receipt');
       }
       if (data?.fileMedicalCertificate && isImageFile(data.fileMedicalCertificate)) {
         loadEvidencePreview(data.fileMedicalCertificate, 'medical');
       }
-    } else {
-      // Other welfare types don't have evidence files yet
-      evidenceDialog.value.hasEvidence = false;
     }
   } catch (error) {
     Notify.create({
@@ -679,7 +703,8 @@ async function showEvidence(requestId, categoryName) {
 
 async function loadEvidencePreview(filename, type) {
   try {
-    const result = await healthCheckUpWelfareService.getFileByName(filename);
+    const service = getEvidenceFileService();
+    const result = await service.getFileByName(filename);
     const ext = filename.split('.').pop().toLowerCase();
     let mimeType = 'image/jpeg';
     if (ext === 'png') mimeType = 'image/png';
@@ -708,7 +733,8 @@ async function previewEvidence(filename) {
   });
   
   try {
-    const result = await healthCheckUpWelfareService.getFileByName(filename);
+    const service = getEvidenceFileService();
+    const result = await service.getFileByName(filename);
     const fileType = getFileType(filename);
     
     let mimeType = 'application/octet-stream';
@@ -752,7 +778,8 @@ async function downloadEvidence(filename) {
   });
   
   try {
-    const result = await healthCheckUpWelfareService.getFileByName(filename);
+    const service = getEvidenceFileService();
+    const result = await service.getFileByName(filename);
     
     const ext = filename.split('.').pop().toLowerCase();
     let mimeType = 'application/octet-stream';
