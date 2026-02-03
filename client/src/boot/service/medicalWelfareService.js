@@ -40,4 +40,20 @@ export default {
       Promise.reject(error);
     }
   },
+  uploadFile(id, formData) {
+    return api.post(`${path}/file/upload/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  deleteFile(id, fileType) {
+    return api.post(`${path}/file/delete/${id}`, { fileType });
+  },
+  getFileByName(fileName) {
+    return api.get(`${path}/file/get-by-name`, {
+      params: { fileName },
+      responseType: 'arraybuffer',
+    });
+  },
 };
