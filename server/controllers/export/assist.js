@@ -46,16 +46,6 @@ const createPdfAssist = async (req, res, next) => {
 
         //////////////////////////////////
 
-
-        const puppeteer = require('puppeteer');
-        browser = await puppeteer.launch()
-        //     {
-        //     executablePath: '/usr/bin/chromium-browser',
-        //     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-file-access-from-files'],
-        //     // timeout: 5000,
-        //     headless: true,
-        // }
-        //);
         const data = {
             body: req.body.datas,
             sign: req.body.esign,
