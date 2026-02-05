@@ -33,7 +33,8 @@ const uploadFiles = multer({
     storage, fileFilter, limits: { fileSize: 10 * 1024 * 1024 }
 }).fields([
     { name: 'fileReceipt', maxCount: 1 },
-    { name: 'fileMedicalCertificate', maxCount: 1 }
+    { name: 'fileMedicalCertificate', maxCount: 1 },
+    { name: 'fileSocialSecurity', maxCount: 1 }
 ]);
 
 const authPermission = async (req, res, next) => {
@@ -673,6 +674,10 @@ const uploadFilesForRecord = async (req, res, next) => {
             if (currentData.file_medical_certificate) deleteFileFromDisk(currentData.file_medical_certificate);
             updateData.file_medical_certificate = req.files.fileMedicalCertificate[0].filename;
         }
+        if (req.files?.fileSocialSecurity?.[0]) {
+            if (currentData.file_social_security) deleteFileFromDisk(currentData.file_social_security);
+            updateData.file_social_security = req.files.fileSocialSecurity[0].filename;
+        }
         if (Object.keys(updateData).length === 0) return res.status(400).json({ message: 'กรุณาอัปโหลดไฟล์' });
         updateData.updated_by = id;
         await reimbursementsGeneral.update(updateData, { where: { id: dataId } });
@@ -681,7 +686,8 @@ const uploadFilesForRecord = async (req, res, next) => {
             message: 'อัปโหลดไฟล์สำเร็จ',
             files: {
                 fileReceipt: updateData.file_receipt || currentData.file_receipt,
-                fileMedicalCertificate: updateData.file_medical_certificate || currentData.file_medical_certificate
+                fileMedicalCertificate: updateData.file_medical_certificate || currentData.file_medical_certificate,
+                fileSocialSecurity: updateData.file_social_security || currentData.file_social_security
             }
         });
     } catch (error) {
@@ -696,11 +702,11 @@ const deleteFileFromRecord = async (req, res, next) => {
         const dataId = req.params['id'];
         const { fileType } = req.body;
         const { id } = req.user;
-        if (!['receipt', 'medical_certificate'].includes(fileType)) return res.status(400).json({ message: 'ประเภทไฟล์ไม่ถูกต้อง' });
+        if (!['receipt', 'medical_certificate', 'social_security'].includes(fileType)) return res.status(400).json({ message: 'ประเภทไฟล์ไม่ถูกต้อง' });
         const record = await reimbursementsGeneral.findOne({ where: { id: dataId, categories_id: category.dentalWelfare } });
         if (!record) return res.status(404).json({ message: 'ไม่พบข้อมูล' });
         const currentData = record.toJSON();
-        const fieldName = fileType === 'receipt' ? 'file_receipt' : 'file_medical_certificate';
+        const fieldName = fileType === 'receipt' ? 'file_receipt' : fileType === 'medical_certificate' ? 'file_medical_certificate' : 'file_social_security';
         if (currentData[fieldName]) {
             deleteFileFromDisk(currentData[fieldName]);
             await reimbursementsGeneral.update({ [fieldName]: null, updated_by: id }, { where: { id: dataId } });

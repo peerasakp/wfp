@@ -126,11 +126,33 @@
             </q-card-section>
             <q-separator />
             <q-card-section class="row wrap q-col-gutter-y-md font-medium font-16 text-grey-7">
-              <p class="col-12 q-mb-none">1. ใบเสร็จรับเงิน</p>
-              <p class="col-12 q-mb-none">2. ใบรับรองแพทย์</p>
-              <p class="col-12 q-mb-none">
-                3. คำสั่งประโยชน์ทดแทนหรือใบยืนยันการใช้สิทธิประโยชน์ทแทน (จากเว็บประกันสังคม) (สถานะ อนุมัติ)
-              </p>
+              <div class="col-12">
+                <p class="q-mb-xs">1. ใบเสร็จรับเงิน</p>
+                <div v-if="model.fileReceipt" class="row items-center q-gutter-sm q-mb-sm">
+                  <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileReceipt)" size="sm" />
+                  <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileReceipt)" title="ดูตัวอย่าง" />
+                  <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceipt)" title="ดาวน์โหลด" />
+                </div>
+                <p v-else class="text-grey-5 font-14 q-mb-none">ไม่มีไฟล์แนบ</p>
+              </div>
+              <div class="col-12">
+                <p class="q-mb-xs">2. ใบรับรองแพทย์</p>
+                <div v-if="model.fileMedicalCertificate" class="row items-center q-gutter-sm q-mb-sm">
+                  <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileMedicalCertificate)" size="sm" />
+                  <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileMedicalCertificate)" title="ดูตัวอย่าง" />
+                  <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileMedicalCertificate)" title="ดาวน์โหลด" />
+                </div>
+                <p v-else class="text-grey-5 font-14 q-mb-none">ไม่มีไฟล์แนบ</p>
+              </div>
+              <div class="col-12">
+                <p class="q-mb-xs">3. คำสั่งประโยชน์ทดแทนหรือใบยืนยันการใช้สิทธิประโยชน์ทดแทน (จากเว็บประกันสังคม) (สถานะ อนุมัติ)</p>
+                <div v-if="model.fileSocialSecurity" class="row items-center q-gutter-sm q-mb-sm">
+                  <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileSocialSecurity)" size="sm" />
+                  <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileSocialSecurity)" title="ดูตัวอย่าง" />
+                  <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileSocialSecurity)" title="ดาวน์โหลด" />
+                </div>
+                <p v-else class="text-grey-5 font-14 q-mb-none">ไม่มีไฟล์แนบ</p>
+              </div>
             </q-card-section>
           </q-card>
         </div>
@@ -153,6 +175,25 @@
       </div>
     </template>
   </PageLayout>
+  <q-dialog v-model="previewDialog.show" maximized>
+    <q-card class="bg-grey-9">
+      <q-card-section class="row items-center q-pb-none">
+        <div class="text-h6 text-white">{{ previewDialog.fileName }}</div>
+        <q-space />
+        <q-btn icon="download" flat round dense color="white" @click="downloadFile(previewDialog.serverFileName)" v-if="previewDialog.serverFileName" />
+        <q-btn icon="close" flat round dense color="white" v-close-popup />
+      </q-card-section>
+      <q-card-section class="flex flex-center" style="height: calc(100vh - 80px);">
+        <img v-if="previewDialog.type === 'image'" :src="previewDialog.url" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+        <iframe v-else-if="previewDialog.type === 'pdf'" :src="previewDialog.url" style="width: 100%; height: 100%; border: none;" />
+        <div v-else class="text-white text-center">
+          <q-icon name="description" size="100px" />
+          <p class="q-mt-md">ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้</p>
+          <q-btn color="primary" label="ดาวน์โหลด" @click="downloadFile(previewDialog.serverFileName)" v-if="previewDialog.serverFileName" />
+        </div>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 <style scoped>
 .q-table--bordered {
@@ -189,7 +230,11 @@ const model = ref({
   dateReceipt: null,
   fundReceipt: null,
   fundSumRequest: null,
+  fileReceipt: null,
+  fileMedicalCertificate: null,
+  fileSocialSecurity: null,
 });
+const previewDialog = ref({ show: false, url: null, type: null, fileName: null, serverFileName: null });
 const isError = ref({});
 const userInitialData = ref([]);
 const userData = ref({});
@@ -291,6 +336,9 @@ async function fetchDataEdit() {
           fundReceipt: returnedData?.fundReceipt,
           fundSumRequest: returnedData?.fundSumRequest,
           dateReceipt: isView.value === true ? formatDateThaiSlash(returnedData?.dateReceipt) : formatDateSlash(returnedData?.dateReceipt),
+          fileReceipt: returnedData?.fileReceipt,
+          fileMedicalCertificate: returnedData?.fileMedicalCertificate,
+          fileSocialSecurity: returnedData?.fileSocialSecurity,
         };
         userData.value = {
           name: returnedData?.user.name,
@@ -663,5 +711,70 @@ async function init() {
     Promise.reject(error);
   }
   isLoading.value = false;
+}
+
+// File handling functions
+function getFileName(filename) {
+  if (!filename) return '';
+  return filename.replace(/^\d+-/, '');
+}
+function getFileType(filename) {
+  if (!filename) return 'unknown';
+  const ext = filename.split('.').pop().toLowerCase();
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+  if (ext === 'pdf') return 'pdf';
+  return 'unknown';
+}
+async function previewFile(serverFileName) {
+  if (!serverFileName) return;
+  const notify = Notify.create({ message: 'กำลังโหลดไฟล์...', position: 'top-right', spinner: true, type: 'info' });
+  try {
+    const result = await dentalWelfareService.getFileByName(serverFileName);
+    const fileType = getFileType(serverFileName);
+    let mimeType = 'application/octet-stream';
+    if (fileType === 'image') {
+      const ext = serverFileName.split('.').pop().toLowerCase();
+      mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
+    } else if (fileType === 'pdf') mimeType = 'application/pdf';
+    const blob = new Blob([result.data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    previewDialog.value = { show: true, url, type: fileType, fileName: getFileName(serverFileName), serverFileName };
+  } catch (error) {
+    Notify.create({ message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการโหลดไฟล์', position: 'top-right', type: 'negative' });
+  } finally {
+    notify();
+  }
+}
+async function downloadFile(fileName) {
+  if (!fileName) return;
+  const notify = Notify.create({ message: 'กำลังดาวน์โหลด...', position: 'top-right', spinner: true, type: 'info' });
+  try {
+    const result = await dentalWelfareService.getFileByName(fileName);
+    const contentDisposition = result.headers['content-disposition'];
+    let downloadFileName = getFileName(fileName);
+    if (contentDisposition) {
+      const matches = contentDisposition.match(/filename\*=UTF-8''(.+)/);
+      if (matches?.[1]) downloadFileName = decodeURIComponent(matches[1]);
+    }
+    const ext = fileName.split('.').pop().toLowerCase();
+    let mimeType = 'application/octet-stream';
+    if (ext === 'pdf') mimeType = 'application/pdf';
+    else if (['jpg', 'jpeg'].includes(ext)) mimeType = 'image/jpeg';
+    else if (ext === 'png') mimeType = 'image/png';
+    const blob = new Blob([result.data], { type: mimeType });
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = downloadFileName;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    Notify.create({ message: 'ดาวน์โหลดสำเร็จ', position: 'top-right', type: 'positive' });
+  } catch (error) {
+    Notify.create({ message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการดาวน์โหลด', position: 'top-right', type: 'negative' });
+  } finally {
+    notify();
+  }
 }
 </script>

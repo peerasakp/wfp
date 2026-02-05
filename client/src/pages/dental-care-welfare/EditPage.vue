@@ -182,15 +182,29 @@
                   </div>
                   <span v-else-if="isView && !model.fileMedicalCertificate" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <div v-if="isView && model.fileMedicalCertificate && isImageFile(model.fileMedicalCertificate)" class="q-mt-sm">
-                  <img :src="fileMedicalPreviewUrl" style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd;"
-                    @click="previewFile(null, model.fileMedicalCertificate)" v-if="fileMedicalPreviewUrl" />
-                  <q-spinner v-else color="primary" size="30px" />
+              </div>
+              <div class="col-12">
+                <div class="row items-center justify-between q-mb-xs">
+                  <span class="col-8">3. คำสั่งประโยชน์ทดแทนหรือใบยืนยันการใช้สิทธิประโยชน์ทดแทน (จากเว็บประกันสังคม) (สถานะ อนุมัติ)</span>
+                  <div v-if="!isView" class="col-4 text-right">
+                    <input ref="fileSocialInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileSocialChange" />
+                    <q-btn v-if="!fileSocial.name && !model.fileSocialSecurity" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด"
+                      @click="triggerFileSocialUpload" :loading="fileSocial.uploading" />
+                    <div v-else class="row items-center q-gutter-x-sm justify-end">
+                      <q-chip removable color="blue-2" text-color="blue-9" @remove="removeFileSocial"
+                        :label="fileSocial.name || getFileName(model.fileSocialSecurity)" class="q-ma-none" size="sm" />
+                      <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(fileSocial.file, model.fileSocialSecurity)" title="ดูตัวอย่าง" />
+                      <q-btn v-if="model.fileSocialSecurity" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileSocialSecurity)" title="ดาวน์โหลด" />
+                    </div>
+                  </div>
+                  <div v-else-if="isView && model.fileSocialSecurity" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileSocialSecurity)" class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileSocialSecurity)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileSocialSecurity)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else-if="isView && !model.fileSocialSecurity" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
               </div>
-              <p class="col-12 q-mb-none">
-                3. คำสั่งประโยชน์ทดแทนหรือใบยืนยันการใช้สิทธิประโยชน์ทดแทน (จากเว็บประกันสังคม) (สถานะ อนุมัติ)
-              </p>
             </q-card-section>
           </q-card>
         </div>
@@ -266,6 +280,7 @@ const model = ref({
   fundSumRequest: null,
   fileReceipt: null,
   fileMedicalCertificate: null,
+  fileSocialSecurity: null,
 });
 const isError = ref({});
 const userInitialData = ref([]);
@@ -277,8 +292,10 @@ const canRequest = ref(false);
 const isView = ref(false);
 const fileReceiptInput = ref(null);
 const fileMedicalInput = ref(null);
+const fileSocialInput = ref(null);
 const fileReceipt = ref({ file: null, name: null, uploading: false });
 const fileMedical = ref({ file: null, name: null, uploading: false });
+const fileSocial = ref({ file: null, name: null, uploading: false });
 const previewDialog = ref({ show: false, url: null, type: null, fileName: null, serverFileName: null });
 const fileReceiptPreviewUrl = ref(null);
 const fileMedicalPreviewUrl = ref(null);
@@ -396,6 +413,7 @@ async function fetchDataEdit() {
           dateReceipt: isView.value === true ? formatDateThaiSlash(returnedData?.dateReceipt) : formatDateSlash(returnedData?.dateReceipt),
           fileReceipt: returnedData?.fileReceipt,
           fileMedicalCertificate: returnedData?.fileMedicalCertificate,
+          fileSocialSecurity: returnedData?.fileSocialSecurity,
         };
         if (isView.value) {
           if (returnedData?.fileReceipt) loadInlinePreview(returnedData.fileReceipt, 'receipt');
@@ -669,6 +687,9 @@ function triggerFileReceiptUpload() {
 function triggerFileMedicalUpload() {
   fileMedicalInput.value?.click();
 }
+function triggerFileSocialUpload() {
+  fileSocialInput.value?.click();
+}
 async function handleFileReceiptChange(event) {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -691,29 +712,46 @@ async function handleFileMedicalChange(event) {
     Notify.create({ message: 'เลือกไฟล์สำเร็จ จะอัปโหลดหลังจากบันทึกข้อมูล', position: 'bottom-left', type: 'info' });
   }
 }
+async function handleFileSocialChange(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  fileSocial.value.file = file;
+  fileSocial.value.name = file.name;
+  if (isEdit.value && route.params.id) {
+    await uploadFileToServer('social', file);
+  } else {
+    Notify.create({ message: 'เลือกไฟล์สำเร็จ จะอัปโหลดหลังจากบันทึกข้อมูล', position: 'bottom-left', type: 'info' });
+  }
+}
 async function uploadFileToServer(type, file) {
   const formData = new FormData();
   if (type === 'receipt') {
     fileReceipt.value.uploading = true;
     formData.append('fileReceipt', file);
-  } else {
+  } else if (type === 'medical') {
     fileMedical.value.uploading = true;
     formData.append('fileMedicalCertificate', file);
+  } else {
+    fileSocial.value.uploading = true;
+    formData.append('fileSocialSecurity', file);
   }
   try {
     const result = await dentalWelfareService.uploadFile(route.params.id, formData);
     if (result.data.files) {
       if (result.data.files.fileReceipt) model.value.fileReceipt = result.data.files.fileReceipt;
       if (result.data.files.fileMedicalCertificate) model.value.fileMedicalCertificate = result.data.files.fileMedicalCertificate;
+      if (result.data.files.fileSocialSecurity) model.value.fileSocialSecurity = result.data.files.fileSocialSecurity;
     }
     Notify.create({ message: 'อัปโหลดไฟล์สำเร็จ', position: 'bottom-left', type: 'positive' });
   } catch (error) {
     Notify.create({ message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการอัปโหลดไฟล์', position: 'bottom-left', type: 'negative' });
     if (type === 'receipt') { fileReceipt.value.file = null; fileReceipt.value.name = null; }
-    else { fileMedical.value.file = null; fileMedical.value.name = null; }
+    else if (type === 'medical') { fileMedical.value.file = null; fileMedical.value.name = null; }
+    else { fileSocial.value.file = null; fileSocial.value.name = null; }
   } finally {
     if (type === 'receipt') fileReceipt.value.uploading = false;
-    else fileMedical.value.uploading = false;
+    else if (type === 'medical') fileMedical.value.uploading = false;
+    else fileSocial.value.uploading = false;
   }
 }
 async function removeFileReceipt() {
@@ -745,6 +783,21 @@ async function removeFileMedical() {
   fileMedical.value.file = null;
   fileMedical.value.name = null;
   if (fileMedicalInput.value) fileMedicalInput.value.value = '';
+}
+async function removeFileSocial() {
+  if (model.value.fileSocialSecurity && isEdit.value && route.params.id) {
+    try {
+      await dentalWelfareService.deleteFile(route.params.id, 'social_security');
+      model.value.fileSocialSecurity = null;
+      Notify.create({ message: 'ลบไฟล์สำเร็จ', position: 'bottom-left', type: 'positive' });
+    } catch (error) {
+      Notify.create({ message: error?.response?.data?.message ?? 'เกิดข้อผิดพลาดในการลบไฟล์', position: 'bottom-left', type: 'negative' });
+      return;
+    }
+  }
+  fileSocial.value.file = null;
+  fileSocial.value.name = null;
+  if (fileSocialInput.value) fileSocialInput.value.value = '';
 }
 async function downloadFile(fileName) {
   if (!fileName) return;
@@ -885,11 +938,12 @@ async function submit(actionId) {
   }).then(async (result) => {
     if (isValid && result.isConfirmed) {
       const newRecordId = fetch.data?.newItem?.id || route.params.id;
-      if (newRecordId && (fileReceipt.value.file || fileMedical.value.file)) {
+      if (newRecordId && (fileReceipt.value.file || fileMedical.value.file || fileSocial.value.file)) {
         try {
           const formData = new FormData();
           if (fileReceipt.value.file) formData.append('fileReceipt', fileReceipt.value.file);
           if (fileMedical.value.file) formData.append('fileMedicalCertificate', fileMedical.value.file);
+          if (fileSocial.value.file) formData.append('fileSocialSecurity', fileSocial.value.file);
           await dentalWelfareService.uploadFile(newRecordId, formData);
         } catch (error) {
           console.error('File upload error:', error);

@@ -200,6 +200,7 @@ class Controller extends BaseController {
           [col("status"), "status"],
           [col("file_receipt"), "fileReceipt"],
           [col("file_medical_certificate"), "fileMedicalCertificate"],
+          [col("file_social_security"), "fileSocialSecurity"],
           [col("created_by_user.id"), "userId"],
           [col("created_by_user.name"), "name"],
           [col("created_by_user.position.name"), "position"],

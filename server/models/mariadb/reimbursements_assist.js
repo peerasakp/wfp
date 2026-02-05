@@ -53,7 +53,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     status: {
-      type: DataTypes.ENUM('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ'),
+      type: DataTypes.ENUM('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ'),
       allowNull: false
     },
     deceased: {
@@ -97,6 +97,22 @@ module.exports = function(sequelize, DataTypes) {
         model: 'categories',
         key: 'id'
       }
+    },
+    file_receipt: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_document: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_photo: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_house_registration: {
+      type: DataTypes.STRING(255),
+      allowNull: true
     }
   }, {
     sequelize,

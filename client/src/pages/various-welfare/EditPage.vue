@@ -140,7 +140,8 @@
               <p class="q-mb-none">หลักฐานที่ต้องแนบ</p>
             </q-card-section>
             <q-separator />
-            <q-card-section class="row wrap q-col-gutter-y-md q-px-md q-py-md font-medium font-16 text-grey-7">
+            <!-- Evidence info display when no category selected -->
+            <q-card-section v-if="!model.categoryId" class="row wrap q-col-gutter-y-md q-px-md q-py-md font-medium font-16 text-grey-7">
               <p class="col-12 q-mb-none font-18 font-bold text-black ">ค่าสมรสโดยนิตินัย</p>
               <p class="col-12 q-mb-none">1. ใบสำคัญรับเงิน</p>
               <p class="col-12 q-mb-none">2. สำเนาทะเบียนสมรส</p>
@@ -154,6 +155,57 @@
               <p class="col-12 q-mb-none">1. ใบสำคัญรับเงิน</p>
               <p class="col-12 q-mb-none">2. รูปภาพ</p>
               <p class="col-12 q-mb-none">3. สำเนาทะเบียนบ้าน</p>
+            </q-card-section>
+            <!-- File upload section when category selected -->
+            <q-card-section v-else class="row wrap q-col-gutter-y-md q-px-md q-py-md font-medium font-16 text-grey-7">
+              <!-- File Receipt - Common for all -->
+              <div class="col-12">
+                <p class="q-mb-xs">1. ใบสำคัญรับเงิน <span class="text-red">*</span></p>
+                <div v-if="fileReceipt.name || model.fileReceipt" class="row items-center q-gutter-sm">
+                  <q-chip removable @remove="removeFile('receipt')" color="primary" text-color="white" class="q-mb-none"
+                    :label="fileReceipt.name || getFileName(model.fileReceipt)" :disable="isView" />
+                </div>
+                <q-btn v-if="!isView && !fileReceipt.name && !model.fileReceipt" outline color="primary" no-caps dense
+                  class="q-px-md" label="เลือกไฟล์" @click="triggerFileUpload('receipt')" />
+                <input ref="fileReceiptInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
+                  @change="handleFileChange($event, 'receipt')" />
+              </div>
+              <!-- File Document - For categories 4, 5, 6 only -->
+              <div class="col-12" v-if="model.categoryId !== 7">
+                <p class="q-mb-xs">2. {{ getDocumentLabel() }} <span class="text-red">*</span></p>
+                <div v-if="fileDocument.name || model.fileDocument" class="row items-center q-gutter-sm">
+                  <q-chip removable @remove="removeFile('document')" color="primary" text-color="white" class="q-mb-none"
+                    :label="fileDocument.name || getFileName(model.fileDocument)" :disable="isView" />
+                </div>
+                <q-btn v-if="!isView && !fileDocument.name && !model.fileDocument" outline color="primary" no-caps dense
+                  class="q-px-md" label="เลือกไฟล์" @click="triggerFileUpload('document')" />
+                <input ref="fileDocumentInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
+                  @change="handleFileChange($event, 'document')" />
+              </div>
+              <!-- File Photo - Only for disaster (category 7) -->
+              <div class="col-12" v-if="model.categoryId === 7">
+                <p class="q-mb-xs">2. รูปภาพ <span class="text-red">*</span></p>
+                <div v-if="filePhoto.name || model.filePhoto" class="row items-center q-gutter-sm">
+                  <q-chip removable @remove="removeFile('photo')" color="primary" text-color="white" class="q-mb-none"
+                    :label="filePhoto.name || getFileName(model.filePhoto)" :disable="isView" />
+                </div>
+                <q-btn v-if="!isView && !filePhoto.name && !model.filePhoto" outline color="primary" no-caps dense
+                  class="q-px-md" label="เลือกไฟล์" @click="triggerFileUpload('photo')" />
+                <input ref="filePhotoInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
+                  @change="handleFileChange($event, 'photo')" />
+              </div>
+              <!-- File House Registration - Only for disaster (category 7) -->
+              <div class="col-12" v-if="model.categoryId === 7">
+                <p class="q-mb-xs">3. สำเนาทะเบียนบ้าน <span class="text-red">*</span></p>
+                <div v-if="fileHouseRegistration.name || model.fileHouseRegistration" class="row items-center q-gutter-sm">
+                  <q-chip removable @remove="removeFile('house_registration')" color="primary" text-color="white" class="q-mb-none"
+                    :label="fileHouseRegistration.name || getFileName(model.fileHouseRegistration)" :disable="isView" />
+                </div>
+                <q-btn v-if="!isView && !fileHouseRegistration.name && !model.fileHouseRegistration" outline color="primary" no-caps dense
+                  class="q-px-md" label="เลือกไฟล์" @click="triggerFileUpload('house_registration')" />
+                <input ref="fileHouseRegistrationInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
+                  @change="handleFileChange($event, 'house_registration')" />
+              </div>
             </q-card-section>
           </q-card>
 
@@ -203,7 +255,21 @@ const model = ref({
   fundEligible: null,
   categoryId: null,
   createFor: null,
+  fileReceipt: null,
+  fileDocument: null,
+  filePhoto: null,
+  fileHouseRegistration: null,
 });
+
+// File upload refs
+const fileReceiptInput = ref(null);
+const fileDocumentInput = ref(null);
+const filePhotoInput = ref(null);
+const fileHouseRegistrationInput = ref(null);
+const fileReceipt = ref({});
+const fileDocument = ref({});
+const filePhoto = ref({});
+const fileHouseRegistration = ref({});
 let options = ref([]);
 const categoryOptions =
   [
@@ -362,6 +428,10 @@ async function fetchDataEdit() {
           fundEligible: returnedData?.fundEligible,
           fundSumRequest: returnedData?.fundSumRequest,
           categoryId: returnedData?.categoryId,
+          fileReceipt: returnedData?.fileReceipt,
+          fileDocument: returnedData?.fileDocument,
+          filePhoto: returnedData?.filePhoto,
+          fileHouseRegistration: returnedData?.fileHouseRegistration,
         };
         userData.value = {
           name: returnedData?.user.name,
@@ -508,6 +578,138 @@ function abortFilterFn() {
   // console.log('delayed filter aborted')
 }
 
+// File handling functions
+function getFileName(filePath) {
+  if (!filePath) return '';
+  const parts = filePath.split('-');
+  if (parts.length > 1) {
+    return parts.slice(1).join('-');
+  }
+  return filePath;
+}
+
+function getDocumentLabel() {
+  switch (model.value.categoryId) {
+    case 4: return 'สำเนาทะเบียนสมรส';
+    case 5: return 'สำเนาคำสั่งลาอุปสมบท หรือเอกสารประกอบพิธีฮัจญ์';
+    case 6: return 'สำเนาสูติบัตรบุตร หรือสำเนาทะเบียนรับรองบุตร';
+    default: return 'เอกสาร';
+  }
+}
+
+function triggerFileUpload(fileType) {
+  switch (fileType) {
+    case 'receipt':
+      fileReceiptInput.value?.click();
+      break;
+    case 'document':
+      fileDocumentInput.value?.click();
+      break;
+    case 'photo':
+      filePhotoInput.value?.click();
+      break;
+    case 'house_registration':
+      fileHouseRegistrationInput.value?.click();
+      break;
+  }
+}
+
+function handleFileChange(event, fileType) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+  if (!allowedTypes.includes(file.type)) {
+    Notify.create({
+      message: 'อัปโหลดได้เฉพาะ PDF, JPG, JPEG, PNG เท่านั้น',
+      position: 'bottom-left',
+      type: 'negative',
+    });
+    return;
+  }
+
+  const maxSize = 10 * 1024 * 1024;
+  if (file.size > maxSize) {
+    Notify.create({
+      message: 'ไฟล์มีขนาดใหญ่เกินกว่า 10MB',
+      position: 'bottom-left',
+      type: 'negative',
+    });
+    return;
+  }
+
+  switch (fileType) {
+    case 'receipt':
+      fileReceipt.value = file;
+      break;
+    case 'document':
+      fileDocument.value = file;
+      break;
+    case 'photo':
+      filePhoto.value = file;
+      break;
+    case 'house_registration':
+      fileHouseRegistration.value = file;
+      break;
+  }
+}
+
+function removeFile(fileType) {
+  switch (fileType) {
+    case 'receipt':
+      fileReceipt.value = {};
+      model.value.fileReceipt = null;
+      if (fileReceiptInput.value) fileReceiptInput.value.value = '';
+      break;
+    case 'document':
+      fileDocument.value = {};
+      model.value.fileDocument = null;
+      if (fileDocumentInput.value) fileDocumentInput.value.value = '';
+      break;
+    case 'photo':
+      filePhoto.value = {};
+      model.value.filePhoto = null;
+      if (filePhotoInput.value) filePhotoInput.value.value = '';
+      break;
+    case 'house_registration':
+      fileHouseRegistration.value = {};
+      model.value.fileHouseRegistration = null;
+      if (fileHouseRegistrationInput.value) fileHouseRegistrationInput.value.value = '';
+      break;
+  }
+}
+
+async function uploadFiles(recordId) {
+  const formData = new FormData();
+  let hasFiles = false;
+
+  if (fileReceipt.value instanceof File) {
+    formData.append('fileReceipt', fileReceipt.value);
+    hasFiles = true;
+  }
+  if (fileDocument.value instanceof File) {
+    formData.append('fileDocument', fileDocument.value);
+    hasFiles = true;
+  }
+  if (filePhoto.value instanceof File) {
+    formData.append('filePhoto', filePhoto.value);
+    hasFiles = true;
+  }
+  if (fileHouseRegistration.value instanceof File) {
+    formData.append('fileHouseRegistration', fileHouseRegistration.value);
+    hasFiles = true;
+  }
+
+  if (!hasFiles) return;
+
+  try {
+    await variousWelfareService.uploadFile(recordId, formData);
+  } catch (error) {
+    console.error('File upload error:', error);
+    throw error;
+  }
+}
+
 async function submit(actionId) {
   let validate = false;
   if (!model.value.fundReceipt) {
@@ -573,9 +775,13 @@ async function submit(actionId) {
       try {
         if (isEdit.value) {
           fetch = await variousWelfareService.update(route.params.id, payload);
+          await uploadFiles(route.params.id);
         }
         else {
           fetch = await variousWelfareService.create(payload);
+          if (fetch.data?.newItem?.id) {
+            await uploadFiles(fetch.data.newItem.id);
+          }
         }
         isValid = true;
       } catch (error) {

@@ -139,8 +139,8 @@
                 </div>
                 <p v-else class="q-mb-none text-grey-5">- ไม่มีไฟล์ -</p>
               </div>
-              <!-- File Document -->
-              <div class="col-12">
+              <!-- File Document - For categories 4, 5, 6 only -->
+              <div class="col-12" v-if="model.categoryId !== 7">
                 <p class="q-mb-xs">2. {{ getDocumentLabel() }}</p>
                 <div v-if="model.fileDocument" class="row items-center q-gutter-sm">
                   <q-chip color="primary" text-color="white" class="q-mb-none"
@@ -152,7 +152,7 @@
               </div>
               <!-- File Photo - Only for disaster (category 7) -->
               <div class="col-12" v-if="model.categoryId === 7">
-                <p class="q-mb-xs">3. รูปภาพ</p>
+                <p class="q-mb-xs">2. รูปภาพ</p>
                 <div v-if="model.filePhoto" class="row items-center q-gutter-sm">
                   <q-chip color="primary" text-color="white" class="q-mb-none"
                     :label="getFileName(model.filePhoto)" />
@@ -163,7 +163,7 @@
               </div>
               <!-- File House Registration - Only for disaster (category 7) -->
               <div class="col-12" v-if="model.categoryId === 7">
-                <p class="q-mb-xs">4. สำเนาทะเบียนบ้าน</p>
+                <p class="q-mb-xs">3. สำเนาทะเบียนบ้าน</p>
                 <div v-if="model.fileHouseRegistration" class="row items-center q-gutter-sm">
                   <q-chip color="primary" text-color="white" class="q-mb-none"
                     :label="getFileName(model.fileHouseRegistration)" />
@@ -195,8 +195,6 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-      </div>
-    </template>
     <!--Action Slot -->
     <template v-slot:action>
       <div class="justify-end row q-py-xs font-medium q-gutter-lg">
@@ -529,7 +527,6 @@ function getDocumentLabel() {
     case 4: return 'สำเนาทะเบียนสมรส';
     case 5: return 'สำเนาคำสั่งลาอุปสมบท หรือเอกสารประกอบพิธีฮัจญ์';
     case 6: return 'สำเนาสูติบัตรบุตร หรือสำเนาทะเบียนรับรองบุตร';
-    case 7: return 'เอกสารประกอบ';
     default: return 'เอกสาร';
   }
 }
@@ -542,7 +539,7 @@ async function previewFile(fileName) {
     previewFileName.value = getFileName(fileName);
     previewType.value = getFileType(fileName) === 'pdf' ? 'pdf' : 'image';
     showPreviewDialog.value = true;
-  } catch (error) {
+  } catch {
     Notify.create({
       message: 'ไม่สามารถโหลดไฟล์ได้',
       position: 'bottom-left',
@@ -563,7 +560,7 @@ async function downloadFile(fileName) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  } catch (error) {
+  } catch {
     Notify.create({
       message: 'ไม่สามารถดาวน์โหลดไฟล์ได้',
       position: 'bottom-left',
