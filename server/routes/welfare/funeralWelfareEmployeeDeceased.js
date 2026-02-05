@@ -15,16 +15,19 @@ const {
     checkUpdateRemaining,
     checkFullPerTimes
 } = require('../../middleware/funeralWelfareEmployeeDeceased')
+const { funeralEmployee } = require('../../middleware/pdf-management/pdfManagement.middleware');
 
+// Get Methods
 router.get('/', authPermission, bindFilter, reimbursementsEmployeeDeceasedController.list);
 router.get('/remaining', authPermission, getRemaining, reimbursementsEmployeeDeceasedController.getRemaining);
 router.get('/:id', authPermission, byIdMiddleWare, reimbursementsEmployeeDeceasedController.getById);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsEmployeeDeceasedController.getById);
-
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.create);
-
+// Post Methods
+router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.create, funeralEmployee);
+// Put Methods
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.update);
 router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.update);
-
+// Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsEmployeeDeceasedController.delete);
+
 module.exports = router;

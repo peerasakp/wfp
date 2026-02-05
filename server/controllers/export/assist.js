@@ -32,7 +32,6 @@ const createPdfAssist = async (req, res, next) => {
 
 
         const puppeteer = require('puppeteer');
-        const fs = require('fs');
         const path = require('path');
         
         const outDoucment_Directory = path.join(__dirname, '../../document')
@@ -57,6 +56,7 @@ const createPdfAssist = async (req, res, next) => {
             fontSize: 14,
             textColor: '#333',
         });
+
         const receipt = await ejs.renderFile('./templateExport/receiptExport.html.ejs', data, { async: true });
         const receiptFuneralSupport = await ejs.renderFile('./templateExport/receiptFuneralSupportExport.html.ejs', data, { async: true });
         const html = await ejs.renderFile('./templateExport/assistExport.html.ejs', {

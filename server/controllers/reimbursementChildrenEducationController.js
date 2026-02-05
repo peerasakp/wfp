@@ -231,7 +231,7 @@ class Controller extends BaseController {
                 const newReimbursementsChild = await reimbursementsChildrenEducation.create(dataCreate, { transaction: t });
                 if (!isNullOrEmpty(child)) {
                     if (child.length > 3) {
-                        return res.status(400).json({ message: "ไม่สามารถเพิ่มข้อมูลบุตรได้เกิน 3 คน" });
+                        throw new Error("CHILD_LIMIT_EXCEEDED");
                     }
             
                     for (let childObj of child) {
@@ -307,16 +307,20 @@ class Controller extends BaseController {
                     });
                 }
 
-                if (!isNullOrEmpty(child)) return itemsReturned;
-                return newReimbursementsChild;
+                // if (!isNullOrEmpty(child)) return itemsReturned;
+                // return newReimbursementsChild;
+                req.createdId = newReimbursementsChild.id; 
             });
-
-            res.status(201).json({ newItem: results, message: "บันทึกข้อมูลสำเร็จ" });
+            next();
+            //res.status(201).json({ newItem: results, message: "บันทึกข้อมูลสำเร็จ" });
         } catch (error) {
             logger.error(`Error ${error.message}`, {
                 method,
                 data: { id },
             });
+            if (error.message === "CHILD_LIMIT_EXCEEDED") {
+                return res.status(400).json({ message: "ไม่สามารถเพิ่มข้อมูลบุตรได้เกิน 3 คน" });
+            }
             next(error);
         }
     };

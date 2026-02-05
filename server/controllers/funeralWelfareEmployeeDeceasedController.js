@@ -599,13 +599,14 @@ class Controller extends BaseController {
                         newItemDecease: newItemSub,
                     };
                 }
-
-                if (selectedWreath || selectedVehicle || deceased) {
-                    return itemsReturned;
-                }
-                return newItem;
+                req.createdId = newItem.id;
+                // if (selectedWreath || selectedVehicle || deceased) {
+                //     return itemsReturned;
+                // }
+                // return newItem;
             });
-            res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+            // res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+            next();
         }
         catch (error) {
 
