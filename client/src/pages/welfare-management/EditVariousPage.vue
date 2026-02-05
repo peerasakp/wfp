@@ -128,24 +128,73 @@
             </q-card-section>
             <q-separator />
             <q-card-section class="row wrap q-col-gutter-y-md q-px-md q-py-md font-medium font-16 text-grey-7">
-              <p class="col-12 q-mb-none font-18 font-bold text-black ">ค่าสมรสโดยนิตินัย</p>
-              <p class="col-12 q-mb-none">1. ใบสำคัญรับเงิน</p>
-              <p class="col-12 q-mb-none">2. สำเนาทะเบียนสมรส</p>
-              <p class="col-12 q-mb-none font-18 font-bold text-black ">ค่าอุปสมบทหรือการไปประกอบพิธีฮัจญ์</p>
-              <p class="col-12 q-mb-none">1. ใบสำคัญรับเงิน</p>
-              <p class="col-12 q-mb-none">2. สำเนาคำสั่งลาอุปสมบท<br>หรือเอกสารประกอบพิธีฮัจญ์</p>
-              <p class="col-12 q-mb-none font-18 font-bold text-black ">ค่ารับขวัญบุตรแรกเกิด</p>
-              <p class="col-12 q-mb-none">1. ใบสำคัญรับเงิน</p>
-              <p class="col-12 q-mb-none">2. สำเนาสูติบัตรบุตร<br>หรือสำเนาทะเบียนรับรองบุตร</p>
-              <p class="col-12 q-mb-none font-18 font-bold text-black ">ค่าประสบภัยพิบัติ</p>
-              <p class="col-12 q-mb-none">1. ใบสำคัญรับเงิน</p>
-              <p class="col-12 q-mb-none">2. รูปภาพ</p>
-              <p class="col-12 q-mb-none">3. สำเนาทะเบียนบ้าน</p>
+              <!-- File Receipt -->
+              <div class="col-12">
+                <p class="q-mb-xs">1. ใบสำคัญรับเงิน</p>
+                <div v-if="model.fileReceipt" class="row items-center q-gutter-sm">
+                  <q-chip color="primary" text-color="white" class="q-mb-none"
+                    :label="getFileName(model.fileReceipt)" />
+                  <q-btn flat round dense size="sm" icon="visibility" @click="previewFile(model.fileReceipt)" />
+                  <q-btn flat round dense size="sm" icon="download" @click="downloadFile(model.fileReceipt)" />
+                </div>
+                <p v-else class="q-mb-none text-grey-5">- ไม่มีไฟล์ -</p>
+              </div>
+              <!-- File Document -->
+              <div class="col-12">
+                <p class="q-mb-xs">2. {{ getDocumentLabel() }}</p>
+                <div v-if="model.fileDocument" class="row items-center q-gutter-sm">
+                  <q-chip color="primary" text-color="white" class="q-mb-none"
+                    :label="getFileName(model.fileDocument)" />
+                  <q-btn flat round dense size="sm" icon="visibility" @click="previewFile(model.fileDocument)" />
+                  <q-btn flat round dense size="sm" icon="download" @click="downloadFile(model.fileDocument)" />
+                </div>
+                <p v-else class="q-mb-none text-grey-5">- ไม่มีไฟล์ -</p>
+              </div>
+              <!-- File Photo - Only for disaster (category 7) -->
+              <div class="col-12" v-if="model.categoryId === 7">
+                <p class="q-mb-xs">3. รูปภาพ</p>
+                <div v-if="model.filePhoto" class="row items-center q-gutter-sm">
+                  <q-chip color="primary" text-color="white" class="q-mb-none"
+                    :label="getFileName(model.filePhoto)" />
+                  <q-btn flat round dense size="sm" icon="visibility" @click="previewFile(model.filePhoto)" />
+                  <q-btn flat round dense size="sm" icon="download" @click="downloadFile(model.filePhoto)" />
+                </div>
+                <p v-else class="q-mb-none text-grey-5">- ไม่มีไฟล์ -</p>
+              </div>
+              <!-- File House Registration - Only for disaster (category 7) -->
+              <div class="col-12" v-if="model.categoryId === 7">
+                <p class="q-mb-xs">4. สำเนาทะเบียนบ้าน</p>
+                <div v-if="model.fileHouseRegistration" class="row items-center q-gutter-sm">
+                  <q-chip color="primary" text-color="white" class="q-mb-none"
+                    :label="getFileName(model.fileHouseRegistration)" />
+                  <q-btn flat round dense size="sm" icon="visibility" @click="previewFile(model.fileHouseRegistration)" />
+                  <q-btn flat round dense size="sm" icon="download" @click="downloadFile(model.fileHouseRegistration)" />
+                </div>
+                <p v-else class="q-mb-none text-grey-5">- ไม่มีไฟล์ -</p>
+              </div>
             </q-card-section>
           </q-card>
 
 
         </div>
+      </div>
+    </template>
+    <!-- File Preview Dialog -->
+    <q-dialog v-model="showPreviewDialog" maximized>
+      <q-card class="full-width full-height">
+        <q-bar class="bg-primary text-white">
+          <div class="text-weight-bold">{{ previewFileName }}</div>
+          <q-space />
+          <q-btn dense flat icon="close" v-close-popup />
+        </q-bar>
+        <q-card-section class="full-height q-pa-none">
+          <iframe v-if="previewType === 'pdf'" :src="previewUrl" class="full-width full-height" style="border: none;"></iframe>
+          <div v-else class="flex flex-center full-height">
+            <img :src="previewUrl" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
       </div>
     </template>
     <!--Action Slot -->
@@ -194,7 +243,17 @@ const model = ref({
   fundEligible: null,
   categoryId: null,
   createFor: null,
+  fileReceipt: null,
+  fileDocument: null,
+  filePhoto: null,
+  fileHouseRegistration: null,
 });
+
+// File preview state
+const showPreviewDialog = ref(false);
+const previewUrl = ref('');
+const previewType = ref('');
+const previewFileName = ref('');
 let options = ref([]);
 const categoryOptions =
   [
@@ -321,6 +380,10 @@ async function fetchDataEdit() {
           fundEligible: returnedData?.fundEligible,
           fundSumRequest: returnedData?.fundSumRequest,
           categoryId: returnedData?.categoryId,
+          fileReceipt: returnedData?.fileReceipt,
+          fileDocument: returnedData?.fileDocument,
+          filePhoto: returnedData?.filePhoto,
+          fileHouseRegistration: returnedData?.fileHouseRegistration,
         };
         userData.value = {
           name: returnedData?.user.name,
@@ -442,6 +505,70 @@ async function downloadData() {
   }
   finally {
     notify();
+  }
+}
+
+// File handling functions
+function getFileName(filePath) {
+  if (!filePath) return '';
+  const parts = filePath.split('-');
+  if (parts.length > 1) {
+    return parts.slice(1).join('-');
+  }
+  return filePath;
+}
+
+function getFileType(filePath) {
+  if (!filePath) return '';
+  const ext = filePath.split('.').pop().toLowerCase();
+  return ext;
+}
+
+function getDocumentLabel() {
+  switch (model.value.categoryId) {
+    case 4: return 'สำเนาทะเบียนสมรส';
+    case 5: return 'สำเนาคำสั่งลาอุปสมบท หรือเอกสารประกอบพิธีฮัจญ์';
+    case 6: return 'สำเนาสูติบัตรบุตร หรือสำเนาทะเบียนรับรองบุตร';
+    case 7: return 'เอกสารประกอบ';
+    default: return 'เอกสาร';
+  }
+}
+
+async function previewFile(fileName) {
+  try {
+    const response = await variousWelfareService.getFile(fileName);
+    const blob = new Blob([response.data], { type: response.headers['content-type'] });
+    previewUrl.value = URL.createObjectURL(blob);
+    previewFileName.value = getFileName(fileName);
+    previewType.value = getFileType(fileName) === 'pdf' ? 'pdf' : 'image';
+    showPreviewDialog.value = true;
+  } catch (error) {
+    Notify.create({
+      message: 'ไม่สามารถโหลดไฟล์ได้',
+      position: 'bottom-left',
+      type: 'negative',
+    });
+  }
+}
+
+async function downloadFile(fileName) {
+  try {
+    const response = await variousWelfareService.getFile(fileName);
+    const blob = new Blob([response.data], { type: response.headers['content-type'] });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = getFileName(fileName);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    Notify.create({
+      message: 'ไม่สามารถดาวน์โหลดไฟล์ได้',
+      position: 'bottom-left',
+      type: 'negative',
+    });
   }
 }
 
