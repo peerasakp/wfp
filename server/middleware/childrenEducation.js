@@ -10,6 +10,131 @@ const statusText = require('../enum/statusText')
 const welfareType = require('../enum/welfareType');
 const { sendMail } = require('../helper/mail');
 const sub_categories = require('../models/mariadb/sub_categories');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// File upload configuration
+const fileFolder = path.join(__dirname, '..', 'public', 'upload', 'children-education-welfare');
+if (!fs.existsSync(fileFolder)) fs.mkdirSync(fileFolder, { recursive: true });
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, fileFolder),
+    filename: (req, file, cb) => {
+        const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        const timestamp = Date.now();
+        cb(null, `${timestamp}-${originalname}`);
+    }
+});
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowed = ['.pdf', '.jpg', '.jpeg', '.png'];
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (allowed.includes(ext)) cb(null, true);
+        else cb(new Error('อนุญาตเฉพาะไฟล์ PDF, JPG, JPEG, PNG เท่านั้น'));
+    }
+}).fields([
+    { name: 'fileReceipt', maxCount: 1 },
+    { name: 'fileIdCard', maxCount: 1 },
+    { name: 'fileBirthCertificate', maxCount: 1 },
+    { name: 'fileDocument', maxCount: 1 },
+]);
+
+const handleFileUpload = (req, res, next) => {
+    upload(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ message: 'ขนาดไฟล์ต้องไม่เกิน 10MB' });
+            return res.status(400).json({ message: err.message });
+        }
+        if (err) return res.status(400).json({ message: err.message });
+        next();
+    });
+};
+
+const getFileByName = async (req, res, next) => {
+    try {
+        const { fileName } = req.query;
+        if (!fileName) return res.status(400).json({ message: 'fileName is required' });
+        const filePath = path.join(fileFolder, fileName);
+        if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'ไม่พบไฟล์' });
+        const ext = path.extname(fileName).toLowerCase();
+        const contentTypes = { '.pdf': 'application/pdf', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png' };
+        res.setHeader('Content-Type', contentTypes[ext] || 'application/octet-stream');
+        res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileName)}"`);
+        fs.createReadStream(filePath).pipe(res);
+    } catch (error) {
+        logger.error(`Error ${error.message}`, { method: 'getFileByName' });
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+const deleteFileFromDisk = (fileName) => {
+    if (!fileName) return;
+    const filePath = path.join(fileFolder, fileName);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+};
+
+const uploadFilesForRecord = async (req, res, next) => {
+    try {
+        const dataId = req.params['id'];
+        const record = await reimbursementsChildrenEducation.findByPk(dataId);
+        if (!record) return res.status(404).json({ message: 'ไม่พบข้อมูล' });
+
+        const fileFieldMap = {
+            fileReceipt: 'file_receipt',
+            fileIdCard: 'file_id_card',
+            fileBirthCertificate: 'file_birth_certificate',
+            fileDocument: 'file_document',
+        };
+
+        const updateData = {};
+        for (const [formField, dbField] of Object.entries(fileFieldMap)) {
+            if (req.files && req.files[formField] && req.files[formField][0]) {
+                if (record[dbField]) deleteFileFromDisk(record[dbField]);
+                updateData[dbField] = req.files[formField][0].filename;
+            }
+        }
+
+        if (Object.keys(updateData).length > 0) {
+            await record.update(updateData);
+        }
+
+        res.status(200).json({ message: 'อัปโหลดไฟล์สำเร็จ' });
+    } catch (error) {
+        logger.error(`Error ${error.message}`, { method: 'uploadFilesForRecord' });
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+const deleteFileFromRecord = async (req, res, next) => {
+    try {
+        const dataId = req.params['id'];
+        const { fileType } = req.body;
+        const record = await reimbursementsChildrenEducation.findByPk(dataId);
+        if (!record) return res.status(404).json({ message: 'ไม่พบข้อมูล' });
+
+        const fileFieldMap = {
+            receipt: 'file_receipt',
+            id_card: 'file_id_card',
+            birth_certificate: 'file_birth_certificate',
+            document: 'file_document',
+        };
+
+        const dbField = fileFieldMap[fileType];
+        if (!dbField) return res.status(400).json({ message: 'ประเภทไฟล์ไม่ถูกต้อง' });
+
+        if (record[dbField]) deleteFileFromDisk(record[dbField]);
+        await record.update({ [dbField]: null });
+
+        res.status(200).json({ message: 'ลบไฟล์สำเร็จ' });
+    } catch (error) {
+        logger.error(`Error ${error.message}`, { method: 'deleteFileFromRecord' });
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
 
 const authPermission = async (req, res, next) => {
     const method = 'AuthPermission';
@@ -971,5 +1096,9 @@ module.exports = {
     byIdMiddleWare,
     authPermissionEditor,
     checkNullValue,
-    checkUpdateRemaining
+    checkUpdateRemaining,
+    handleFileUpload,
+    getFileByName,
+    uploadFilesForRecord,
+    deleteFileFromRecord
 };

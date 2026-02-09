@@ -85,6 +85,34 @@ module.exports = function(sequelize, DataTypes) {
         model: 'users',
         key: 'id'
       }
+    },
+    file_receipt: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_id_card: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_death_certificate: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_wreath_receipt: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_wreath_document: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_vehicle_receipt: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_vehicle_document: {
+      type: DataTypes.STRING(255),
+      allowNull: true
     }
   }, {
     sequelize,
