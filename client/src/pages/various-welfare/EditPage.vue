@@ -160,51 +160,99 @@
             <q-card-section v-else class="row wrap q-col-gutter-y-md q-px-md q-py-md font-medium font-16 text-grey-7">
               <!-- File Receipt - Common for all -->
               <div class="col-12">
-                <p class="q-mb-xs">1. ใบสำคัญรับเงิน <span class="text-red">*</span></p>
-                <div v-if="fileReceipt.name || model.fileReceipt" class="row items-center q-gutter-sm">
-                  <q-chip removable @remove="removeFile('receipt')" color="primary" text-color="white" class="q-mb-none"
-                    :label="fileReceipt.name || getFileName(model.fileReceipt)" :disable="isView" />
+                <div class="row items-center justify-between q-mb-xs">
+                  <span>1. ใบสำคัญรับเงิน</span>
+                  <div v-if="!isView">
+                    <input ref="fileReceiptInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
+                      @change="handleFileChange($event, 'receipt')" />
+                    <q-btn v-if="!fileReceipt.name && !model.fileReceipt" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด"
+                      @click="triggerFileUpload('receipt')" />
+                    <div v-else class="row items-center q-gutter-x-sm">
+                      <q-chip removable color="blue-2" text-color="blue-9" @remove="removeFile('receipt')"
+                        :label="fileReceipt.name || getFileName(model.fileReceipt)" class="q-ma-none" size="sm" />
+                      <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(fileReceipt.file, model.fileReceipt)" title="ดูตัวอย่าง" />
+                      <q-btn v-if="model.fileReceipt" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceipt)" title="ดาวน์โหลด" />
+                    </div>
+                  </div>
+                  <div v-else-if="isView && model.fileReceipt" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileReceipt)" class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileReceipt)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceipt)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else-if="isView && !model.fileReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <q-btn v-if="!isView && !fileReceipt.name && !model.fileReceipt" outline color="primary" no-caps dense
-                  class="q-px-md" label="เลือกไฟล์" @click="triggerFileUpload('receipt')" />
-                <input ref="fileReceiptInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
-                  @change="handleFileChange($event, 'receipt')" />
               </div>
               <!-- File Document - For categories 4, 5, 6 only -->
               <div class="col-12" v-if="model.categoryId !== 7">
-                <p class="q-mb-xs">2. {{ getDocumentLabel() }} <span class="text-red">*</span></p>
-                <div v-if="fileDocument.name || model.fileDocument" class="row items-center q-gutter-sm">
-                  <q-chip removable @remove="removeFile('document')" color="primary" text-color="white" class="q-mb-none"
-                    :label="fileDocument.name || getFileName(model.fileDocument)" :disable="isView" />
+                <div class="row items-center justify-between q-mb-xs">
+                  <span>2. {{ getDocumentLabel() }}</span>
+                  <div v-if="!isView">
+                    <input ref="fileDocumentInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
+                      @change="handleFileChange($event, 'document')" />
+                    <q-btn v-if="!fileDocument.name && !model.fileDocument" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด"
+                      @click="triggerFileUpload('document')" />
+                    <div v-else class="row items-center q-gutter-x-sm">
+                      <q-chip removable color="blue-2" text-color="blue-9" @remove="removeFile('document')"
+                        :label="fileDocument.name || getFileName(model.fileDocument)" class="q-ma-none" size="sm" />
+                      <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(fileDocument.file, model.fileDocument)" title="ดูตัวอย่าง" />
+                      <q-btn v-if="model.fileDocument" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileDocument)" title="ดาวน์โหลด" />
+                    </div>
+                  </div>
+                  <div v-else-if="isView && model.fileDocument" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileDocument)" class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileDocument)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileDocument)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else-if="isView && !model.fileDocument" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <q-btn v-if="!isView && !fileDocument.name && !model.fileDocument" outline color="primary" no-caps dense
-                  class="q-px-md" label="เลือกไฟล์" @click="triggerFileUpload('document')" />
-                <input ref="fileDocumentInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
-                  @change="handleFileChange($event, 'document')" />
               </div>
               <!-- File Photo - Only for disaster (category 7) -->
               <div class="col-12" v-if="model.categoryId === 7">
-                <p class="q-mb-xs">2. รูปภาพ <span class="text-red">*</span></p>
-                <div v-if="filePhoto.name || model.filePhoto" class="row items-center q-gutter-sm">
-                  <q-chip removable @remove="removeFile('photo')" color="primary" text-color="white" class="q-mb-none"
-                    :label="filePhoto.name || getFileName(model.filePhoto)" :disable="isView" />
+                <div class="row items-center justify-between q-mb-xs">
+                  <span>2. รูปภาพ</span>
+                  <div v-if="!isView">
+                    <input ref="filePhotoInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
+                      @change="handleFileChange($event, 'photo')" />
+                    <q-btn v-if="!filePhoto.name && !model.filePhoto" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด"
+                      @click="triggerFileUpload('photo')" />
+                    <div v-else class="row items-center q-gutter-x-sm">
+                      <q-chip removable color="blue-2" text-color="blue-9" @remove="removeFile('photo')"
+                        :label="filePhoto.name || getFileName(model.filePhoto)" class="q-ma-none" size="sm" />
+                      <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(filePhoto.file, model.filePhoto)" title="ดูตัวอย่าง" />
+                      <q-btn v-if="model.filePhoto" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.filePhoto)" title="ดาวน์โหลด" />
+                    </div>
+                  </div>
+                  <div v-else-if="isView && model.filePhoto" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.filePhoto)" class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.filePhoto)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.filePhoto)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else-if="isView && !model.filePhoto" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <q-btn v-if="!isView && !filePhoto.name && !model.filePhoto" outline color="primary" no-caps dense
-                  class="q-px-md" label="เลือกไฟล์" @click="triggerFileUpload('photo')" />
-                <input ref="filePhotoInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
-                  @change="handleFileChange($event, 'photo')" />
               </div>
               <!-- File House Registration - Only for disaster (category 7) -->
               <div class="col-12" v-if="model.categoryId === 7">
-                <p class="q-mb-xs">3. สำเนาทะเบียนบ้าน <span class="text-red">*</span></p>
-                <div v-if="fileHouseRegistration.name || model.fileHouseRegistration" class="row items-center q-gutter-sm">
-                  <q-chip removable @remove="removeFile('house_registration')" color="primary" text-color="white" class="q-mb-none"
-                    :label="fileHouseRegistration.name || getFileName(model.fileHouseRegistration)" :disable="isView" />
+                <div class="row items-center justify-between q-mb-xs">
+                  <span>3. สำเนาทะเบียนบ้าน</span>
+                  <div v-if="!isView">
+                    <input ref="fileHouseRegistrationInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
+                      @change="handleFileChange($event, 'house_registration')" />
+                    <q-btn v-if="!fileHouseRegistration.name && !model.fileHouseRegistration" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด"
+                      @click="triggerFileUpload('house_registration')" />
+                    <div v-else class="row items-center q-gutter-x-sm">
+                      <q-chip removable color="blue-2" text-color="blue-9" @remove="removeFile('house_registration')"
+                        :label="fileHouseRegistration.name || getFileName(model.fileHouseRegistration)" class="q-ma-none" size="sm" />
+                      <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(fileHouseRegistration.file, model.fileHouseRegistration)" title="ดูตัวอย่าง" />
+                      <q-btn v-if="model.fileHouseRegistration" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileHouseRegistration)" title="ดาวน์โหลด" />
+                    </div>
+                  </div>
+                  <div v-else-if="isView && model.fileHouseRegistration" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileHouseRegistration)" class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileHouseRegistration)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileHouseRegistration)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else-if="isView && !model.fileHouseRegistration" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <q-btn v-if="!isView && !fileHouseRegistration.name && !model.fileHouseRegistration" outline color="primary" no-caps dense
-                  class="q-px-md" label="เลือกไฟล์" @click="triggerFileUpload('house_registration')" />
-                <input ref="fileHouseRegistrationInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none"
-                  @change="handleFileChange($event, 'house_registration')" />
               </div>
             </q-card-section>
           </q-card>
@@ -227,6 +275,23 @@
       </div>
     </template>
   </PageLayout>
+  <q-dialog v-model="showPreviewDialog" maximized>
+    <q-card class="bg-grey-9">
+      <q-card-section class="row items-center q-pb-none">
+        <div class="text-h6 text-white">{{ previewFileName }}</div>
+        <q-space />
+        <q-btn icon="close" flat round dense color="white" v-close-popup />
+      </q-card-section>
+      <q-card-section class="flex flex-center" style="height: calc(100vh - 80px);">
+        <img v-if="previewType === 'image'" :src="previewUrl" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+        <iframe v-else-if="previewType === 'pdf'" :src="previewUrl" style="width: 100%; height: 100%; border: none;" />
+        <div v-else class="text-white text-center">
+          <q-icon name="description" size="100px" />
+          <p class="q-mt-md">ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้</p>
+        </div>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 <script setup>
 import PageLayout from "src/layouts/PageLayout.vue";
@@ -578,6 +643,12 @@ function abortFilterFn() {
   // console.log('delayed filter aborted')
 }
 
+// File preview state
+const showPreviewDialog = ref(false);
+const previewUrl = ref('');
+const previewType = ref('');
+const previewFileName = ref('');
+
 // File handling functions
 function getFileName(filePath) {
   if (!filePath) return '';
@@ -586,6 +657,48 @@ function getFileName(filePath) {
     return parts.slice(1).join('-');
   }
   return filePath;
+}
+
+function getFileType(filePath) {
+  if (!filePath) return '';
+  return filePath.split('.').pop().toLowerCase();
+}
+
+async function previewFile(localFile, serverFileName) {
+  try {
+    if (localFile) {
+      const blob = new Blob([localFile], { type: localFile.type });
+      previewUrl.value = URL.createObjectURL(blob);
+      previewFileName.value = localFile.name;
+      previewType.value = localFile.type.includes('pdf') ? 'pdf' : 'image';
+    } else if (serverFileName) {
+      const response = await variousWelfareService.getFile(serverFileName);
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      previewUrl.value = URL.createObjectURL(blob);
+      previewFileName.value = getFileName(serverFileName);
+      previewType.value = getFileType(serverFileName) === 'pdf' ? 'pdf' : 'image';
+    }
+    showPreviewDialog.value = true;
+  } catch {
+    Notify.create({ message: 'ไม่สามารถโหลดไฟล์ได้', position: 'bottom-left', type: 'negative' });
+  }
+}
+
+async function downloadFile(fileName) {
+  try {
+    const response = await variousWelfareService.getFile(fileName);
+    const blob = new Blob([response.data], { type: response.headers['content-type'] });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = getFileName(fileName);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch {
+    Notify.create({ message: 'ไม่สามารถดาวน์โหลดไฟล์ได้', position: 'bottom-left', type: 'negative' });
+  }
 }
 
 function getDocumentLabel() {

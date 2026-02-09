@@ -113,6 +113,10 @@ module.exports = function(sequelize, DataTypes) {
     file_house_registration: {
       type: DataTypes.STRING(255),
       allowNull: true
+    },
+    file_death_certificate: {
+      type: DataTypes.STRING(255),
+      allowNull: true
     }
   }, {
     sequelize,

@@ -130,47 +130,51 @@
             <q-card-section class="row wrap q-col-gutter-y-md q-px-md q-py-md font-medium font-16 text-grey-7">
               <!-- File Receipt -->
               <div class="col-12">
-                <p class="q-mb-xs">1. ใบสำคัญรับเงิน</p>
-                <div v-if="model.fileReceipt" class="row items-center q-gutter-sm">
-                  <q-chip color="primary" text-color="white" class="q-mb-none"
-                    :label="getFileName(model.fileReceipt)" />
-                  <q-btn flat round dense size="sm" icon="visibility" @click="previewFile(model.fileReceipt)" />
-                  <q-btn flat round dense size="sm" icon="download" @click="downloadFile(model.fileReceipt)" />
+                <div class="row items-center justify-between q-mb-xs">
+                  <span>1. ใบสำคัญรับเงิน</span>
+                  <div v-if="model.fileReceipt" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileReceipt)" class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileReceipt)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceipt)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <p v-else class="q-mb-none text-grey-5">- ไม่มีไฟล์ -</p>
               </div>
               <!-- File Document - For categories 4, 5, 6 only -->
               <div class="col-12" v-if="model.categoryId !== 7">
-                <p class="q-mb-xs">2. {{ getDocumentLabel() }}</p>
-                <div v-if="model.fileDocument" class="row items-center q-gutter-sm">
-                  <q-chip color="primary" text-color="white" class="q-mb-none"
-                    :label="getFileName(model.fileDocument)" />
-                  <q-btn flat round dense size="sm" icon="visibility" @click="previewFile(model.fileDocument)" />
-                  <q-btn flat round dense size="sm" icon="download" @click="downloadFile(model.fileDocument)" />
+                <div class="row items-center justify-between q-mb-xs">
+                  <span>2. {{ getDocumentLabel() }}</span>
+                  <div v-if="model.fileDocument" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileDocument)" class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileDocument)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileDocument)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <p v-else class="q-mb-none text-grey-5">- ไม่มีไฟล์ -</p>
               </div>
               <!-- File Photo - Only for disaster (category 7) -->
               <div class="col-12" v-if="model.categoryId === 7">
-                <p class="q-mb-xs">2. รูปภาพ</p>
-                <div v-if="model.filePhoto" class="row items-center q-gutter-sm">
-                  <q-chip color="primary" text-color="white" class="q-mb-none"
-                    :label="getFileName(model.filePhoto)" />
-                  <q-btn flat round dense size="sm" icon="visibility" @click="previewFile(model.filePhoto)" />
-                  <q-btn flat round dense size="sm" icon="download" @click="downloadFile(model.filePhoto)" />
+                <div class="row items-center justify-between q-mb-xs">
+                  <span>2. รูปภาพ</span>
+                  <div v-if="model.filePhoto" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.filePhoto)" class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.filePhoto)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.filePhoto)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <p v-else class="q-mb-none text-grey-5">- ไม่มีไฟล์ -</p>
               </div>
               <!-- File House Registration - Only for disaster (category 7) -->
               <div class="col-12" v-if="model.categoryId === 7">
-                <p class="q-mb-xs">3. สำเนาทะเบียนบ้าน</p>
-                <div v-if="model.fileHouseRegistration" class="row items-center q-gutter-sm">
-                  <q-chip color="primary" text-color="white" class="q-mb-none"
-                    :label="getFileName(model.fileHouseRegistration)" />
-                  <q-btn flat round dense size="sm" icon="visibility" @click="previewFile(model.fileHouseRegistration)" />
-                  <q-btn flat round dense size="sm" icon="download" @click="downloadFile(model.fileHouseRegistration)" />
+                <div class="row items-center justify-between q-mb-xs">
+                  <span>3. สำเนาทะเบียนบ้าน</span>
+                  <div v-if="model.fileHouseRegistration" class="row items-center q-gutter-x-sm">
+                    <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileHouseRegistration)" class="q-ma-none" size="sm" />
+                    <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(model.fileHouseRegistration)" title="ดูตัวอย่าง" />
+                    <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileHouseRegistration)" title="ดาวน์โหลด" />
+                  </div>
+                  <span v-else class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
-                <p v-else class="q-mb-none text-grey-5">- ไม่มีไฟล์ -</p>
               </div>
             </q-card-section>
           </q-card>
@@ -179,22 +183,6 @@
         </div>
       </div>
     </template>
-    <!-- File Preview Dialog -->
-    <q-dialog v-model="showPreviewDialog" maximized>
-      <q-card class="full-width full-height">
-        <q-bar class="bg-primary text-white">
-          <div class="text-weight-bold">{{ previewFileName }}</div>
-          <q-space />
-          <q-btn dense flat icon="close" v-close-popup />
-        </q-bar>
-        <q-card-section class="full-height q-pa-none">
-          <iframe v-if="previewType === 'pdf'" :src="previewUrl" class="full-width full-height" style="border: none;"></iframe>
-          <div v-else class="flex flex-center full-height">
-            <img :src="previewUrl" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
     <!--Action Slot -->
     <template v-slot:action>
       <div class="justify-end row q-py-xs font-medium q-gutter-lg">
@@ -212,6 +200,23 @@
       </div>
     </template>
   </PageLayout>
+  <q-dialog v-model="showPreviewDialog" maximized>
+    <q-card class="bg-grey-9">
+      <q-card-section class="row items-center q-pb-none">
+        <div class="text-h6 text-white">{{ previewFileName }}</div>
+        <q-space />
+        <q-btn icon="close" flat round dense color="white" v-close-popup />
+      </q-card-section>
+      <q-card-section class="flex flex-center" style="height: calc(100vh - 80px);">
+        <img v-if="previewType === 'image'" :src="previewUrl" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+        <iframe v-else-if="previewType === 'pdf'" :src="previewUrl" style="width: 100%; height: 100%; border: none;" />
+        <div v-else class="text-white text-center">
+          <q-icon name="description" size="100px" />
+          <p class="q-mt-md">ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้</p>
+        </div>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 <script setup>
 import PageLayout from "src/layouts/PageLayout.vue";

@@ -365,6 +365,7 @@ CREATE TABLE `reimbursements_assist` (
   `file_document` varchar(255) DEFAULT NULL,
   `file_photo` varchar(255) DEFAULT NULL,
   `file_house_registration` varchar(255) DEFAULT NULL,
+  `file_death_certificate` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_reimbursements_assist_categories1_idx` (`categories_id`),
   KEY `fk_reimbursements_assist_users1_idx` (`created_by`),

@@ -9,6 +9,35 @@ const category = require('../enum/category');
 const welfareType = require('../enum/welfareType');
 const { permissionsHasRoles, reimbursementsAssist, categories, subCategories, reimbursementsAssistHasSubCategories,users, sequelize } = require('../models/mariadb')
 const { sendMail } = require('../helper/mail');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// File upload configuration
+const fileFolder = path.join(__dirname, '..', 'public', 'upload', 'funeral-family-welfare');
+if (!fs.existsSync(fileFolder)) fs.mkdirSync(fileFolder, { recursive: true });
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, fileFolder),
+    filename: (req, file, cb) => {
+        const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        cb(null, Date.now() + '-' + originalname);
+    }
+});
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (allowedTypes.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('อัปโหลดได้เฉพาะ PDF, JPG, JPEG, PNG เท่านั้น'), false);
+};
+const uploadFiles = multer({
+    storage, fileFilter, limits: { fileSize: 10 * 1024 * 1024 }
+}).fields([
+    { name: 'fileReceipt', maxCount: 1 },
+    { name: 'fileDocument', maxCount: 1 },
+    { name: 'fileDeathCertificate', maxCount: 1 },
+    { name: 'filePhoto', maxCount: 1 },
+    { name: 'fileHouseRegistration', maxCount: 1 }
+]);
 const authPermission = async (req, res, next) => {
     const method = 'AuthPermission';
     const { roleId } = req.user;
@@ -1035,6 +1064,102 @@ const deletedMiddleware = async (req, res, next) => {
         next(error);
     }
 }
+// File upload handler
+const handleFileUpload = (req, res, next) => {
+    uploadFiles(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            return res.status(400).json({ message: `อัปโหลดไฟล์ผิดพลาด: ${err.message}` });
+        } else if (err) {
+            return res.status(400).json({ message: err.message });
+        }
+        next();
+    });
+};
+
+// Get file by name
+const getFileByName = async (req, res, next) => {
+    try {
+        const { fileName } = req.query;
+        if (!fileName) return res.status(400).json({ message: 'ไม่พบชื่อไฟล์' });
+        const filePath = path.join(fileFolder, fileName);
+        if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'ไม่พบไฟล์' });
+        const ext = path.extname(fileName).toLowerCase();
+        const contentTypes = { '.pdf': 'application/pdf', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png' };
+        res.setHeader('Content-Type', contentTypes[ext] || 'application/octet-stream');
+        res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileName)}"`);
+        fs.createReadStream(filePath).pipe(res);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Delete file from disk helper
+const deleteFileFromDisk = (fileName) => {
+    if (!fileName) return;
+    const filePath = path.join(fileFolder, fileName);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+};
+
+// Upload files for existing record
+const uploadFilesForRecord = async (req, res, next) => {
+    try {
+        const dataId = req.params['id'];
+        const record = await reimbursementsAssist.findByPk(dataId);
+        if (!record) return res.status(404).json({ message: 'ไม่พบข้อมูล' });
+
+        const fileFieldMap = {
+            fileReceipt: 'file_receipt',
+            fileDocument: 'file_document',
+            fileDeathCertificate: 'file_death_certificate',
+            filePhoto: 'file_photo',
+            fileHouseRegistration: 'file_house_registration'
+        };
+
+        const updateData = {};
+        for (const [fieldName, dbColumn] of Object.entries(fileFieldMap)) {
+            if (req.files && req.files[fieldName] && req.files[fieldName][0]) {
+                if (record[dbColumn]) deleteFileFromDisk(record[dbColumn]);
+                updateData[dbColumn] = req.files[fieldName][0].filename;
+            }
+        }
+
+        if (Object.keys(updateData).length > 0) {
+            await reimbursementsAssist.update(updateData, { where: { id: dataId } });
+        }
+
+        res.status(200).json({ message: 'อัปโหลดไฟล์สำเร็จ' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Delete specific file from record
+const deleteFileFromRecord = async (req, res, next) => {
+    try {
+        const dataId = req.params['id'];
+        const { fileType } = req.body;
+        const fileFieldMap = {
+            receipt: 'file_receipt',
+            document: 'file_document',
+            death_certificate: 'file_death_certificate',
+            photo: 'file_photo',
+            house_registration: 'file_house_registration'
+        };
+        const dbColumn = fileFieldMap[fileType];
+        if (!dbColumn) return res.status(400).json({ message: 'ประเภทไฟล์ไม่ถูกต้อง' });
+
+        const record = await reimbursementsAssist.findByPk(dataId);
+        if (!record) return res.status(404).json({ message: 'ไม่พบข้อมูล' });
+
+        if (record[dbColumn]) deleteFileFromDisk(record[dbColumn]);
+        await reimbursementsAssist.update({ [dbColumn]: null }, { where: { id: dataId } });
+
+        res.status(200).json({ message: 'ลบไฟล์สำเร็จ' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     authPermission,
     bindFilter,
@@ -1047,5 +1172,9 @@ module.exports = {
     authPermissionEditor,
     checkNullValue,
     checkUpdateRemaining,
-    checkFullPerTimes
+    checkFullPerTimes,
+    handleFileUpload,
+    uploadFilesForRecord,
+    deleteFileFromRecord,
+    getFileByName
 };
