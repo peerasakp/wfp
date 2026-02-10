@@ -1100,12 +1100,63 @@ const deleteFileFromDisk = (fileName) => {
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 };
 
+// Sanitize filename - remove special characters and spaces, preserve Thai characters
+const sanitizeFileName = (name) => {
+    if (!name || name.trim() === '') return 'unknown';
+    return name
+        .replace(/\s+/g, '_')
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+        .replace(/_{2,}/g, '_')
+        .trim() || 'unknown';
+};
+
+// Field name to file prefix mapping
+const fieldPrefixMap = {
+    fileReceipt: 'receipt',
+    fileDocument: 'document',
+    fileDeathCertificate: 'death-certificate',
+    filePhoto: 'photo',
+    fileHouseRegistration: 'house-registration',
+};
+
+// Generate filename: {prefix}-{date}-{userName}.{extension}
+const generateFileName = (originalFileName, userName, requestDate, prefix) => {
+    const ext = path.extname(originalFileName);
+    const date = requestDate ? requestDate.replace(/-/g, '') : new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const sanitizedUserName = sanitizeFileName(userName);
+    return `${prefix}-${date}-${sanitizedUserName}${ext}`;
+};
+
+// Rename file helper
+const renameFile = (oldFileName, newFileName) => {
+    if (!oldFileName || !newFileName) return null;
+    const oldPath = path.join(fileFolder, oldFileName);
+    const newPath = path.join(fileFolder, newFileName);
+    if (fs.existsSync(oldPath)) {
+        if (fs.existsSync(newPath)) {
+            const ext = path.extname(newFileName);
+            const nameWithoutExt = path.basename(newFileName, ext);
+            const uniqueFileName = `${nameWithoutExt}-${Date.now()}${ext}`;
+            fs.renameSync(oldPath, path.join(fileFolder, uniqueFileName));
+            return uniqueFileName;
+        }
+        fs.renameSync(oldPath, newPath);
+        return newFileName;
+    }
+    return null;
+};
+
 // Upload files for existing record
 const uploadFilesForRecord = async (req, res, next) => {
     try {
         const dataId = req.params['id'];
-        const record = await reimbursementsAssist.findByPk(dataId);
+        const record = await reimbursementsAssist.findOne({
+            where: { id: dataId },
+            include: [{ model: users, as: 'created_by_user', attributes: ['name'] }]
+        });
         if (!record) return res.status(404).json({ message: 'ไม่พบข้อมูล' });
+
+        const currentData = record.toJSON();
 
         const fileFieldMap = {
             fileReceipt: 'file_receipt',
@@ -1115,11 +1166,23 @@ const uploadFilesForRecord = async (req, res, next) => {
             fileHouseRegistration: 'file_house_registration'
         };
 
+        // Get user name for file renaming
+        let userName = currentData.created_by_user?.name;
+        if (!userName?.trim()) {
+            const userRecord = await users.findByPk(currentData.created_by);
+            if (userRecord) userName = userRecord.name;
+        }
+        if (!userName?.trim()) userName = 'unknown';
+        const requestDate = currentData.request_date || null;
+
         const updateData = {};
         for (const [fieldName, dbColumn] of Object.entries(fileFieldMap)) {
             if (req.files && req.files[fieldName] && req.files[fieldName][0]) {
                 if (record[dbColumn]) deleteFileFromDisk(record[dbColumn]);
-                updateData[dbColumn] = req.files[fieldName][0].filename;
+                const tempFileName = req.files[fieldName][0].filename;
+                const prefix = fieldPrefixMap[fieldName] || fieldName;
+                const newFileName = generateFileName(tempFileName, userName, requestDate, prefix);
+                updateData[dbColumn] = renameFile(tempFileName, newFileName) || tempFileName;
             }
         }
 

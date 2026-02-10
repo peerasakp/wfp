@@ -788,15 +788,6 @@ function abortFilterFn() {
 
 function getFileName(filename) {
   if (!filename) return '';
-  // Handle new format: receipt-YYYYMMDD-UserName.ext
-  if (filename.startsWith('receipt-')) {
-    // Extract the user name and extension from receipt-YYYYMMDD-UserName.ext
-    const match = filename.match(/^receipt-\d{8}-(.+)$/);
-    if (match && match[1]) {
-      return match[1]; // Return UserName.ext
-    }
-  }
-  // Fallback: remove timestamp prefix for old format
   return filename.replace(/^\d+-/, '');
 }
 

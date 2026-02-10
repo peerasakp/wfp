@@ -625,10 +625,6 @@ function abortFilterFn() {
 }
 function getFileName(filename) {
   if (!filename) return '';
-  if (filename.startsWith('receipt-')) {
-    const match = filename.match(/^receipt-\d{8}-(.+)$/);
-    if (match && match[1]) return match[1];
-  }
   return filename.replace(/^\d+-/, '');
 }
 function getFileType(filename) {

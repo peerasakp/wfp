@@ -681,21 +681,25 @@ const deleteFileFromDisk = (fileName) => {
 // Sanitize filename - remove special characters and spaces, preserve Thai characters
 const sanitizeFileName = (name) => {
     if (!name || name.trim() === '') return 'unknown';
-    // Replace spaces with underscores, preserve Thai characters (U+0E00 to U+0E7F) and alphanumeric
-    // Remove only truly problematic characters for filenames
     return name
         .replace(/\s+/g, '_')
-        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '') // Remove Windows forbidden characters
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
         .replace(/_{2,}/g, '_')
         .trim() || 'unknown';
 };
 
-// Generate receipt filename: receipt-{date}-{userName}.{extension}
-const generateReceiptFileName = (originalFileName, userName, requestDate) => {
+// Field name to file prefix mapping
+const fieldPrefixMap = {
+    fileReceipt: 'receipt',
+    fileMedicalCertificate: 'medical-certificate',
+};
+
+// Generate filename: {prefix}-{date}-{userName}.{extension}
+const generateFileName = (originalFileName, userName, requestDate, prefix) => {
     const ext = path.extname(originalFileName);
     const date = requestDate ? requestDate.replace(/-/g, '') : new Date().toISOString().split('T')[0].replace(/-/g, '');
     const sanitizedUserName = sanitizeFileName(userName);
-    return `receipt-${date}-${sanitizedUserName}${ext}`;
+    return `${prefix}-${date}-${sanitizedUserName}${ext}`;
 };
 
 // Rename file helper
@@ -747,53 +751,28 @@ const uploadFilesForRecord = async (req, res, next) => {
         const currentData = record.toJSON();
         const updateData = {};
 
-        // Handle file receipt upload
-        if (req.files && req.files.fileReceipt && req.files.fileReceipt[0]) {
-            // Delete old file if exists
-            if (currentData.file_receipt) {
-                deleteFileFromDisk(currentData.file_receipt);
-            }
-            
-            // Get the temporary filename from multer
-            const tempFileName = req.files.fileReceipt[0].filename;
-            
-            // Get user name - try from included user, or fetch directly if not available
-            let userName = currentData.created_by_user?.name;
-            if (!userName || userName.trim() === '') {
-                // If user name is not loaded, fetch it directly
-                const userRecord = await users.findByPk(currentData.created_by);
-                if (userRecord) {
-                    userName = userRecord.name;
-                }
-            }
-            
-            // Fallback to 'unknown' if still no name
-            if (!userName || userName.trim() === '') {
-                userName = 'unknown';
-            }
-            
-            // Generate new filename: receipt-{date}-{userName}.{extension}
-            const requestDate = currentData.request_date || null;
-            const newFileName = generateReceiptFileName(tempFileName, userName, requestDate);
-            
-            // Rename the file
-            const finalFileName = renameFile(tempFileName, newFileName);
-            
-            if (finalFileName) {
-                updateData.file_receipt = finalFileName;
-            } else {
-                // If rename failed, use the temp filename
-                updateData.file_receipt = tempFileName;
-            }
+        // Get user name for file renaming
+        let userName = currentData.created_by_user?.name;
+        if (!userName?.trim()) {
+            const userRecord = await users.findByPk(currentData.created_by);
+            if (userRecord) userName = userRecord.name;
         }
+        if (!userName?.trim()) userName = 'unknown';
+        const requestDate = currentData.request_date || null;
 
-        // Handle medical certificate upload
-        if (req.files && req.files.fileMedicalCertificate && req.files.fileMedicalCertificate[0]) {
-            // Delete old file if exists
-            if (currentData.file_medical_certificate) {
-                deleteFileFromDisk(currentData.file_medical_certificate);
+        const fileFieldMap = {
+            fileReceipt: 'file_receipt',
+            fileMedicalCertificate: 'file_medical_certificate',
+        };
+
+        for (const [formField, dbColumn] of Object.entries(fileFieldMap)) {
+            if (req.files?.[formField]?.[0]) {
+                if (currentData[dbColumn]) deleteFileFromDisk(currentData[dbColumn]);
+                const tempFileName = req.files[formField][0].filename;
+                const prefix = fieldPrefixMap[formField] || formField;
+                const newFileName = generateFileName(tempFileName, userName, requestDate, prefix);
+                updateData[dbColumn] = renameFile(tempFileName, newFileName) || tempFileName;
             }
-            updateData.file_medical_certificate = req.files.fileMedicalCertificate[0].filename;
         }
 
         if (Object.keys(updateData).length === 0) {

@@ -866,11 +866,20 @@ const sanitizeFileName = (name) => {
         .trim() || 'unknown';
 };
 
-const generateReceiptFileName = (originalFileName, userName, requestDate) => {
+// Field name to file prefix mapping
+const fieldPrefixMap = {
+    fileReceipt: 'receipt',
+    fileMedicalCertificate: 'medical-certificate',
+    fileSupervisorLetter: 'supervisor-letter',
+    fileReceiptPatientVisit: 'visit-receipt',
+    fileMedicalCertificatePatientVisit: 'visit-medical-certificate',
+};
+
+const generateFileName = (originalFileName, userName, requestDate, prefix) => {
     const ext = path.extname(originalFileName);
     const date = requestDate ? requestDate.replace(/-/g, '') : new Date().toISOString().split('T')[0].replace(/-/g, '');
     const sanitizedUserName = sanitizeFileName(userName);
-    return `receipt-${date}-${sanitizedUserName}${ext}`;
+    return `${prefix}-${date}-${sanitizedUserName}${ext}`;
 };
 
 const renameFile = (oldFileName, newFileName) => {
@@ -907,47 +916,31 @@ const uploadFilesForRecord = async (req, res, next) => {
         }
         const currentData = record.toJSON();
         const updateData = {};
-        if (req.files && req.files.fileReceipt && req.files.fileReceipt[0]) {
-            if (currentData.file_receipt) {
-                deleteFileFromDisk(currentData.file_receipt);
+        // Get user name for file renaming
+        let userName = currentData.created_by_user?.name;
+        if (!userName?.trim()) {
+            const userRecord = await users.findByPk(currentData.created_by);
+            if (userRecord) userName = userRecord.name;
+        }
+        if (!userName?.trim()) userName = 'unknown';
+        const requestDate = currentData.request_date || null;
+
+        const fileFieldMap = {
+            fileReceipt: 'file_receipt',
+            fileMedicalCertificate: 'file_medical_certificate',
+            fileSupervisorLetter: 'file_supervisor_letter',
+            fileReceiptPatientVisit: 'file_receipt_patient_visit',
+            fileMedicalCertificatePatientVisit: 'file_medical_certificate_patient_visit',
+        };
+
+        for (const [formField, dbColumn] of Object.entries(fileFieldMap)) {
+            if (req.files?.[formField]?.[0]) {
+                if (currentData[dbColumn]) deleteFileFromDisk(currentData[dbColumn]);
+                const tempFileName = req.files[formField][0].filename;
+                const prefix = fieldPrefixMap[formField] || formField;
+                const newFileName = generateFileName(tempFileName, userName, requestDate, prefix);
+                updateData[dbColumn] = renameFile(tempFileName, newFileName) || tempFileName;
             }
-            const tempFileName = req.files.fileReceipt[0].filename;
-            let userName = currentData.created_by_user?.name;
-            if (!userName || userName.trim() === '') {
-                const userRecord = await users.findByPk(currentData.created_by);
-                if (userRecord) userName = userRecord.name;
-            }
-            if (!userName || userName.trim() === '') userName = 'unknown';
-            const requestDate = currentData.request_date || null;
-            const newFileName = generateReceiptFileName(tempFileName, userName, requestDate);
-            const finalFileName = renameFile(tempFileName, newFileName);
-            updateData.file_receipt = finalFileName || tempFileName;
-        }
-        if (req.files && req.files.fileMedicalCertificate && req.files.fileMedicalCertificate[0]) {
-            if (currentData.file_medical_certificate) deleteFileFromDisk(currentData.file_medical_certificate);
-            updateData.file_medical_certificate = req.files.fileMedicalCertificate[0].filename;
-        }
-        if (req.files && req.files.fileSupervisorLetter && req.files.fileSupervisorLetter[0]) {
-            if (currentData.file_supervisor_letter) deleteFileFromDisk(currentData.file_supervisor_letter);
-            updateData.file_supervisor_letter = req.files.fileSupervisorLetter[0].filename;
-        }
-        if (req.files && req.files.fileReceiptPatientVisit && req.files.fileReceiptPatientVisit[0]) {
-            if (currentData.file_receipt_patient_visit) deleteFileFromDisk(currentData.file_receipt_patient_visit);
-            const tempFileName = req.files.fileReceiptPatientVisit[0].filename;
-            let userName = currentData.created_by_user?.name;
-            if (!userName || userName.trim() === '') {
-                const userRecord = await users.findByPk(currentData.created_by);
-                if (userRecord) userName = userRecord.name;
-            }
-            if (!userName || userName.trim() === '') userName = 'unknown';
-            const requestDate = currentData.request_date || null;
-            const newFileName = 'visit-' + generateReceiptFileName(tempFileName, userName, requestDate);
-            const finalFileName = renameFile(tempFileName, newFileName);
-            updateData.file_receipt_patient_visit = finalFileName || tempFileName;
-        }
-        if (req.files && req.files.fileMedicalCertificatePatientVisit && req.files.fileMedicalCertificatePatientVisit[0]) {
-            if (currentData.file_medical_certificate_patient_visit) deleteFileFromDisk(currentData.file_medical_certificate_patient_visit);
-            updateData.file_medical_certificate_patient_visit = req.files.fileMedicalCertificatePatientVisit[0].filename;
         }
         if (Object.keys(updateData).length === 0) {
             return res.status(400).json({ message: 'กรุณาอัปโหลดไฟล์' });

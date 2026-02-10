@@ -803,8 +803,7 @@ const showEvidenceUpload = computed(() => {
 
 function getFileName(filePath) {
   if (!filePath) return '';
-  const parts = filePath.split('-');
-  return parts.length > 1 ? parts.slice(1).join('-') : filePath;
+  return filePath.replace(/^\d+-/, '');
 }
 
 function getFileType(fileName) {

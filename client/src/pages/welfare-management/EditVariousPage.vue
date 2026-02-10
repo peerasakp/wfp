@@ -514,11 +514,7 @@ async function downloadData() {
 // File handling functions
 function getFileName(filePath) {
   if (!filePath) return '';
-  const parts = filePath.split('-');
-  if (parts.length > 1) {
-    return parts.slice(1).join('-');
-  }
-  return filePath;
+  return filePath.replace(/^\d+-/, '');
 }
 
 function getFileType(filePath) {
