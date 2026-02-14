@@ -1,5 +1,6 @@
 const axios = require('axios');
-const mockuAuthEsign = {}
+const composer = require('../composer/composer.middleware');
+const minio = require('./minio.middleware')
 
 // authEsign()
 // This function is used to authen E-sign and get token
@@ -77,6 +78,14 @@ const signedDate = () => {
     return formatedDate
 }
 
+// This function is used to test
+const testFlow = composer([
+    minio.putFile,
+    minio.getPublicFile,
+    minio.deleteFile
+])
+
 module.exports = {
-    signed
+    signed,
+    testFlow
 }

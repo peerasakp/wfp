@@ -93,7 +93,7 @@ app.use("/medical-welfare", auth, medicalWelfareRouter);
 app.use("/various-welfare", auth, variousWelfare);
 app.use("/various-welfare-funeral-family", auth, variousFuneralFamilyWelfare);
 app.use("/funeral-welfare", auth, funeralWelfareEmployeeDeceased);
-app.use("/export", auth, exportRouter);
+app.use("/export", exportRouter); // ปิด auth เพิื่อเทส postman ชั่วคราว
 app.use("/home", auth, homeRouter);
 
 // error handling
