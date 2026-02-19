@@ -2,6 +2,7 @@ const axios = require('axios');
 const formData = require('form-data');
 const fs = require('fs');
 const path = require('path');
+const { stream } = require('winston');
 
 class minio {
     constructor() {
@@ -163,17 +164,14 @@ class minio {
                     }
                 }
             )
+            const savePath = await this.downloadAndSaveFile(respone.data.result.file_1.download,  `sign_${req.fileName}.pdf`)
             req.getRespone = respone.data;
             res.json({
                 put: req.putRespone,
                 stamp: req.stamper,
                 get: respone.data,
+                savePath: savePath
                 // delete: respone.data
-            })
-            console.log('Getfile Success :::::::::::::' + {
-                put: req.putRespone,
-                stamp: req.stamper,
-                get: respone.data,
             })
             // next();
         } catch (error) {
@@ -207,6 +205,30 @@ class minio {
             })
         } catch (error) {
             console.log(error);
+        }
+    }
+
+    // downloadAndSaveFile()
+    // This function is used to download and save file to target directory.
+    downloadAndSaveFile = async (url, fileName) => {
+        try{
+            const outDoucment_Directory = path.join(__dirname, '../../document');
+            const filePath = path.join(outDoucment_Directory, fileName)
+            const respone = await axios({
+                method: 'GET',
+                url: url,
+                responseType: 'stream'
+            });
+            const writer = fs.createWriteStream(filePath);
+            respone.data.pipe(writer)
+            return new Promise((resolve, reject) => {
+                writer.on('finish', () => {
+                    resolve(filePath);
+                });
+                writer.on('error', reject)
+            });
+        }catch(error){
+            throw error
         }
     }
 }
