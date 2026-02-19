@@ -165,7 +165,13 @@ class minio {
                 }
             )
             req.getRespone = respone.data;
-            next();
+            res.json({
+                put: req.putRespone,
+                stamp: req.stamper,
+                get: respone.data,
+                // delete: respone.data
+            })
+            // next();
         } catch (error) {
             console.log(error)
         }
