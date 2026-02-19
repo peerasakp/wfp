@@ -18,42 +18,36 @@ const { createPdfFuneralDeceaseEmployee } = require('../../controllers/export/fu
 // ค่าตรวจสุขภาพ
 const healthCheck = composer([
     fetchDataHealthCheckup,
-    signed,
     createPdfGeneral
 ])
 
 // กรณีเจ็บป่วย
 const medical = composer([
     fetchDataMedical,
-    signed,
     createPdfGeneral
 ])
 
 // ทำฟัน
 const dental = composer([
     fetchDataDental,
-    signed,
     createPdfGeneral
 ])
 
 // ค่าสงเคราะห์ต่าง ๆ
 const various = composer([
     fetchDataVarious,
-    signed,
     createPdfAssist
 ])
     
 // สงเคราะห์การศึกษาบุตร
 const childEducation = composer([
     fetchDatareimChildrenEducation,
-    signed,
     createPdfChildrenEducation
 ])
 
 // สงเคราะห์การเสียชีวิตครอบครัว 
 const funeralFamily = composer([
     fetchDataFuneralFamily,
-    signed,
     createPdfAssist
 ])
 

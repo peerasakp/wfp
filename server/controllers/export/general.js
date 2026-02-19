@@ -24,8 +24,6 @@ const createPdfGeneral = async (req, res, next) => {
         // });
         const data = {
             body: req.body.datas,
-            sign: req.body.esign,
-            signedAt: req.body.signedAt,
             bahttext,
             path: process.env.fileAccess
         }
@@ -38,8 +36,6 @@ const createPdfGeneral = async (req, res, next) => {
         const receipt = await ejs.renderFile('./templateExport/receiptExport.html.ejs', data,{ async: true });
         const html = await ejs.renderFile('./templateExport/generalExport.html.ejs', {
             body: req.body.datas,
-            sign: req.body.esign,
-            signedAt: req.body.signedAt,
             receipt: receipt,
             async: true,
             bahttext,
@@ -64,10 +60,12 @@ const createPdfGeneral = async (req, res, next) => {
         // res.end(pdfBuffer);
 
         logger.info('Complete', { method, data: { id } });
-        res.status(200).json({
-            success: true,
-            fileName,
-        });
+        // res.status(200).json({
+        //     success: true,
+        //     fileName,
+        // });
+        req.filePath = filePath;
+        next();
     } catch (error) {
         if (browser) {
             await browser.close();

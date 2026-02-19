@@ -14,6 +14,8 @@ const { authPermission,
         checkUpdateRemaining 
     } = require('../../middleware/childrenEducation');
 const { childEducation } = require('../../middleware/pdf-management/pdfManagement.middleware');
+const esign = require('../../middleware/e-signature/esign.middleware')
+const minio = require('../../middleware/e-signature/minio.middleware')
 
 // Get Methods
 router.get('/', authPermission, bindFilter, reimbursementChildrenEducationController.list);
@@ -25,7 +27,7 @@ router.get('/get-latest-school/latest-school', authPermissionEditor, reimburseme
 router.get('/:id',authPermission, byIdMiddleWare, reimbursementChildrenEducationController.getById);
 router.get('/get-welfare/:id',authPermissionEditor, byIdMiddleWare, reimbursementChildrenEducationController.getById);
 // Post Methods
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining,checkRemaining, reimbursementChildrenEducationController.create, childEducation);
+router.post('/', authPermission, checkNullValue, bindCreate, getRemaining,checkRemaining, reimbursementChildrenEducationController.create, childEducation, minio.putFile, esign.stamper, minio.getPublicFile);
 // Put Methods
 router.put('/:id', authPermission,checkNullValue, bindUpdate, getRemaining,checkRemaining, reimbursementChildrenEducationController.update);
 router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, reimbursementChildrenEducationController.update);

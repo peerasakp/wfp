@@ -16,6 +16,8 @@ const {
     checkFullPerTimes
 } = require('../../middleware/medicalWelfare')
 const { medical } = require('../../middleware/pdf-management/pdfManagement.middleware')
+const esign = require('../../middleware/e-signature/esign.middleware')
+const minio = require('../../middleware/e-signature/minio.middleware')
 
 // Get Methods
 router.get('/', authPermission, bindFilter, reimbursementsGeneralController.list);
@@ -23,7 +25,7 @@ router.get('/remaining', authPermission, getRemaining, reimbursementsGeneralCont
 router.get('/:id', authPermission, byIdMiddleWare, reimbursementsGeneralController.getById);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsGeneralController.getById);
 // Post Methods
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, medical);
+router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, medical, minio.putFile, esign.stamper, minio.getPublicFile);
 // Put Methods
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
 router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsGeneralController.update);

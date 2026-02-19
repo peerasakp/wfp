@@ -8,7 +8,6 @@ const { createPdfFuneralDeceaseEmployee } = require('../../controllers/export/fu
 const { fetchDataFuneralDeceaseEmployee } = require('../../middleware/export/funeralDeceaseEmployee.js');
 const { createPdfChildrenEducation } = require('../../controllers/export/childrenEducation.js');
 const { fetchDatareimChildrenEducation } = require('../../middleware/export/childrenEducation.js');
-const { authldap, login, signed, testFlow } = require('../../middleware/e-signature/esign.middleware.js');
 
 router.get('/health-check-up/:id', fetchDataHealthCheckup, createPdfGeneral);
 
@@ -16,7 +15,7 @@ router.get('/dental/:id', fetchDataDental, createPdfGeneral);
 
 router.get('/medical/:id', fetchDataMedical, createPdfGeneral);
 
-router.get('/various/:id', fetchDataVarious, signed, createPdfAssist);
+router.get('/various/:id', fetchDataVarious, createPdfAssist);
 
 router.get('/various-Funeral-Family/:id', fetchDataFuneralFamily, createPdfAssist);
 
@@ -24,6 +23,6 @@ router.get('/funeral-Decease-Employee/:id', fetchDataFuneralDeceaseEmployee, cre
 
 router.get('/Children-Education/:id', fetchDatareimChildrenEducation, createPdfChildrenEducation);
 
-router.post('/minio/testflow', testFlow)
+// router.post('/minio/testflow', testFlow)
 
 module.exports = router;

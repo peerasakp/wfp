@@ -1,229 +1,190 @@
 const axios = require('axios');
 const { composer } = require('../composer/composer.middleware');
 const minio = require('./minio.middleware')
-const esignPath = {
-    signAuth: 'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson/oauth2/token',
-    sign: 'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson',
-    stamperAuth: 'https://kong-dev.buu.ac.th/service-api/e-sign.setaStamper.MultiStampTextSignElectronicSignatureWithImage/oauth2/token',
-    stamper: 'https://kong-dev.buu.ac.th/service-api/e-sign.setaStamper.MultiStampTextSignElectronicSignatureWithImage'
-}
-const client = {
-    clientSecret: '6RzgQnt7VhjlvnUdHX2W9s0Qp2owcyqJ',
-    clientID: 'U5QhNd2ss5qz3W2uUVlDHSiAd0ktM68G',
-    userID: 'informatics-welfare'
-}
-const provisionKey = {
-    sign: 'o31wlYvJANGMjh7RvKXce3jWvXbuCtEu',
-    stamper: 'RQbO5w8uavpcA28MOMzmg2HwH2Ur2Rjp'
-}
 
-// auth()
-// This function is used to authen esign (dynimics)
-const auth = async (scope, provisionKey, callMethod) => {
-    try {
-        let path
-        switch (callMethod) {
-            case 'sign':
-                path = esignPath.signAuth;
-                break;
-            case 'stamper':
-                path = esignPath.stamperAuth;
-                break;
+class esign {
+    constructor() {
+        this.esignPath = {
+            signAuth: 'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson/oauth2/token',
+            sign: 'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson',
+            stamperAuth: 'https://kong-dev.buu.ac.th/service-api/e-sign.setaStamper.MultiStampTextSignElectronicSignatureWithImage/oauth2/token',
+            stamper: 'https://kong-dev.buu.ac.th/service-api/e-sign.setaStamper.MultiStampTextSignElectronicSignatureWithImage'
         }
-        const data = {
-            client_secret: client.clientSecret,
-            client_id: client.clientID,
-            grant_type: "password",
-            scope: scope,
-            provision_key: provisionKey,
-            authenticated_userid: client.userID
+        this.client = {
+            clientSecret: '6RzgQnt7VhjlvnUdHX2W9s0Qp2owcyqJ',
+            clientID: 'U5QhNd2ss5qz3W2uUVlDHSiAd0ktM68G',
+            userID: 'informatics-welfare'
         }
-        const respone = await axios.post(
-            path,
-            data,
-            {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }
-        )
-        return respone.data;
-    } catch (error) {
-        if (error.response?.status === 401) {
-            return await refreshToken(method);
+        this.provisionKey = {
+            sign: 'o31wlYvJANGMjh7RvKXce3jWvXbuCtEu',
+            stamper: 'RQbO5w8uavpcA28MOMzmg2HwH2Ur2Rjp'
         }
-        throw error;
     }
-}
 
-// refreshToken()
-// This function is used to 
-const refreshToken = async (callMethod) => {
-    try {
-        let path
-        switch (callMethod) {
-            case 'sign':
-                path = esignPath.signAuth;
-                break;
-            case 'stamper':
-                path = esignPath.stamperAuth;
-                break;
-        }
-        const data = {
-            client_secret: client.clientSecret,
-            client_id: client.clientID,
-            grant_type: "refresh_token",
-            refresh_token: ""
-        }
-        const respone = await axios.post(
-            path,
-            data,
-            {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+    // auth()
+    // This function is used to authen esign (dynimics)
+    auth = async (scope, provisionKey, callMethod) => {
+        try {
+            let path
+            switch (callMethod) {
+                case 'sign':
+                    path = this.esignPath.signAuth;
+                    break;
+                case 'stamper':
+                    path = this.esignPath.stamperAuth;
+                    break;
             }
-        )
-        return respone.data;
-    } catch (error) {
-        throw error;
-    }
-}
-
-
-// authEsign()
-// This function is used to authen E-sign and get token
-const authEsign = async (clientSecret, clientID, userID) => {
-    try {
-        const data = {
-            client_secret: clientSecret,
-            client_id: clientID,
-            grant_type: "password",
-            scope: "read",
-            provision_key: "o31wlYvJANGMjh7RvKXce3jWvXbuCtEu",
-            authenticated_userid: userID
-        }
-        const respone = await axios.post(
-            'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson/oauth2/token',
-            data,
-            {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+            const data = {
+                client_secret: this.client.clientSecret,
+                client_id: this.client.clientID,
+                grant_type: "password",
+                scope: scope,
+                provision_key: provisionKey,
+                authenticated_userid: this.client.userID
             }
-        )
-        console.log("authEsign console: ", respone.data)
-        return respone.data
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-// signed()
-// This function is used to get signature form E-sign
-const signed = async (req, res, next) => {
-    try {
-        const token = await authEsign(
-            '6RzgQnt7VhjlvnUdHX2W9s0Qp2owcyqJ',
-            'U5QhNd2ss5qz3W2uUVlDHSiAd0ktM68G',
-            'informatics-welfare'
-        )
-        const data = {
-            psn_id: "00000000"
-        }
-        const respone = await axios.post(
-            'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson',
-            data,
-            {
-                headers: {
-                    'Authorization': `Bearer ${token.access_token}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        )
-        req.body.esign = respone.data
-        req.body.signedAt = signedDate()
-        next()
-    } catch (error) {
-        console.log("signed error : ", error);
-    }
-}
-
-// stmped()
-// This function is used to stamped document on Minio
-const stamper = async (req, res, next) => {
-    try {
-        const token = await auth("write", provisionKey.stamper, "stamper");
-        const data = {
-            psn_id: '00000000',
-            positionType: 'normal',
-            multiStamp: [
+            const respone = await axios.post(
+                path,
+                data,
                 {
-                    text: 'ผู้ทดสอบระบบ',
-                    fontSize: '16',
-                    opacity: '1',
-                    fontWeight: 'normal',
-                    fontColor: [0, 0, 0],
-                    outlineColor: [0, 0, 0],
-                    position: 'left_top',
-                    translateX: '200',
-                    translateY: '-250'
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 }
-            ],
-            imgWidth: '150',
-            imgHeight: '80',
-            position: 'left_top',
-            positionX: '200',
-            positionY: '-180',
-            page: '1',
-            documentName: req.fileName,
-            bucket: 'informatics.welfare.storage'
-        }
-        const respone = await axios.post(
-            esignPath.stamper,
-            data,
-            {
-                headers: {
-                    'Authorization': `Bearer ${token.access_token}`,
-                    'Content-Type': 'application/json'
-                }
+            )
+            return respone.data;
+        } catch (error) {
+            if (error.response?.status === 401) {
+                return await this.refreshToken(method);
             }
+            throw error;
+        }
+    }
+
+    // refreshToken()
+    // This function is used to 
+    refreshToken = async (callMethod) => {
+        try {
+            let path
+            switch (callMethod) {
+                case 'sign':
+                    path = this.esignPath.signAuth;
+                    break;
+                case 'stamper':
+                    path = this.esignPath.stamperAuth;
+                    break;
+            }
+            const data = {
+                client_secret: this.client.clientSecret,
+                client_id: this.client.clientID,
+                grant_type: "refresh_token",
+                refresh_token: ""
+            }
+            const respone = await axios.post(
+                path,
+                data,
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )
+            return respone.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // stmped()
+    // This function is used to stamped document on Minio
+    stamper = async (req, res, next) => {
+        try {
+            const token = await this.auth("write", this.provisionKey.stamper, "stamper");
+            const stampConfig = this.prepareData('healthcheck')
+            const data = {
+                psn_id: '00000000',
+                positionType: 'normal',
+                multiStamp: [
+                    {
+                        text: stampConfig.signAt,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '360',
+                        translateY: '-125'
+                    }
+                ],
+                imgWidth: stampConfig.signImgWidth,
+                imgHeight: stampConfig.signImgHeight,
+                position: 'left_top',
+                positionX: stampConfig.signPositionX,
+                positionY: stampConfig.signPositionY,
+                page: stampConfig.pageToSign,
+                documentName: req.fileName,
+                bucket: 'informatics.welfare.storage'
+            }
+            const respone = await axios.post(
+                this.esignPath.stamper,
+                data,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token.access_token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )
+            req.stamper = respone.data;
+            next();
+        } catch (error) {
+            console.log('stamper error');
+            throw error
+        }
+    }
+
+    // signedDate()
+    // This function is used to calculate signed date.
+    signedDate = () => {
+        const today = new Date(
+            new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' })
         )
-        req.stamper = respone.data;
-        next();
-    } catch (error) {
-        console.log('stamper error');
-        throw error
+        const monthsTH = [
+            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+        ]
+        const formatedDate = {
+            day: today.getDate(),
+            month: monthsTH[today.getMonth()],
+            year: today.getFullYear() + 543
+        }
+        return formatedDate
+    }
+
+    // prepareData()
+    // This function is used to prepare
+    prepareData = (welfareType) => {
+        let data = {
+            signAt: '',
+            pageToSign: '',
+            signImgWidth: '',
+            signImgHeight: '',
+            signPositionX: '',
+            signPositionY: ''
+        }
+        const date = this.signedDate()
+        data.signAt = '  ' + date.day + '             ' + date.month + '          ' + date.year ;
+        switch(welfareType){
+            case 'healthcheck':
+                data.pageToSign = '2';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '340';
+                data.signPositionY = '-75';
+                break;
+        }
+        return data;
     }
 }
 
-// signedDate()
-// This function is used to calculate signed date.
-const signedDate = () => {
-    const today = new Date(
-        new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' })
-    )
-    const monthsTH = [
-        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-    ]
-    const formatedDate = {
-        day: today.getDate(),
-        month: monthsTH[today.getMonth()],
-        year: today.getFullYear() + 543
-    }
-    return formatedDate
-}
-
-// This function is used to test
-const testFlow = composer([
-    minio.putFile,
-    stamper,
-    minio.getPublicFile,
-    // minio.deleteFile
-])
-
-module.exports = {
-    signed,
-    testFlow
-}
+module.exports = new esign()

@@ -16,6 +16,8 @@ const {
     checkFullPerTimes
 } = require('../../middleware/funeralWelfareEmployeeDeceased')
 const { funeralEmployee } = require('../../middleware/pdf-management/pdfManagement.middleware');
+const esign = require('../../middleware/e-signature/esign.middleware')
+const minio = require('../../middleware/e-signature/minio.middleware')
 
 // Get Methods
 router.get('/', authPermission, bindFilter, reimbursementsEmployeeDeceasedController.list);
@@ -23,7 +25,7 @@ router.get('/remaining', authPermission, getRemaining, reimbursementsEmployeeDec
 router.get('/:id', authPermission, byIdMiddleWare, reimbursementsEmployeeDeceasedController.getById);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsEmployeeDeceasedController.getById);
 // Post Methods
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.create, funeralEmployee);
+router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.create, funeralEmployee, minio.putFile, esign.stamper, minio.getPublicFile);
 // Put Methods
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.update);
 router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.update);

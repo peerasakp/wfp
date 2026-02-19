@@ -105,12 +105,9 @@ class minio {
     // This function is used to authen and put pdf file to Minio (Object Store) 
     putFile = async (req, res, next) => {
         try {
+            console.log('Putfile Start :::::::::::::')
             const token = await this.auth('write', 'l7hdoiyMMtelzqUJoXofCxI3m56CPXZ6', 'put');
-            
-            const filePath = path.join(
-                __dirname,
-                '../../document/welfare_69020519.pdf'
-            );
+            const filePath = req.filePath
             const data = new formData();
             data.append('qrVerify', 'false');
             data.append('path', '/');
@@ -131,6 +128,7 @@ class minio {
             )
             req.fileName = respone.data.result;
             req.putRespone = respone.data;
+            console.log('Putfile Success :::::::::::::')
             next();
         } catch (error) {
             console.log(error)
@@ -141,6 +139,7 @@ class minio {
     // This function is used to get pdf file form Minio
     getPublicFile = async (req, res, next) => {
         try {
+            console.log('Getfile Success :::::::::::::')
             const token = await this.auth('read', 'DI3abB5mVqz1L3tibii1hrjuUo89lfcW', 'get')
             const data = {
                 filePath:
@@ -170,6 +169,11 @@ class minio {
                 stamp: req.stamper,
                 get: respone.data,
                 // delete: respone.data
+            })
+            console.log('Getfile Success :::::::::::::' + {
+                put: req.putRespone,
+                stamp: req.stamper,
+                get: respone.data,
             })
             // next();
         } catch (error) {

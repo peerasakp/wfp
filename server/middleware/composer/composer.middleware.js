@@ -5,13 +5,21 @@ const composer = (middlewares) => {
 
         const run = async (err) => {
             if (err) return next(err)
+
             const fn = middlewares[index++];
-            if (!fn) return;
-            await fn(req, res, run);
+
+            if (!fn) return next(); // ✅ สำคัญมาก
+
+            try {
+                await fn(req, res, run);
+            } catch (error) {
+                next(error);
+            }
         };
 
-        await run();    
+        await run();
     };
 };
+
 
 module.exports = { composer }
