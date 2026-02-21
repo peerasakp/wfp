@@ -1,6 +1,6 @@
 const sequelizePaginate = require('sequelize-paginate');
 const Sequelize = require('sequelize');
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   const model = sequelize.define('reimbursementsGeneral', {
     id: {
       autoIncrement: true,
@@ -13,23 +13,23 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     fund_receipt: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_eligible: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_sum_request: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
     fund_decree: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_university: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_eligible_name: {
@@ -37,15 +37,19 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     fund_eligible_sum: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_receipt_patient_visit: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_sum_request_patient_visit: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    document_path: {
+      type: DataTypes.STRING(255),
       allowNull: true
     },
     start_date: {
@@ -65,7 +69,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     status: {
-      type: DataTypes.ENUM('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ'),
+      type: DataTypes.ENUM('บันทึกฉบับร่าง', 'รอตรวจสอบ', 'อนุมัติ'),
       allowNull: false
     },
     created_at: {

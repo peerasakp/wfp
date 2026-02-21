@@ -560,6 +560,7 @@ class Controller extends BaseController {
     delete req.body.selected_patient_visit;
     const dataUpdate = req.body;
     const dataId = req.params["id"];
+    console.log(dataId, dataUpdate);
     var itemsReturned = null;
     try {
       const result = await sequelize.transaction(async (t) => {

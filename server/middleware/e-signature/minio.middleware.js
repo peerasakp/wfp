@@ -166,14 +166,15 @@ class minio {
             )
             const savePath = await this.downloadAndSaveFile(respone.data.result.file_1.download,  `sign_${req.fileName}.pdf`)
             req.getRespone = respone.data;
-            res.json({
-                put: req.putRespone,
-                stamp: req.stamper,
-                get: respone.data,
-                savePath: savePath
-                // delete: respone.data
-            })
-            // next();
+            req.savePath = savePath
+            // res.json({
+            //     put: req.putRespone,
+            //     stamp: req.stamper,
+            //     get: respone.data,
+            //     savePath: savePath
+            //     // delete: respone.data
+            // })
+            next();
         } catch (error) {
             console.log(error)
         }
@@ -181,7 +182,7 @@ class minio {
 
     // deleteFile()
     // This function is used to delete pdf file in Minio
-    deleteFile = async (req, res) => {
+    deleteFile = async (req, res, next) => {
         try {
             const token = await this.auth('write', 'UV1yu0y4JaYl3WduIMNw8qMuk9SJSChD', 'delete')
             const data = {
@@ -198,11 +199,9 @@ class minio {
                     data: data
                 }
             )
-            res.json({
-                put: req.putRespone,
-                get: req.getRespone,
-                delete: respone.data
-            })
+            req.delete = respone.data
+            console.log(req.getRespone, req.savePath, req.delete)
+            next();
         } catch (error) {
             console.log(error);
         }

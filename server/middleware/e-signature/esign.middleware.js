@@ -143,6 +143,16 @@ class esign {
         }
     }
 
+    nornalize = (req, res, next) => {
+        try{
+           req.params.id = req.createdId;
+           req.body.document_path = req.savePath;
+           next(); 
+        }catch(error){
+            throw error
+        }
+    }
+
     // signedDate()
     // This function is used to calculate signed date.
     signedDate = () => {

@@ -17,7 +17,8 @@ const {
 } = require('../../middleware/medicalWelfare')
 const { medical } = require('../../middleware/pdf-management/pdfManagement.middleware')
 const esign = require('../../middleware/e-signature/esign.middleware')
-const minio = require('../../middleware/e-signature/minio.middleware')
+const minio = require('../../middleware/e-signature/minio.middleware');
+const { min } = require('date-fns/min');
 
 // Get Methods
 router.get('/', authPermission, bindFilter, reimbursementsGeneralController.list);
@@ -25,10 +26,10 @@ router.get('/remaining', authPermission, getRemaining, reimbursementsGeneralCont
 router.get('/:id', authPermission, byIdMiddleWare, reimbursementsGeneralController.getById);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsGeneralController.getById);
 // Post Methods
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, medical, minio.putFile, esign.stamper, minio.getPublicFile);
+router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, medical, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 // Put Methods
-router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
+router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, minio.putFile, esign.stamper, minio.getPublicFile, reimbursementsGeneralController.update, minio.deleteFile);
+router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, reimbursementsGeneralController.update);
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsGeneralController.delete);
 
