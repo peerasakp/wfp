@@ -29,7 +29,7 @@ router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimburseme
 router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, medical, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 // Put Methods
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, minio.putFile, esign.stamper, minio.getPublicFile, reimbursementsGeneralController.update, minio.deleteFile);
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, reimbursementsGeneralController.update);
+router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadDocumentPath, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsGeneralController.delete);
 

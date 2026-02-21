@@ -1,9 +1,9 @@
 const axios = require('axios');
-const { composer } = require('../composer/composer.middleware');
-const minio = require('./minio.middleware')
+const { reimbursementsGeneral } = require('../../models/mariadb')
 
 class esign {
     constructor() {
+        // super(reimbursementsGeneral)
         this.esignPath = {
             signAuth: 'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson/oauth2/token',
             sign: 'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson',
@@ -99,7 +99,7 @@ class esign {
     stamper = async (req, res, next) => {
         try {
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
-            const stampConfig = this.prepareData('healthcheck')
+            const stampConfig = this.prepareData('medical')
             const data = {
                 psn_id: '00000000',
                 positionType: 'normal',
@@ -144,11 +144,11 @@ class esign {
     }
 
     nornalize = (req, res, next) => {
-        try{
-           req.params.id = req.createdId;
-           req.body.document_path = req.savePath;
-           next(); 
-        }catch(error){
+        try {
+            req.params.id = req.params.id || req.createdId;
+            req.body.document_path = req.savePath;
+            next();
+        } catch (error) {
             throw error
         }
     }
@@ -183,8 +183,8 @@ class esign {
             signPositionY: ''
         }
         const date = this.signedDate()
-        data.signAt = '  ' + date.day + '             ' + date.month + '          ' + date.year ;
-        switch(welfareType){
+        data.signAt = '  ' + date.day + '             ' + date.month + '          ' + date.year;
+        switch (welfareType) {
             case 'healthcheck':
                 data.pageToSign = '2';
                 data.signImgWidth = '84';
@@ -192,8 +192,30 @@ class esign {
                 data.signPositionX = '340';
                 data.signPositionY = '-75';
                 break;
+            case 'medical':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '340';
+                data.signPositionY = '-75';
+                break;
         }
         return data;
+    }
+
+    preloadDocumentPath = async (req, res, next) => {
+        try {
+            const id = req.params.id;
+            const data = await reimbursementsGeneral.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path']
+            })
+            req.method = 'medical'
+            req.filePath = data?.document_path || null;
+            next();
+        } catch (error) {
+            next(error)
+        }
     }
 }
 
