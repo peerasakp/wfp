@@ -99,7 +99,7 @@ class esign {
     stamper = async (req, res, next) => {
         try {
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
-            const stampConfig = this.prepareData('medical')
+            const stampConfig = this.prepareData(req.method);
             const data = {
                 psn_id: '00000000',
                 positionType: 'normal',
@@ -112,8 +112,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '360',
-                        translateY: '-125'
+                        translateX: stampConfig.textTranslateX,
+                        translateY: stampConfig.textTranslateY
                     }
                 ],
                 imgWidth: stampConfig.signImgWidth,
@@ -121,7 +121,7 @@ class esign {
                 position: 'left_top',
                 positionX: stampConfig.signPositionX,
                 positionY: stampConfig.signPositionY,
-                page: stampConfig.pageToSign,
+                page: ['2', '3'],
                 documentName: req.fileName,
                 bucket: 'informatics.welfare.storage'
             }
@@ -180,24 +180,30 @@ class esign {
             signImgWidth: '',
             signImgHeight: '',
             signPositionX: '',
-            signPositionY: ''
+            signPositionY: '',
+            textTranslateX: '',
+            textTranslateY: ''
         }
         const date = this.signedDate()
         data.signAt = '  ' + date.day + '             ' + date.month + '          ' + date.year;
         switch (welfareType) {
-            case 'healthcheck':
+            case 'signMedical':
                 data.pageToSign = '2';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
-                data.signPositionX = '340';
+                data.signPositionX = '360';
                 data.signPositionY = '-75';
+                data.textTranslateX = '360';
+                data.textTranslateY = '-125'
                 break;
-            case 'medical':
-                data.pageToSign = '1';
+            case 'verifyMedical':
+                data.pageToSign = '2';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
-                data.signPositionX = '340';
-                data.signPositionY = '-75';
+                data.signPositionX = '380';
+                data.signPositionY = '-250';
+                data.textTranslateX = '365';
+                data.textTranslateY = '-320';
                 break;
         }
         return data;
@@ -210,7 +216,7 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'medical'
+            req.method = 'verifyMedical'
             req.filePath = data?.document_path || null;
             next();
         } catch (error) {
