@@ -99,29 +99,17 @@ class esign {
     stamper = async (req, res, next) => {
         try {
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
-            const stampConfig = this.prepareData(req.method);
+            const stampConfig = this.prepareData(req.user.name, req.method);
             const data = {
                 psn_id: '00000000',
                 positionType: 'normal',
-                multiStamp: [
-                    {
-                        text: stampConfig.signAt,
-                        fontSize: '16',
-                        opacity: '1',
-                        fontWeight: 'normal',
-                        fontColor: [0, 0, 0],
-                        outlineColor: [0, 0, 0],
-                        position: 'left_top',
-                        translateX: stampConfig.textTranslateX,
-                        translateY: stampConfig.textTranslateY
-                    }
-                ],
+                multiStamp: stampConfig.multiStamper,
                 imgWidth: stampConfig.signImgWidth,
                 imgHeight: stampConfig.signImgHeight,
                 position: 'left_top',
                 positionX: stampConfig.signPositionX,
                 positionY: stampConfig.signPositionY,
-                page: ['2', '3'],
+                page: stampConfig.pageToSign,
                 documentName: req.fileName,
                 bucket: 'informatics.welfare.storage'
             }
@@ -173,7 +161,7 @@ class esign {
 
     // prepareData()
     // This function is used to prepare
-    prepareData = (welfareType) => {
+    prepareData = (name, welfareType) => {
         let data = {
             signAt: '',
             pageToSign: '',
@@ -181,11 +169,10 @@ class esign {
             signImgHeight: '',
             signPositionX: '',
             signPositionY: '',
-            textTranslateX: '',
-            textTranslateY: ''
+            multiStamper: []
         }
         const date = this.signedDate()
-        data.signAt = '  ' + date.day + '             ' + date.month + '          ' + date.year;
+        const signAt = '  ' + date.day + '             ' + date.month + '          ' + date.year;
         switch (welfareType) {
             case 'signMedical':
                 data.pageToSign = '2';
@@ -195,6 +182,19 @@ class esign {
                 data.signPositionY = '-75';
                 data.textTranslateX = '360';
                 data.textTranslateY = '-125'
+                data.multiStamper = [
+                    {
+                        text: signAt,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '360',
+                        translateY: '-125'
+                    }
+                ]
                 break;
             case 'verifyMedical':
                 data.pageToSign = '2';
@@ -202,8 +202,30 @@ class esign {
                 data.signImgHeight = '42';
                 data.signPositionX = '380';
                 data.signPositionY = '-250';
-                data.textTranslateX = '365';
-                data.textTranslateY = '-320';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-285'
+                    },
+                    {
+                        text: signAt,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-320'
+                    }
+                ]
                 break;
         }
         return data;
