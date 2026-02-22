@@ -174,7 +174,7 @@ class esign {
         const date = this.signedDate()
         const signAt = '  ' + date.day + '             ' + date.month + '          ' + date.year;
         switch (welfareType) {
-            case 'signMedical':
+            case 'general':
                 data.pageToSign = '2';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
@@ -196,7 +196,7 @@ class esign {
                     }
                 ]
                 break;
-            case 'verifyMedical':
+            case 'generalApprove':
                 data.pageToSign = '2';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
@@ -233,13 +233,13 @@ class esign {
 
     preloadDocumentPath = async (req, res, next) => {
         try {
-            const id = req.params.id;
             const data = await reimbursementsGeneral.findOne({
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'verifyMedical'
+            req.method = 'generalApprove'
             req.filePath = data?.document_path || null;
+            console.log('++++++++++++++file path form preload  == ',req.filePath)
             next();
         } catch (error) {
             next(error)

@@ -65,7 +65,7 @@ const createPdfGeneral = async (req, res, next) => {
         //     fileName,
         // });
         req.filePath = filePath;
-        req.method = 'signMedical'
+        req.method = 'general'
         next();
     } catch (error) {
         if (browser) {
