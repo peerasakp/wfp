@@ -30,7 +30,7 @@ router.get('/file/get-by-name', authPermission, getFileByName);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsGeneralController.getById);
 router.get('/:id', authPermission, byIdMiddleWare, reimbursementsGeneralController.getById);
 
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create,, healthCheck, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
+router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, healthCheck, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.post('/file/upload/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 router.post('/file/delete/:id', authPermission, deleteFileFromRecord);
 
