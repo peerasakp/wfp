@@ -1,5 +1,9 @@
 const axios = require('axios');
-const { reimbursementsGeneral } = require('../../models/mariadb')
+const { 
+    reimbursementsGeneral,
+    reimbursementsAssist,
+    reimbursementsEmployeeDeceased
+ } = require('../../models/mariadb')
 
 class esign {
     constructor() {
@@ -242,6 +246,32 @@ class esign {
             console.log('++++++++++++++file path form preload  == ',req.filePath)
             next();
         } catch (error) {
+            next(error)
+        }
+    }
+    preloadAssist = async (req, res, next) => {
+        try{
+            const data = await reimbursementsAssist.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path']
+            })
+            req.method = 'generalApprove'
+            req.filePath = data?.document_path || null;
+            next();
+        }catch(error){
+            next(error)
+        }
+    }
+    preloadFuneral = async (req, res, next) => {
+        try{
+            const data = await reimbursementsEmployeeDeceased.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path']
+            })
+            req.method = 'generalApprove'
+            req.filePath = data?.document_path || null;
+            next();
+        }catch(error){
             next(error)
         }
     }

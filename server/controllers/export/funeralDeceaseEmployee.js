@@ -12,6 +12,9 @@ const createPdfFuneralDeceaseEmployee = async (req, res, next) => {
 
     try {
         const puppeteer = require('puppeteer');
+        const path = require('path');
+        const outDoucment_Directory = path.join(__dirname, '../../document');
+        
         browser = await puppeteer.launch()
         //     {
         //     executablePath: '/usr/bin/chromium-browser',
@@ -47,18 +50,27 @@ const createPdfFuneralDeceaseEmployee = async (req, res, next) => {
             cssStyles: `<style>${cssData}</style>`,
         });
 
+        const fileName = `welfare_${req.body?.datas?.reimNumber}.pdf`;
+        const filePath = path.join(outDoucment_Directory, fileName);
+
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: 'networkidle0' });
-        const pdfBuffer = await page.pdf({ format: 'A4' });
+        await page.pdf({
+            path: filePath,
+            format: 'A4' 
+        });
+
         await browser.close();
 
-        res.writeHead(200, {
-            "Content-Type": "application/pdf",
-            "Content-Disposition": `attachment; filename="welfare_${req.body?.datas?.reimNumber}.pdf"`,
-        });
-        res.end(pdfBuffer);
-
+        // res.writeHead(200, {
+        //     "Content-Type": "application/pdf",
+        //     "Content-Disposition": `attachment; filename="welfare_${req.body?.datas?.reimNumber}.pdf"`,
+        // });
+        // res.end(pdfBuffer);
         logger.info('Complete', { method, data: { id } });
+        req.filePath = filePath;
+        req.method = 'general'
+        next();
     } catch (error) {
         if (browser) {
             await browser.close();
