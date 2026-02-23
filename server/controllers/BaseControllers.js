@@ -21,7 +21,10 @@ class BaseController {
         const { id } = req.user;
         try {
             const newItem = await this.model.create(req.body);
-            res.status(201).json({ newItem: newItem, message: "สำเร็จ" });
+
+            req.createdId = newItem.id
+            next();
+            //res.status(201).json({ newItem: newItem, message: "สำเร็จ" });
         } catch (error) {
             this.handleError(error, method, id, next);
         }

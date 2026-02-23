@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const reimbursementChildrenEducationController = require('../controllers/reimbursementChildrenEducationController');
+const reimbursementChildrenEducationController = require('../../controllers/reimbursementChildrenEducationController');
 const { authPermission,
         bindFilter,
         getRemaining, 
@@ -16,8 +16,12 @@ const { authPermission,
         getFileByName,
         uploadFilesForRecord,
         deleteFileFromRecord
-    } = require('../middleware/childrenEducation');
+    } = require('../../middleware/childrenEducation');
+const { childEducation } = require('../../middleware/pdf-management/pdfManagement.middleware');
+const esign = require('../../middleware/e-signature/esign.middleware')
+const minio = require('../../middleware/e-signature/minio.middleware')
 
+// Get Methods
 router.get('/', authPermission, bindFilter, reimbursementChildrenEducationController.list);
 router.get('/remaining/', authPermission, getRemaining , reimbursementChildrenEducationController.getRemainingChildFund);
 router.get('/get-Count-Request/', authPermission, getRemaining , reimbursementChildrenEducationController.getTotalCountRequestedChildFund);
@@ -37,4 +41,5 @@ router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpda
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
 
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementChildrenEducationController.deleteReimbursement);
+
 module.exports = router;

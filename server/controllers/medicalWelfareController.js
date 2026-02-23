@@ -542,10 +542,12 @@ class Controller extends BaseController {
             newItemPatientVisit: newItemSub
           };
         }
-        if (selectedAccident || selectedPatientVisit) return itemsReturned;
-        return newItem;
+        // if (selectedAccident || selectedPatientVisit) return itemsReturned;
+        // return newItem;
+        req.createdId = newItem.id
       });
-      res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+      next();
+      // res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
     } catch (error) {
       logger.error(`Error ${error.message}`, {
         method,
@@ -563,6 +565,7 @@ class Controller extends BaseController {
     delete req.body.selected_patient_visit;
     const dataUpdate = req.body;
     const dataId = req.params["id"];
+    console.log(dataId, dataUpdate);
     var itemsReturned = null;
     try {
       const result = await sequelize.transaction(async (t) => {

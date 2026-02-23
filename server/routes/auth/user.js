@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-const userController = require('../controllers/usersController');
-const { authPermission, bindFilter, bindCreate, bindUpdate, validateDuplicate,newValueUserType,checkNullValue } = require('../middleware/user')
+const userController = require('../../controllers/usersController');
+const { authPermission, bindFilter, bindCreate, bindUpdate, validateDuplicate,newValueUserType,checkNullValue } = require('../../middleware/user')
 
 router.get('/', authPermission, bindFilter, userController.list);
 router.get('/order/name', bindFilter, userController.listOrderByName);

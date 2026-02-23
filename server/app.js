@@ -12,29 +12,29 @@ const auth = require("./middleware/auth");
 
 // router
 const indexRouter = require("./routes/index");
-const accountRouter = require("./routes/account");
-const userRouter = require("./routes/user");
-const subCategoryRouter = require("./routes/subCategory");
-const categoryRouter = require("./routes/category");
-const configWelfareRouter = require("./routes/configWelfare");
-const logCategoryRouter = require("./routes/logCategory");
-const logSubCategoryRouter = require("./routes/logSubCategory");
-const departmentRouter = require("./routes/department");
-const employeeTypeRouter = require("./routes/employeeType");
-const postitionRouter = require("./routes/position");
-const sectorRouter = require("./routes/sector");
-const roleRouter = require("./routes/role");
-const childrenEducationRouter = require("./routes/childrenEducation");
-const dashboardRouter = require("./routes/dashboard");
-const reimbursementWelfareRouter = require("./routes/reimburesmentWelfare");
-const healthCheckUpWelfareRouter = require("./routes/healthCheckUpWelfare");
-const dentalWelfareRouter = require("./routes/dentalWelfare");
-const medicalWelfareRouter = require("./routes/medicalWelfare");
-const exportRouter = require("./routes/export");
-const variousWelfare = require("./routes/variousWelfare");
-const variousFuneralFamilyWelfare = require("./routes/variousFamilyFuneralWelfare");
-const funeralWelfareEmployeeDeceased = require("./routes/funeralWelfareEmployeeDeceased");
-const homeRouter = require("./routes/home");
+const accountRouter = require("./routes/auth/account");
+const userRouter = require("./routes/auth/user");
+const subCategoryRouter = require("./routes/master/subCategory");
+const categoryRouter = require("./routes/master/category");
+const configWelfareRouter = require("./routes/master/configWelfare");
+const logCategoryRouter = require("./routes/log/logCategory");
+const logSubCategoryRouter = require("./routes/log/logSubCategory");
+const departmentRouter = require("./routes/master/department");
+const employeeTypeRouter = require("./routes/master/employeeType");
+const postitionRouter = require("./routes/master/position");
+const sectorRouter = require("./routes/master/sector");
+const roleRouter = require("./routes/auth/role");
+const childrenEducationRouter = require("./routes/welfare/childrenEducation");
+const dashboardRouter = require("./routes/system/dashboard");
+const reimbursementWelfareRouter = require("./routes/welfare/reimburesmentWelfare");
+const healthCheckUpWelfareRouter = require("./routes/welfare/healthCheckUpWelfare");
+const dentalWelfareRouter = require("./routes/welfare/dentalWelfare");
+const medicalWelfareRouter = require("./routes/welfare/medicalWelfare");
+const exportRouter = require("./routes/system/export");
+const variousWelfare = require("./routes/welfare/variousWelfare");
+const variousFuneralFamilyWelfare = require("./routes/welfare/variousFamilyFuneralWelfare");
+const funeralWelfareEmployeeDeceased = require("./routes/welfare/funeralWelfareEmployeeDeceased");
+const homeRouter = require("./routes/system/home");
 
 var app = express();
 app.set("trust proxy", true);
@@ -93,7 +93,7 @@ app.use("/medical-welfare", auth, medicalWelfareRouter);
 app.use("/various-welfare", auth, variousWelfare);
 app.use("/various-welfare-funeral-family", auth, variousFuneralFamilyWelfare);
 app.use("/funeral-welfare", auth, funeralWelfareEmployeeDeceased);
-app.use("/export", auth, exportRouter);
+app.use("/export", exportRouter); // ปิด auth เพิื่อเทส postman ชั่วคราว
 app.use("/home", auth, homeRouter);
 
 // error handling

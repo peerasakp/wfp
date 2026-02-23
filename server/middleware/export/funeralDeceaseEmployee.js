@@ -10,7 +10,7 @@ const { getFiscalYearDynamic, getFiscalYear } = require('../../middleware/utilit
 const fetchDataFuneralDeceaseEmployee = async (req, res, next) => {
     const method = 'FetchFuneralDeceaseEmployeeData';
     const { id } = req.user;
-    const dataId = req.params['id'];
+    const dataId = req.createdId
     try {
         const requestData = await reimbursementsEmployeeDeceased.findOne({
             attributes: [

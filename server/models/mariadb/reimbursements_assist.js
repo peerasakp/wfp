@@ -1,6 +1,6 @@
 const sequelizePaginate = require('sequelize-paginate');
 const Sequelize = require('sequelize');
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   const model = sequelize.define('reimbursementsAssist', {
     id: {
       autoIncrement: true,
@@ -13,43 +13,47 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     fund_receipt: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_sum_request: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
     fund_sum_receipt: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
     fund_eligible: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_decease: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_wreath_university: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_wreath_arrange: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_receipt_wreath: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_receipt_vechicle: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
     fund_vechicle: {
-      type: DataTypes.DECIMAL(10,2),
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    document_path: {
+      type: DataTypes.STRING(255),
       allowNull: true
     },
     status: {

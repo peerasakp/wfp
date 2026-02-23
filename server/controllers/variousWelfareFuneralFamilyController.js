@@ -546,12 +546,14 @@ class Controller extends BaseController {
                     console.log("Invalid DeceasedType:", deceasedType);
                 }
 
-                if (selectedWreath || selectedVechicle || deceasedType) {
-                    return itemsReturned;
-                }
-                return newItem;
+                // if (selectedWreath || selectedVechicle || deceasedType) {
+                //     return itemsReturned;
+                // }
+                //return newItem;
+                req.createdId = newItem.id;
             });
-            res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+            next();
+            //res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
         }
         catch (error) {
             logger.error(`Error ${error.message}`, {
