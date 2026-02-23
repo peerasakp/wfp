@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, fileFolder),
     filename: (req, file, cb) => {
         const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
-        cb(null, Date.now() + '-' + originalname);
+        cb(null, Date.now() + '-' + file.fieldname + '-' + originalname);
     }
 });
 const fileFilter = (req, file, cb) => {
@@ -239,8 +239,7 @@ const bindCreate = async (req, res, next) => {
             fund_receipt: fundReceipt,
             fund_sum_receipt: fundReceipt,
             fund_eligible: fundEligible,
-            fund_sum_request: fundSumRequest,
-            fund_sum_receipt: fundSumReceipt,
+            fund_sum_request: fundEligible,
             created_by: createFor ?? id,
             updated_by: id,
             status: actionId,
@@ -320,7 +319,7 @@ const bindUpdate = async (req, res, next) => {
             reim_number: reimNumber,
             fund_receipt: fundReceipt,
             fund_eligible: fundEligible,
-            fund_sum_request: fundSumRequest,
+            fund_sum_request: fundEligible,
             status: actionId,
             categories_id: categoryId,
             updated_by: id,
@@ -679,9 +678,15 @@ const sanitizeFileName = (name) => {
 // Field name to file prefix mapping
 const fieldPrefixMap = {
     fileReceipt: 'receipt',
-    fileDocument: 'document',
     filePhoto: 'photo',
     fileHouseRegistration: 'house-registration',
+};
+
+const documentPrefixByCategoryId = {
+    4: 'marriage-certificate',
+    5: 'ordination-hajj',
+    6: 'birth-certificate',
+    7: 'document',
 };
 
 // Generate filename: {prefix}-{date}-{userName}.{extension}
@@ -745,7 +750,12 @@ const uploadFilesForRecord = async (req, res, next) => {
             if (req.files?.[formField]?.[0]) {
                 if (currentData[dbColumn]) deleteFileFromDisk(currentData[dbColumn]);
                 const tempFileName = req.files[formField][0].filename;
-                const prefix = fieldPrefixMap[formField] || formField;
+                let prefix;
+                if (formField === 'fileDocument') {
+                    prefix = documentPrefixByCategoryId[currentData.categories_id] || 'document';
+                } else {
+                    prefix = fieldPrefixMap[formField] || formField;
+                }
                 const newFileName = generateFileName(tempFileName, userName, requestDate, prefix);
                 updateData[dbColumn] = renameFile(tempFileName, newFileName) || tempFileName;
             }

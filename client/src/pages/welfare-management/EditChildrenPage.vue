@@ -2117,7 +2117,7 @@ async function submit(actionId) {
                     await uploadFiles(route.params.id);
                 } else {
                     fetch = await reimbursementChildrenEducationService.create(payload);
-                    const newId = fetch?.data?.newItem?.id;
+                    const newId = fetch?.data?.newItem?.id || fetch?.data?.updatedItem?.id;
                     if (newId) await uploadFiles(newId);
                 }
                 isValid = true;

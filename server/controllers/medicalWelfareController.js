@@ -675,11 +675,11 @@ class Controller extends BaseController {
         logger.info("Complete", { method, data: { id } });
         return res
           .status(201)
-          .json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+          .json({ updatedItem: { id: dataId }, newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
       }
       res
         .status(400)
-        .json({ newItem: result, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
+        .json({ updatedItem: { id: dataId }, newItem: result, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
     } catch (error) {
       logger.error(`Error ${error.message}`, {
         method,

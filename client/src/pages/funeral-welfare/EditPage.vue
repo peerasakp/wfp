@@ -1223,7 +1223,7 @@ async function submit(actionId) {
         }
         else {
           fetch = await funeralWelfareEmployeeDeceasedService.create(payload);
-          const newId = fetch?.data?.newItem?.id;
+          const newId = fetch?.data?.newItem?.id || fetch?.data?.updatedItem?.id;
           if (newId) await uploadFiles(newId);
         }
         isValid = true;

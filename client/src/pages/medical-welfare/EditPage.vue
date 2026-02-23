@@ -1240,7 +1240,7 @@ async function submit(actionId) {
     },
   }).then(async (result) => {
     if (isValid && result.isConfirmed) {
-      const newRecordId = fetch.data?.newItem?.id || route.params.id;
+      const newRecordId = fetch.data?.newItem?.id || fetch.data?.updatedItem?.id || route.params.id;
       const hasFiles = fileReceipt.value.file || fileMedical.value.file || fileSupervisor.value.file || fileReceiptVisit.value.file || fileMedicalVisit.value.file;
       if (newRecordId && hasFiles) {
         try {

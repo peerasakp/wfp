@@ -1299,9 +1299,8 @@ async function submit(actionId) {
         }
         else {
           fetch = await variousWelfareFuneralFamilyService.create(payload);
-          if (fetch.data?.newItem?.id) {
-            await uploadFiles(fetch.data.newItem.id);
-          }
+          const newId = fetch.data?.newItem?.id || fetch.data?.updatedItem?.id;
+          if (newId) await uploadFiles(newId);
         }
         isValid = true;
       } catch (error) {

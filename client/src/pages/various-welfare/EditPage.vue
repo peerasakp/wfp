@@ -888,12 +888,14 @@ async function submit(actionId) {
         }
         else {
           fetch = await variousWelfareService.create(payload);
-          if (fetch.data?.newItem?.id) {
-            await uploadFiles(fetch.data.newItem.id);
-          }
+          const newId = fetch.data?.newItem?.id || fetch.data?.updatedItem?.id;
+          if (newId) await uploadFiles(newId);
         }
         isValid = true;
       } catch (error) {
+        console.error('Submit error:', error);
+        console.error('Response data:', error?.response?.data);
+        console.error('Response status:', error?.response?.status);
         if (error?.response?.status == 400) {
           if (Object.keys(error?.response?.data?.errors ?? {}).length) {
             isError.value = {
@@ -902,8 +904,12 @@ async function submit(actionId) {
             };
           }
         }
+        const errorMsg = error?.response?.data?.message
+          || error?.response?.data?.error
+          || error?.message
+          || `เกิดข้อผิดพลาดกรุณาลองอีกครั้ง`;
         Swal.fire({
-          html: error?.response?.data?.message ?? `เกิดข้อผิดพลาดกรุณาลองอีกครั้ง`,
+          html: errorMsg,
           icon: "error",
           confirmButtonText: "ตกลง",
           customClass: {

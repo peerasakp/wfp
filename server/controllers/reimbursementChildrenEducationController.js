@@ -508,10 +508,10 @@ class Controller extends BaseController {
 
             if (result) {
                 logger.info('Complete', { method, data: { id } });
-                return res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+                return res.status(201).json({ updatedItem: { id: dataId }, newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
             }
 
-            res.status(400).json({ message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
+            res.status(400).json({ updatedItem: { id: dataId }, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
         }
         catch (error) {
             logger.error(`Error ${error.message}`, {

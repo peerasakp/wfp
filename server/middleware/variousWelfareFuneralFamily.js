@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, fileFolder),
     filename: (req, file, cb) => {
         const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
-        cb(null, Date.now() + '-' + originalname);
+        cb(null, Date.now() + '-' + file.fieldname + '-' + originalname);
     }
 });
 const fileFilter = (req, file, cb) => {
@@ -1113,10 +1113,16 @@ const sanitizeFileName = (name) => {
 // Field name to file prefix mapping
 const fieldPrefixMap = {
     fileReceipt: 'receipt',
-    fileDocument: 'document',
     fileDeathCertificate: 'death-certificate',
     filePhoto: 'photo',
     fileHouseRegistration: 'house-registration',
+};
+
+const documentPrefixByDeceasedType = {
+    3: 'house-registration',
+    4: 'house-registration',
+    5: 'marriage-certificate',
+    6: 'birth-certificate',
 };
 
 // Generate filename: {prefix}-{date}-{userName}.{extension}
@@ -1176,15 +1182,25 @@ const uploadFilesForRecord = async (req, res, next) => {
         const requestDate = currentData.request_date || null;
 
         const updateData = {};
+        console.log('[uploadFilesForRecord] req.files keys:', req.files ? Object.keys(req.files) : 'NO FILES');
+        console.log('[uploadFilesForRecord] deceased_type:', currentData.deceased_type);
         for (const [fieldName, dbColumn] of Object.entries(fileFieldMap)) {
             if (req.files && req.files[fieldName] && req.files[fieldName][0]) {
                 if (record[dbColumn]) deleteFileFromDisk(record[dbColumn]);
                 const tempFileName = req.files[fieldName][0].filename;
-                const prefix = fieldPrefixMap[fieldName] || fieldName;
+                let prefix;
+                if (fieldName === 'fileDocument') {
+                    prefix = documentPrefixByDeceasedType[currentData.deceased_type] || 'document';
+                } else {
+                    prefix = fieldPrefixMap[fieldName] || fieldName;
+                }
                 const newFileName = generateFileName(tempFileName, userName, requestDate, prefix);
-                updateData[dbColumn] = renameFile(tempFileName, newFileName) || tempFileName;
+                const renamedFile = renameFile(tempFileName, newFileName);
+                console.log('[uploadFilesForRecord]', fieldName, ':', tempFileName, '->', newFileName, '| rename result:', renamedFile);
+                updateData[dbColumn] = renamedFile || tempFileName;
             }
         }
+        console.log('[uploadFilesForRecord] updateData:', updateData);
 
         if (Object.keys(updateData).length > 0) {
             await reimbursementsAssist.update(updateData, { where: { id: dataId } });
