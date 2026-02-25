@@ -227,8 +227,10 @@ class Controller extends BaseController {
         const dataCreate = req.body;
         dataCreate.fund_receipt = isNaN(dataCreate.fund_receipt) ? 0 : parseFloat(dataCreate.fund_receipt);
         try {
+            let createdId = null;
             const results = await sequelize.transaction(async t => {
                 const newReimbursementsChild = await reimbursementsChildrenEducation.create(dataCreate, { transaction: t });
+                createdId = newReimbursementsChild.id;
                 if (!isNullOrEmpty(child)) {
                     if (child.length > 3) {
                         throw new Error("CHILD_LIMIT_EXCEEDED");
@@ -309,10 +311,15 @@ class Controller extends BaseController {
 
                 // if (!isNullOrEmpty(child)) return itemsReturned;
                 // return newReimbursementsChild;
-                req.createdId = newReimbursementsChild.id; 
+                return {
+                    id: newReimbursementsChild.id
+                };
             });
-            next();
-            //res.status(201).json({ newItem: results, message: "บันทึกข้อมูลสำเร็จ" });
+            logger.info('Complete', { method, data: { id } });
+            return res.status(201).json({
+                newItem: { id: createdId ?? results?.id },
+                message: "บันทึกข้อมูลสำเร็จ"
+            });
         } catch (error) {
             logger.error(`Error ${error.message}`, {
                 method,
