@@ -1,9 +1,9 @@
 const axios = require('axios');
-const { 
+const {
     reimbursementsGeneral,
     reimbursementsAssist,
     reimbursementsEmployeeDeceased
- } = require('../../models/mariadb')
+} = require('../../models/mariadb')
 
 class esign {
     constructor() {
@@ -217,8 +217,7 @@ class esign {
                         position: 'left_top',
                         translateX: '365',
                         translateY: '-285'
-                    },
-                    {
+                    }, {
                         text: signAt,
                         fontSize: '16',
                         opacity: '1',
@@ -228,6 +227,336 @@ class esign {
                         position: 'left_top',
                         translateX: '365',
                         translateY: '-320'
+                    }
+                ]
+                break;
+            case 'standardApprove':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '270';
+                data.signPositionY = '-360';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-388'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-412'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '305',
+                        translateY: '-412'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-412'
+                    }
+                ]
+                break;
+            case 'funeral':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '270';
+                data.signPositionY = '-360';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-388'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-412'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '305',
+                        translateY: '-412'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-412'
+                    }
+                ]
+                break;
+            case 'funeralVerify':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '380';
+                data.signPositionY = '-685';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-719'
+                    }, {
+                        text: signAt,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-753'
+                    }
+                ]
+                break;
+            case 'funeralApprove':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '270';
+                data.signPositionY = '-360';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-388'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-412'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '305',
+                        translateY: '-412'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-412'
+                    }
+                ]
+                break;
+            case 'education':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '380';
+                data.signPositionY = '-685';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-719'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-753'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-753'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-753'
+                    }
+                ]
+                break;
+            case 'educationVerify':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '380';
+                data.signPositionY = '-685';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-719'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-753'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-753'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-753'
+                    }
+                ]
+                break;
+            case 'educationApprove':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '270';
+                data.signPositionY = '-360';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-388'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-412'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '305',
+                        translateY: '-412'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-412'
                     }
                 ]
                 break;
@@ -243,14 +572,14 @@ class esign {
             })
             req.method = 'generalApprove'
             req.filePath = data?.document_path || null;
-            console.log('++++++++++++++file path form preload  == ',req.filePath)
+            console.log('++++++++++++++file path form preload  == ', req.filePath)
             next();
         } catch (error) {
             next(error)
         }
     }
     preloadAssist = async (req, res, next) => {
-        try{
+        try {
             const data = await reimbursementsAssist.findOne({
                 where: { id: req.params.id },
                 attributes: ['document_path']
@@ -258,20 +587,20 @@ class esign {
             req.method = 'generalApprove'
             req.filePath = data?.document_path || null;
             next();
-        }catch(error){
+        } catch (error) {
             next(error)
         }
     }
     preloadFuneral = async (req, res, next) => {
-        try{
+        try {
             const data = await reimbursementsEmployeeDeceased.findOne({
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'generalApprove'
+            req.method = 'funeralVerify'
             req.filePath = data?.document_path || null;
             next();
-        }catch(error){
+        } catch (error) {
             next(error)
         }
     }
