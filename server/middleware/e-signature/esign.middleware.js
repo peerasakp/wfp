@@ -2,8 +2,10 @@ const axios = require('axios');
 const {
     reimbursementsGeneral,
     reimbursementsAssist,
-    reimbursementsEmployeeDeceased
-} = require('../../models/mariadb')
+    reimbursementsEmployeeDeceased,
+    reimbursementsChildrenEducation
+} = require('../../models/mariadb');
+const { where } = require('sequelize');
 
 class esign {
     constructor() {
@@ -411,23 +413,13 @@ class esign {
                 ]
                 break;
             case 'education':
-                data.pageToSign = '1';
+                data.pageToSign = '2';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
-                data.signPositionX = '380';
-                data.signPositionY = '-685';
+                data.signPositionX = '240';
+                data.signPositionY = '-615';
                 data.multiStamper = [
                     {
-                        text: name,
-                        fontSize: '16',
-                        opacity: '1',
-                        fontWeight: 'normal',
-                        fontColor: [0, 0, 0],
-                        outlineColor: [0, 0, 0],
-                        position: 'left_top',
-                        translateX: '365',
-                        translateY: '-719'
-                    }, {
                         text: date.day,
                         fontSize: '16',
                         opacity: '1',
@@ -435,8 +427,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '365',
-                        translateY: '-753'
+                        translateX: '240',
+                        translateY: '-670'
                     }, {
                         text: date.month,
                         fontSize: '16',
@@ -445,8 +437,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '365',
-                        translateY: '-753'
+                        translateX: '295',
+                        translateY: '-670'
                     }, {
                         text: date.year,
                         fontSize: '16',
@@ -455,17 +447,17 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '365',
-                        translateY: '-753'
+                        translateX: '370',
+                        translateY: '-670'
                     }
                 ]
                 break;
             case 'educationVerify':
-                data.pageToSign = '1';
+                data.pageToSign = '3';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
-                data.signPositionX = '380';
-                data.signPositionY = '-685';
+                data.signPositionX = '240';
+                data.signPositionY = '-75';
                 data.multiStamper = [
                     {
                         text: name,
@@ -475,8 +467,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '365',
-                        translateY: '-719'
+                        translateX: '240',
+                        translateY: '-108'
                     }, {
                         text: date.day,
                         fontSize: '16',
@@ -485,8 +477,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '365',
-                        translateY: '-753'
+                        translateX: '235',
+                        translateY: '-145'
                     }, {
                         text: date.month,
                         fontSize: '16',
@@ -495,8 +487,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '365',
-                        translateY: '-753'
+                        translateX: '290',
+                        translateY: '-145'
                     }, {
                         text: date.year,
                         fontSize: '16',
@@ -506,7 +498,7 @@ class esign {
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
                         translateX: '365',
-                        translateY: '-753'
+                        translateY: '-145'
                     }
                 ]
                 break;
@@ -601,6 +593,20 @@ class esign {
             req.filePath = data?.document_path || null;
             next();
         } catch (error) {
+            next(error)
+        }
+    }
+    preloadEducation = async (req, res, next) => {
+        try{
+            const data = await reimbursementsChildrenEducation.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path']
+            }) 
+            req.method = 'educationVerify';
+            req.filePath = data?.document_path || null;
+            console.log('================ file path ===================',req.filePath)
+            next();
+        }catch(error){
             next(error)
         }
     }

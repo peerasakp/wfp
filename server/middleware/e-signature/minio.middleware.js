@@ -198,7 +198,7 @@ class minio {
                 }
             )
             req.delete = respone.data
-            console.log(req.getRespone, req.savePath, req.delete)
+            console.log('=================== delete success =================',req.getRespone, req.savePath, req.delete)
             next();
         } catch (error) {
             console.log(error);
