@@ -311,15 +311,17 @@ class Controller extends BaseController {
 
                 // if (!isNullOrEmpty(child)) return itemsReturned;
                 // return newReimbursementsChild;
-                return {
-                    id: newReimbursementsChild.id
-                };
+                // return {
+                //     id: newReimbursementsChild.id
+                // };
+                req.createdId = createdId;
+                next()
             });
             logger.info('Complete', { method, data: { id } });
-            return res.status(201).json({
-                newItem: { id: createdId ?? results?.id },
-                message: "บันทึกข้อมูลสำเร็จ"
-            });
+            // return res.status(201).json({
+            //     newItem: { id: createdId ?? results?.id },
+            //     message: "บันทึกข้อมูลสำเร็จ"
+            // });
         } catch (error) {
             logger.error(`Error ${error.message}`, {
                 method,

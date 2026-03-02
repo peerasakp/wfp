@@ -78,7 +78,7 @@ const createPdfFuneralDeceaseEmployee = async (req, res, next) => {
         // res.end(pdfBuffer);
         logger.info('Complete', { method, data: { id } });
         req.filePath = filePath;
-        req.method = 'general'
+        req.method = 'funeral'
         next();
     } catch (error) {
         if (browser) {

@@ -74,7 +74,7 @@ const createPdfAssist = async (req, res, next) => {
         //     fileName,
         // });
         req.filePath = filePath;
-        req.method = 'general'
+        req.method = 'standard'
         next();
     } catch (error) {
         if (browser) {
