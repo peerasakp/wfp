@@ -106,6 +106,7 @@ class minio {
     // This function is used to authen and put pdf file to Minio (Object Store) 
     putFile = async (req, res, next) => {
         try {
+            console.log('==================== putfile ===================')
             const token = await this.auth('write', 'l7hdoiyMMtelzqUJoXofCxI3m56CPXZ6', 'put');
             const filePath = req.filePath
             const data = new formData();
