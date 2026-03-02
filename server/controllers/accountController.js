@@ -110,17 +110,29 @@ exports.login = async (req, res, next) => {
                     }
                 );
                 if(user.roleId !== 4){
-                    const path = [
-                        {
-                            title: "หน้าหลัก",
-                            icon: "outlinedHome",
-                            to: "home",
-                        },
-                        ...userPermission.map((userObj) => getpathMenu(userObj)).filter((result) => result !== null && result !== undefined)
-                    ];
-                    const pathEditor = userPermission.map((userObj) => getpathMenuEditor(userObj)).filter((result) => result !== null && result !== undefined);
-                    user.path = path;
-                    if (pathEditor) user.pathEditor = pathEditor;
+                    const userMenus = userPermission
+                      .map((userObj) => getpathMenu(userObj))
+                      .filter((result) => result !== null && result !== undefined);
+                    const editorMenus = userPermission
+                      .map((userObj) => getpathMenuEditor(userObj))
+                      .filter((result) => result !== null && result !== undefined);
+
+                    // Force dean role to only see welfare management menu
+                    if (user.roleName === 'คณบดี') {
+                      user.path = null;
+                      user.pathEditor = editorMenus.filter((m) => m.to === "welfare_management_list");
+                    } else {
+                      const path = [
+                          {
+                              title: "หน้าหลัก",
+                              icon: "outlinedHome",
+                              to: "home",
+                          },
+                          ...userMenus
+                      ];
+                      user.path = path;
+                      if (editorMenus) user.pathEditor = editorMenus;
+                    }
                 }
                 else{
                     const pathEditor = userPermission.map((userObj) => getpathMenuEditor(userObj)).filter((result) => result !== null && result !== undefined);
