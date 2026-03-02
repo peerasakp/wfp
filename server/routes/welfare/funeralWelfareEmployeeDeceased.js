@@ -35,7 +35,7 @@ router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesFor
 // Put Methods
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.update);
 router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadFuneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsEmployeeDeceasedController.update);
-router.put('/approve-welfare/:id', esign.preloadFuneralApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsEmployeeDeceasedController.update)
+router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadFuneralApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsEmployeeDeceasedController.update)
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsEmployeeDeceasedController.delete);
 

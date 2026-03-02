@@ -3,6 +3,7 @@ const { initLogger } = require('../logger');
 const logger = initLogger('ReimbursementWelfareValidator');
 const { Op } = require('sequelize')
 const permissionType = require('../enum/permission')
+const statusText = require('../enum/statusText')
 const { permissionsHasRoles } = require('../models/mariadb');
 
 const authPermission = async (req, res, next) => {
@@ -28,6 +29,7 @@ const authPermission = async (req, res, next) => {
 const bindFilter = async (req, res, next) => {
 	const method = 'BindFilter';
 	try {
+        const { roleId } = req.user;
 		const { keyword, welfareName, statusName, from, to } = req.query;
 		req.query.filter = {};
 		req.query.filter[Op.and] = [];
@@ -60,6 +62,13 @@ const bindFilter = async (req, res, next) => {
         if (!isNullOrEmpty(statusName)){
             req.query.filter[Op.and].push({
                 '$status$': { [Op.eq]: statusName } 
+            });
+        }
+
+        // Dean can only see pending final approval items
+        if (roleId === 5) {
+            req.query.filter[Op.and].push({
+                '$status$': { [Op.eq]: statusText.waitFinalApprove }
             });
         }
 

@@ -73,7 +73,7 @@
               class="text-dark q-py-sm q-px-xs cursor-pointer">
               <q-icon :name="outlinedVisibility" size="xs" />
             </a>
-            <a v-show="props.row.status.statusId == 2"
+            <a v-show="props.row.status.statusId == 2 || props.row.status.statusId == 5"
               @click.stop.prevent="goto(props.row.id, props.row.categoryName, props.row.welfareType)"
               class="text-dark q-py-sm q-px-xs cursor-pointer">
               <q-icon :name="outlinedEdit" size="xs" color="blue" />
@@ -83,7 +83,7 @@
               " class="text-dark q-py-sm q-px-xs cursor-pointer">
               <q-icon :name="outlinedDelete" size="xs" color="red" />
             </a>
-            <a v-show="props.row.status.statusId == 2" @click.stop.prevent="
+            <a v-show="props.row.status.statusId == 2 || props.row.status.statusId == 5" @click.stop.prevent="
               downloadData(props.row.id, props.row.categoryName, props.row.welfareType)
               " class="text-dark q-py-sm q-px-xs cursor-pointer">
               <q-icon :name="outlinedDownload" size="xs" color="blue" />
@@ -148,6 +148,7 @@ const filter = ref({
 
 let optionStatus = [
   { statusId: 2, name: "รอตรวจสอบ" },
+  { statusId: 5, name: "รออนุมัติ" },
   { statusId: 3, name: "อนุมัติ" },
   { statusId: 4, name: "ไม่อนุมัติ"}
 ];
@@ -251,7 +252,13 @@ function onRequest(props) {
             ? 1
             : item.status === "รอตรวจสอบ"
               ? 2
-              : 3
+              : item.status === "อนุมัติ"
+                ? 3
+                : item.status === "ไม่อนุมัติ"
+                  ? 4
+                  : item.status === "รออนุมัติ"
+                    ? 5
+                    : 0
         },
         id: item.id,
       }));

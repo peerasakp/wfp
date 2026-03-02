@@ -839,6 +839,7 @@ import { formatDateThaiSlash, formatDateSlash, formatDateServer } from "src/comp
 import DatePicker from "src/components/DatePicker.vue";
 import { ref, watch, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "src/stores/authStore";
 import userManagementService from "src/boot/service/userManagementService";
 import reimbursementChildrenEducationService from "src/boot/service/reimbursementChildrenEducationService";
 import data from 'src/components/api_province_with_amphure_tambon.json';
@@ -853,6 +854,7 @@ const isError = ref({});
 const isView = ref(false);
 const isLoadings = ref(false);
 const router = useRouter();
+const authStore = useAuthStore();
 
 // File upload state
 const fileData = ref({
@@ -2113,7 +2115,10 @@ async function submit(actionId) {
         preConfirm: async () => {
             try {
                 if (isEdit.value) {
-                    fetch = await welfareManagementService.updateChildren(route.params.id, payload);
+                    fetch = await welfareManagementService.updateChildren(route.params.id, {
+                        ...payload,
+                        isFinalApprove: authStore.roleId === 5,
+                    });
                     await uploadFiles(route.params.id);
                 } else {
                     fetch = await reimbursementChildrenEducationService.create(payload);
