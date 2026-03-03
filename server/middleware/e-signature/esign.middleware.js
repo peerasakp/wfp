@@ -507,7 +507,7 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '295',
+                        translateX: '298',
                         translateY: '-670'
                     }, {
                         text: date.year,
@@ -557,7 +557,7 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '290',
+                        translateX: '292',
                         translateY: '-145'
                     }, {
                         text: date.year,
@@ -573,11 +573,11 @@ class esign {
                 ]
                 break;
             case 'educationApprove':
-                data.pageToSign = '1';
+                data.pageToSign = '3';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
-                data.signPositionX = '270';
-                data.signPositionY = '-360';
+                data.signPositionX = '250';
+                data.signPositionY = '-200';
                 data.multiStamper = [
                     {
                         text: name,
@@ -587,8 +587,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '260',
-                        translateY: '-388'
+                        translateX: '240',
+                        translateY: '-235'
                     }, {
                         text: date.day,
                         fontSize: '16',
@@ -597,8 +597,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '260',
-                        translateY: '-412'
+                        translateX: '240',
+                        translateY: '-270'
                     }, {
                         text: date.month,
                         fontSize: '16',
@@ -607,8 +607,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '305',
-                        translateY: '-412'
+                        translateX: '300',
+                        translateY: '-270'
                     }, {
                         text: date.year,
                         fontSize: '16',
@@ -617,8 +617,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '370',
-                        translateY: '-412'
+                        translateX: '375',
+                        translateY: '-270'
                     }
                 ]
                 break;
@@ -712,6 +712,7 @@ class esign {
             })
             req.method = 'educationVerify';
             req.filePath = data?.document_path || null;
+            console.log('req filepath ==',req.filePath )
             next();
         } catch (error) {
             next(error)
