@@ -58,17 +58,15 @@ const authPermission = async (req, res, next) => {
                 [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.generalWelfare }],
             },
         });
-        if (!isAccess) {
+        const isEditor = await permissionsHasRoles.count({
+            where: {
+                [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.welfareManagement }],
+            },
+        });
+        if (!isAccess && !isEditor) {
             throw Error("You don't have access to this API");
         }
-        else {
-            const isEditor = await permissionsHasRoles.count({
-                where: {
-                    [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.welfareManagement }],
-                },
-            });
-            if (isEditor) req.isEditor = true;
-        }
+        if (isEditor) req.isEditor = true;
         next();
     }
     catch (error) {
@@ -291,7 +289,7 @@ const bindUpdate = async (req, res, next) => {
     try {
         const { fundReceipt, fundDecree, fundUniversity, fundEligible, fundEligibleName, fundEligibleSum, fundSumRequest, createFor, actionId } = req.body;
         console.log('==============bindUpdate===================')
-        const { id } = req.user;
+        const { id, roleId } = req.user;
         if (!isNullOrEmpty(createFor) && !req.isEditor) {
             return res.status(400).json({
                 message: "ไม่มีสิทธิ์แก้ไขให้คนอื่นได้",
@@ -321,15 +319,18 @@ const bindUpdate = async (req, res, next) => {
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
-            if (req.access && (datas.status != statusText.waitApprove)) {
+            if (req.access && (datas.status != (roleId === 5 ? statusText.waitFinalApprove : statusText.waitApprove))) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
             
             if(req.access && (actionId === status.NotApproved || actionId === status.approve) && !isNullOrEmpty(actionId)){
+                const statusId = actionId === status.approve && roleId === 2
+                    ? status.waitFinalApprove
+                    : actionId;
                 const dataBinding = {
-                    status : actionId,
+                    status : statusId,
                     updated_by: id,
                 }
                 req.body = dataBinding;

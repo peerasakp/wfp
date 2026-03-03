@@ -207,17 +207,15 @@ const authPermission = async (req, res, next) => {
                 [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.childrenEdWelfare }],
             },
         });
-        if (!isAccess) {
+        const isEditor = await permissionsHasRoles.count({
+            where: {
+                [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.welfareManagement }],
+            },
+        });
+        if (!isAccess && !isEditor) {
             throw Error("You don't have access to this API");
         }
-        else {
-            const isEditor = await permissionsHasRoles.count({
-                where: {
-                    [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.childrenEdWelfare }],
-                },
-            });
-            if (isEditor) req.isEditor = true;
-        }
+        if (isEditor) req.isEditor = true;
         next();
     }
     catch (error) {
@@ -632,15 +630,18 @@ const bindUpdate = async (req, res, next) => {
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
-            if (req.access && (datas.status != statusText.waitApprove)) {
+            if (req.access && (datas.status != (roleId === roleType.deanUser ? statusText.waitFinalApprove : statusText.waitApprove))) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
 
             if (req.access && (actionId === statusType.NotApproved || actionId === statusType.approve) && !isNullOrEmpty(actionId)) {
+                const statusId = actionId === statusType.approve && roleId === roleType.financialUser
+                    ? statusType.waitFinalApprove
+                    : actionId;
                 const dataBinding = {
-                    status: actionId,
+                    status: statusId,
                     updated_by: id,
                 }
                 req.body = dataBinding;

@@ -1147,7 +1147,10 @@ async function submit(actionId) {
     preConfirm: async () => {
       try {
         if (isEdit.value) {
-          fetch = await welfareManagementService.updateFuneral(route.params.id, payload);
+          fetch = await welfareManagementService.updateFuneral(route.params.id, {
+            ...payload,
+            isFinalApprove: authStore.roleId === 5,
+          });
           await uploadFiles(route.params.id);
         }
         else {

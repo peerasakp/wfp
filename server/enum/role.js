@@ -3,4 +3,5 @@ module.exports = {
     financialUser: 2,
     agenUser: 3,
     adminUser : 4,
+    deanUser: 5,
 };

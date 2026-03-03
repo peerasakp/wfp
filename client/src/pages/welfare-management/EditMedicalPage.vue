@@ -829,7 +829,10 @@ async function submit(actionId) {
     preConfirm: async () => {
       try {
         if (isEdit.value) {
-          fetch = await welfareManagementService.updateMedical(route.params.id, payload);
+          fetch = await welfareManagementService.updateMedical(route.params.id, {
+            ...payload,
+            isFinalApprove: authStore.roleId === 5,
+          });
         }
         else {
           fetch = await medicalWelfareService.create(payload);

@@ -302,7 +302,7 @@ CREATE TABLE `permissions_has_roles` (
 
 LOCK TABLES `permissions_has_roles` WRITE;
 /*!40000 ALTER TABLE `permissions_has_roles` DISABLE KEYS */;
-INSERT INTO `permissions_has_roles` VALUES (1,1),(2,1),(3,1),(1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(8,2),(1,3),(2,3),(3,3),(4,3),(7,4);
+INSERT INTO `permissions_has_roles` VALUES (1,1),(2,1),(3,1),(1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(8,2),(1,3),(2,3),(3,3),(4,3),(7,4),(5,5);
 /*!40000 ALTER TABLE `permissions_has_roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -353,7 +353,7 @@ CREATE TABLE `reimbursements_assist` (
   `fund_receipt_vechicle` decimal(10,2) DEFAULT NULL,
   `fund_vechicle` decimal(10,2) DEFAULT NULL,
   `document_path` varchar(255) DEFAULT NULL,
-  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ') NOT NULL,
+  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ') NOT NULL,
   `deceased` varchar(255) DEFAULT NULL,
   `deceased_type` int(11) DEFAULT NULL,
   `request_date` date DEFAULT NULL,
@@ -427,7 +427,7 @@ CREATE TABLE `reimbursements_children_education` (
   `fund_sum_receipt` decimal(10,2) NOT NULL,
   `fund_university` decimal(10,2) NOT NULL,
   `fund_other` decimal(10,2) DEFAULT NULL,
-  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ') NOT NULL,
+  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ') NOT NULL,
   `spouse` varchar(255) DEFAULT NULL,
   `marry_regis` enum('YES','NO') NOT NULL,
   `role` varchar(255) DEFAULT NULL,
@@ -512,7 +512,7 @@ CREATE TABLE `reimbursements_employee_deceased` (
   `fund_receipt_vehicle` decimal(10,2) DEFAULT NULL,
   `fund_vehicle` decimal(10,2) DEFAULT NULL,
   `document_path` varchar(255) DEFAULT NULL,
-  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ') NOT NULL,
+  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ') NOT NULL,
   `organizer` varchar(255) DEFAULT NULL,
   `deceased` bigint(20) NOT NULL,
   `request_date` date DEFAULT NULL,
@@ -593,7 +593,7 @@ CREATE TABLE `reimbursements_general` (
   `end_date` date DEFAULT NULL,
   `date_receipt` date DEFAULT NULL,
   `request_date` date DEFAULT NULL,
-  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ') NOT NULL,
+  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ') NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_by` bigint(20) NOT NULL,
@@ -671,7 +671,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
-INSERT INTO `roles` VALUES (1,'บุคลากรทั่วไป','2025-05-01 08:52:30','2025-05-01 08:52:30'),(2,'เจ้าหน้าที่การเงิน','2025-01-25 10:58:31','2025-03-07 08:02:32'),(3,'เจ้าหน้าที่รับผิดชอบด้านบุคคล','2025-05-01 08:52:30','2025-05-01 08:52:30'),(4,'ผู้ดูแลระบบ','2025-01-28 07:00:56','2025-01-28 07:00:56');
+INSERT INTO `roles` VALUES (1,'บุคลากรทั่วไป','2025-05-01 08:52:30','2025-05-01 08:52:30'),(2,'เจ้าหน้าที่การเงิน','2025-01-25 10:58:31','2025-03-07 08:02:32'),(3,'เจ้าหน้าที่รับผิดชอบด้านบุคคล','2025-05-01 08:52:30','2025-05-01 08:52:30'),(4,'ผู้ดูแลระบบ','2025-01-28 07:00:56','2025-01-28 07:00:56'),(5,'คณบดี','2025-05-01 08:52:30','2025-05-01 08:52:30');
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
