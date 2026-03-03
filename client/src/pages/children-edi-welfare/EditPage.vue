@@ -906,6 +906,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  isLoading.value = false;
+  isLoadings.value = false;
   if (previewUrl.value) {
     URL.revokeObjectURL(previewUrl.value);
   }

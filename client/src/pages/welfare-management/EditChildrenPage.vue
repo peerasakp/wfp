@@ -802,13 +802,13 @@
                     style="background : #BFBFBF;" label="ย้อนกลับ" no-caps :to="{ name: 'welfare_management_list' }" />
                 <q-btn :disable="validate" id="button-draft"
                     class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
-                    label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading" />
+                    label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
                 <q-btn id="button-approve" class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit"
                     style="background-color: #E52020" label="ไม่อนุมัติ" no-caps @click="submit(4)"
-                    v-if="!isView && !isLoading" />
+                    v-if="!isView && !isLoading && !isFinancialPendingFinal" />
                 <q-btn :disable="validate" id="button-approve" class="font-medium font-16 weight-8 text-white q-px-md"
                     dense type="submit" style="background-color: #43a047" label="อนุมัติ" no-caps @click="submit(3)"
-                    v-if="!isView && !isLoading" />
+                    v-if="!isView && !isLoading && !isFinancialPendingFinal" />
             </div>
         </template>
     </PageLayout>
@@ -855,6 +855,9 @@ const isView = ref(false);
 const isLoadings = ref(false);
 const router = useRouter();
 const authStore = useAuthStore();
+const isFinancialPendingFinal = computed(
+    () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
+);
 
 // File upload state
 const fileData = ref({
@@ -971,7 +974,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-    model.value = null;
+    isLoading.value = false;
+    isLoadings.value = false;
 });
 const optionsProvince = computed(() => {
     if (!isView.value) return data;

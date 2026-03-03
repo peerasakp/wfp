@@ -270,9 +270,8 @@ const bindFilter = async (req, res, next) => {
 const getRemaining = async (req, res, next) => {
     const method = 'RemainingMiddleware';
     try {
-        console.log('============getRemaining================')
         const { id } = req.user || {};
-        const { createFor } = req.query || {};
+        const { createFor, subCategoriesId } = req.query || {};
         const { created_by, createByData} = req.body || {};
 
         if(req.access && (req.body.status === statusType.NotApproved || req.body.status === statusType.approve) && !isNullOrEmpty(req.body.status)){
@@ -310,7 +309,20 @@ const getRemaining = async (req, res, next) => {
         req.query.filter[Op.and].push(
             {'$reimbursements_children_education_has_children_infomations.reimbursements_children_education.status$': { [Op.eq]: statusType.approve }},
             { '$reimbursements_children_education_has_children_infomations.reimbursements_children_education.request_date$': getFiscalYearWhere, },
-    );
+        );
+
+        // Filter by selected sub category when frontend sends subCategoriesId
+        if (!isNullOrEmpty(subCategoriesId)) {
+            const normalizedSubCategoriesId = Array.isArray(subCategoriesId)
+                ? subCategoriesId.map(Number).filter(item => !isNaN(item))
+                : [Number(subCategoriesId)].filter(item => !isNaN(item));
+
+            if (normalizedSubCategoriesId.length > 0) {
+                req.query.filter[Op.and].push({
+                    sub_categories_id: { [Op.in]: normalizedSubCategoriesId }
+                });
+            }
+        }
 
         next();
     } catch (error) {
@@ -992,7 +1004,8 @@ const checkUpdateRemaining = async (req, res, next) => {
         const dataId = req.params['id'];
         const userId = req.user?.id;
         var whereObj = { ...filter }
-        const {child} = req.body;
+        const child = Array.isArray(req.body?.child) ? req.body.child : [];
+        const currentStatus = req.body?.status;
         console.log('========== checkUpdateRemaining ========')
         console.log("child",child)
         const welfareCheckData = await reimbursementsChildrenEducation.findOne({
@@ -1012,8 +1025,12 @@ const checkUpdateRemaining = async (req, res, next) => {
             });
         }
         const oldWelfareData = JSON.parse(JSON.stringify(welfareCheckData));
-        if(req.access && (req.body.status === statusType.NotApproved || req.body.status === statusType.approve) && !isNullOrEmpty(req.body.status)){
-            sendMail(oldWelfareData.created_by_user.email,oldWelfareData.reim_number,req.body.status,oldWelfareData.created_by_user.name);
+        if (req.access && (currentStatus === statusType.NotApproved || currentStatus === statusType.approve) && !isNullOrEmpty(currentStatus)) {
+            sendMail(oldWelfareData.created_by_user.email, oldWelfareData.reim_number, currentStatus, oldWelfareData.created_by_user.name);
+            return next();
+        }
+
+        if (child.length === 0) {
             return next();
         }
 
@@ -1081,7 +1098,7 @@ const checkUpdateRemaining = async (req, res, next) => {
                 requestsRemaining = data.requestsRemaining || 0;
                 fund = data.fund || 0;
                 perTimes = data.perTimes || 0;
-                if (status !== statusType.draft) {
+                if (currentStatus !== statusType.draft) {
                     if (fundRemaining === 0 || requestsRemaining === 0) {
                         logger.info(`No Remaining for child ${childName}`, { method });
                         return res.status(400).json({
@@ -1143,7 +1160,7 @@ const checkUpdateRemaining = async (req, res, next) => {
             }
 
         }
-        sendMail(oldWelfareData.created_by_user.email,oldWelfareData.reim_number,req.body.status,oldWelfareData.created_by_user.name);
+        sendMail(oldWelfareData.created_by_user.email, oldWelfareData.reim_number, currentStatus, oldWelfareData.created_by_user.name);
         next();
     }
     catch (error) {

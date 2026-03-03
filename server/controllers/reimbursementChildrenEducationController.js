@@ -119,19 +119,14 @@ class Controller extends BaseController {
                 ],
             });
 
-            if (results && results.length > 0) {
-                const datas = JSON.parse(JSON.stringify(results));
+            const datas = JSON.parse(JSON.stringify(results || []));
+            const canRequest = !dynamicCheckRemaining(datas);
 
-                if (dynamicCheckRemaining(datas)) datas.canRequest = false;
-                var reimChildrenEducation = {};
-                reimChildrenEducation.datas = {
-                    ...datas,
-                    canRequest: datas.canRequest ?? true
-                };
-
-                logger.info('Complete', { method, data: { id } });
-                return res.status(200).json(reimChildrenEducation);
-            }
+            logger.info('Complete', { method, data: { id } });
+            return res.status(200).json({
+                datas,
+                canRequest
+            });
 
         } catch (error) {
             console.error("Error:", error);
@@ -196,19 +191,14 @@ class Controller extends BaseController {
                 ],
             });
 
-            if (results && results.length > 0) {
-                const datas = JSON.parse(JSON.stringify(results));
+            const datas = JSON.parse(JSON.stringify(results || []));
+            const canRequest = !dynamicCheckRemaining(datas);
 
-                if (dynamicCheckRemaining(datas)) datas.canRequest = false;
-                var reimChildrenEducation = {};
-                reimChildrenEducation.datas = {
-                    ...datas,
-                    canRequest: datas.canRequest ?? true
-                };
-
-                logger.info('Complete', { method, data: { id } });
-                return res.status(200).json(reimChildrenEducation);
-            }
+            logger.info('Complete', { method, data: { id } });
+            return res.status(200).json({
+                datas,
+                canRequest
+            });
 
         } catch (error) {
             console.error("Error:", error);
@@ -360,6 +350,12 @@ class Controller extends BaseController {
 
                 if (updated === 0 && isNullOrEmpty(child)) {
                     return { updated: false };
+                }
+
+                // Support update paths that only modify reimbursement fields
+                // (e.g. document_path from e-sign flow) without child payload.
+                if (isNullOrEmpty(child) && isNullOrEmpty(deletedChild)) {
+                    return { updated: updated > 0 };
                 }
 
                 if (!isNullOrEmpty(deletedChild)) {
