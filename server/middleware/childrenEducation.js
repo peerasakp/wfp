@@ -270,6 +270,7 @@ const bindFilter = async (req, res, next) => {
 const getRemaining = async (req, res, next) => {
     const method = 'RemainingMiddleware';
     try {
+        console.log('============getRemaining================')
         const { id } = req.user || {};
         const { createFor } = req.query || {};
         const { created_by, createByData} = req.body || {};
@@ -599,7 +600,7 @@ const bindUpdate = async (req, res, next) => {
             eligible
         } = req.body;
 
-
+        console.log('========bindUpdate===========')
         const { id, roleId } = req.user;
         if (!isNullOrEmpty(createFor) && roleId !== roleType.financialUser) {
             return res.status(400).json({
@@ -820,6 +821,7 @@ const authPermissionEditor = async (req, res, next) => {
     const method = 'AuthPermissionEditor';
     const { roleId } = req.user;
     try {
+        console.log('=======authPermissionEditor========')
         const isAccess = await permissionsHasRoles.count({
             where: {
                 [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.welfareManagement }],
@@ -839,6 +841,7 @@ const authPermissionEditor = async (req, res, next) => {
 
 const checkNullValue = async (req, res, next) => {
     try {
+        console.log('=======checkNullValue========')
         const { spouse, marryRegis, child, actionId } = req.body;
         if (req.access && (actionId === statusType.NotApproved || actionId === statusType.approve) && !isNullOrEmpty(actionId)) {
             return next();
@@ -990,6 +993,7 @@ const checkUpdateRemaining = async (req, res, next) => {
         const userId = req.user?.id;
         var whereObj = { ...filter }
         const {child} = req.body;
+        console.log('========== checkUpdateRemaining ========')
         console.log("child",child)
         const welfareCheckData = await reimbursementsChildrenEducation.findOne({
             attributes: ["fund_sum_request", "reim_number"],

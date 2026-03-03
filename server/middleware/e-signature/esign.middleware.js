@@ -106,7 +106,7 @@ class esign {
         try {
             console.log('====================== stamper ========================================')
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
-            const stampConfig = this.prepareData(req.user.name, req.method);
+            const stampConfig = this.prepareData(req.sum, req.user.name, req.method);
             const data = {
                 psn_id: '00000000',
                 positionType: 'normal',
@@ -168,7 +168,7 @@ class esign {
 
     // prepareData()
     // This function is used to prepare
-    prepareData = (name, welfareType) => {
+    prepareData = (sum, name, welfareType) => {
         let data = {
             signAt: '',
             pageToSign: '',
@@ -230,6 +230,16 @@ class esign {
                 data.signPositionY = '-250';
                 data.multiStamper = [
                     {
+                        text: sum,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '330',
+                        translateY: '-238'
+                    }, {
                         text: name,
                         fontSize: '16',
                         opacity: '1',
@@ -380,6 +390,16 @@ class esign {
                 data.signPositionY = '-685';
                 data.multiStamper = [
                     {
+                        text: sum,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '320',
+                        translateY: '-672'
+                    }, {
                         text: name,
                         fontSize: '16',
                         opacity: '1',
@@ -397,7 +417,7 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '365',
+                        translateX: '375',
                         translateY: '-753'
                     }, {
                         text: date.month,
@@ -407,27 +427,17 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '395',
+                        translateX: '430',
                         translateY: '-753'
                     }, {
-                        text: date.month,
+                        text: date.year,
                         fontSize: '16',
                         opacity: '1',
                         fontWeight: 'normal',
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '450',
-                        translateY: '-753'
-                    }, {
-                        text: date.month,
-                        fontSize: '16',
-                        opacity: '1',
-                        fontWeight: 'normal',
-                        fontColor: [0, 0, 0],
-                        outlineColor: [0, 0, 0],
-                        position: 'left_top',
-                        translateX: '450',
+                        translateX: '500',
                         translateY: '-753'
                     }
                 ]
@@ -630,10 +640,11 @@ class esign {
         try {
             const data = await reimbursementsGeneral.findOne({
                 where: { id: req.params.id },
-                attributes: ['document_path']
+                attributes: ['document_path', 'fund_sum_request']
             })
             req.method = 'standardVerify'
             req.filePath = data?.document_path || null;
+            req.sum = data?.fund_sum_request || null;
             next();
         } catch (error) {
             next(error)
@@ -656,10 +667,11 @@ class esign {
         try {
             const data = await reimbursementsAssist.findOne({
                 where: { id: req.params.id },
-                attributes: ['document_path']
+                attributes: ['document_path', 'fund_sum_request']
             })
             req.method = 'standardVerify'
             req.filePath = data?.document_path || null;
+            req.sum = data?.fund_sum_request || null;
             next();
         } catch (error) {
             next(error)
@@ -682,10 +694,11 @@ class esign {
         try {
             const data = await reimbursementsEmployeeDeceased.findOne({
                 where: { id: req.params.id },
-                attributes: ['document_path']
+                attributes: ['document_path', 'fund_sum_request']
             })
             req.method = 'funeralVerify'
             req.filePath = data?.document_path || null;
+            req.sum = data?.fund_sum_request || null;
             next();
         } catch (error) {
             next(error)
