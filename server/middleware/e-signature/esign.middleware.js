@@ -587,7 +587,7 @@ class esign {
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
                 data.signPositionX = '250';
-                data.signPositionY = '-200';
+                data.signPositionY = '-215';
                 data.multiStamper = [
                     {
                         text: name,
@@ -598,7 +598,7 @@ class esign {
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
                         translateX: '240',
-                        translateY: '-235'
+                        translateY: '-250'
                     }, {
                         text: date.day,
                         fontSize: '16',
@@ -607,8 +607,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '240',
-                        translateY: '-270'
+                        translateX: '230',
+                        translateY: '-285'
                     }, {
                         text: date.month,
                         fontSize: '16',
@@ -617,8 +617,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '300',
-                        translateY: '-270'
+                        translateX: '290',
+                        translateY: '-285'
                     }, {
                         text: date.year,
                         fontSize: '16',
@@ -627,8 +627,8 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '375',
-                        translateY: '-270'
+                        translateX: '370',
+                        translateY: '-285'
                     }
                 ]
                 break;
