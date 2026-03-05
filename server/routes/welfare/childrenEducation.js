@@ -29,17 +29,17 @@ router.get('/subCategories', authPermission, reimbursementChildrenEducationContr
 router.get('/latest-school', authPermission, reimbursementChildrenEducationController.getLatestSchoolByChildName);
 router.get('/get-latest-school/latest-school', authPermissionEditor, reimbursementChildrenEducationController.getLatestSchoolByChildName);
 router.get('/get-file', authPermission, getFileByName);
-
 router.get('/:id',authPermission, byIdMiddleWare, reimbursementChildrenEducationController.getById);
 router.get('/get-welfare/:id',authPermissionEditor, byIdMiddleWare, reimbursementChildrenEducationController.getById);
-
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining,checkRemaining, reimbursementChildrenEducationController.create);
+// Post Methods
+router.post('/', authPermission, checkNullValue, bindCreate, getRemaining,checkRemaining, reimbursementChildrenEducationController.create, childEducation, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update);
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
-
+// Put Methods
 router.put('/:id', authPermission,checkNullValue, bindUpdate, getRemaining,checkRemaining, reimbursementChildrenEducationController.update);
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, reimbursementChildrenEducationController.update);
+router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, esign.preloadEducationVeify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update);
+router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadEducationApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update)
+// Delete Methods
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
-
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementChildrenEducationController.deleteReimbursement);
 
 module.exports = router;

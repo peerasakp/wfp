@@ -1,9 +1,11 @@
 const axios = require('axios');
-const { 
+const {
     reimbursementsGeneral,
     reimbursementsAssist,
-    reimbursementsEmployeeDeceased
- } = require('../../models/mariadb')
+    reimbursementsEmployeeDeceased,
+    reimbursementsChildrenEducation
+} = require('../../models/mariadb');
+const { where } = require('sequelize');
 
 class esign {
     constructor() {
@@ -102,8 +104,9 @@ class esign {
     // This function is used to stamped document on Minio
     stamper = async (req, res, next) => {
         try {
+            console.log('====================== stamper ========================================')
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
-            const stampConfig = this.prepareData(req.user.name, req.method);
+            const stampConfig = this.prepareData(req.sum, req.user.name, req.method);
             const data = {
                 psn_id: '00000000',
                 positionType: 'normal',
@@ -165,7 +168,7 @@ class esign {
 
     // prepareData()
     // This function is used to prepare
-    prepareData = (name, welfareType) => {
+    prepareData = (sum, name, welfareType) => {
         let data = {
             signAt: '',
             pageToSign: '',
@@ -176,9 +179,8 @@ class esign {
             multiStamper: []
         }
         const date = this.signedDate()
-        const signAt = '  ' + date.day + '             ' + date.month + '          ' + date.year;
         switch (welfareType) {
-            case 'general':
+            case 'standard':
                 data.pageToSign = '2';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
@@ -188,24 +190,104 @@ class esign {
                 data.textTranslateY = '-125'
                 data.multiStamper = [
                     {
-                        text: signAt,
+                        text: date.day,
                         fontSize: '16',
                         opacity: '1',
                         fontWeight: 'normal',
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '360',
-                        translateY: '-125'
+                        translateX: '365',
+                        translateY: '-128'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '425',
+                        translateY: '-128'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '500',
+                        translateY: '-128'
                     }
                 ]
                 break;
-            case 'generalApprove':
+            case 'standardVerify':
                 data.pageToSign = '2';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
                 data.signPositionX = '380';
                 data.signPositionY = '-250';
+                data.multiStamper = [
+                    {
+                        text: sum,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '330',
+                        translateY: '-238'
+                    }, {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-285'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '367',
+                        translateY: '-320'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '430',
+                        translateY: '-320'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '500',
+                        translateY: '-320'
+                    }
+                ]
+                break;
+            case 'standardApprove':
+                data.pageToSign = '2';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '380';
+                data.signPositionY = '-390';
                 data.multiStamper = [
                     {
                         text: name,
@@ -216,10 +298,109 @@ class esign {
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
                         translateX: '365',
-                        translateY: '-285'
-                    },
+                        translateY: '-425'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '367',
+                        translateY: '-460'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '430',
+                        translateY: '-460'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '500',
+                        translateY: '-460'
+                    }
+                ]
+                break;
+            case 'funeral':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '270';
+                data.signPositionY = '-360';
+                data.multiStamper = [
                     {
-                        text: signAt,
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-388'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '260',
+                        translateY: '-412'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '305',
+                        translateY: '-412'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-412'
+                    }
+                ]
+                break;
+            case 'funeralVerify':
+                data.pageToSign = '1';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '380';
+                data.signPositionY = '-685';
+                data.multiStamper = [
+                    {
+                        text: sum,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '320',
+                        translateY: '-672'
+                    }, {
+                        text: name,
                         fontSize: '16',
                         opacity: '1',
                         fontWeight: 'normal',
@@ -227,7 +408,227 @@ class esign {
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
                         translateX: '365',
-                        translateY: '-320'
+                        translateY: '-719'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '375',
+                        translateY: '-753'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '430',
+                        translateY: '-753'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '500',
+                        translateY: '-753'
+                    }
+                ]
+                break;
+            case 'funeralApprove':
+                data.pageToSign = '2';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '380';
+                data.signPositionY = '-58';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-90'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-124'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '430',
+                        translateY: '-124'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '500',
+                        translateY: '-124'
+                    }
+                ]
+                break;
+            case 'education':
+                data.pageToSign = '2';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '240';
+                data.signPositionY = '-615';
+                data.multiStamper = [
+                    {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '240',
+                        translateY: '-670'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '298',
+                        translateY: '-670'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-670'
+                    }
+                ]
+                break;
+            case 'educationVerify':
+                data.pageToSign = '3';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '240';
+                data.signPositionY = '-75';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '240',
+                        translateY: '-108'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '235',
+                        translateY: '-145'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '292',
+                        translateY: '-145'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-145'
+                    }
+                ]
+                break;
+            case 'educationApprove':
+                data.pageToSign = '3';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '250';
+                data.signPositionY = '-215';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '240',
+                        translateY: '-250'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '230',
+                        translateY: '-285'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '290',
+                        translateY: '-285'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-285'
                     }
                 ]
                 break;
@@ -235,43 +636,111 @@ class esign {
         return data;
     }
 
-    preloadDocumentPath = async (req, res, next) => {
+    preloadGeneralVerify = async (req, res, next) => {
         try {
             const data = await reimbursementsGeneral.findOne({
                 where: { id: req.params.id },
-                attributes: ['document_path']
+                attributes: ['document_path', 'fund_sum_request']
             })
-            req.method = 'generalApprove'
+            req.method = 'standardVerify'
             req.filePath = data?.document_path || null;
-            console.log('++++++++++++++file path form preload  == ',req.filePath)
+            req.sum = data?.fund_sum_request || null;
             next();
         } catch (error) {
             next(error)
         }
     }
-    preloadAssist = async (req, res, next) => {
-        try{
+    preloadGeneralApprove = async (req, res, next) => {
+        try {
+            const data = await reimbursementsGeneral.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path']
+            })
+            req.method = 'standardApprove'
+            req.filePath = data?.document_path || null;
+            next();
+        } catch (error) {
+            next(error)
+        }
+    }
+    preloadAssistVerify = async (req, res, next) => {
+        try {
+            const data = await reimbursementsAssist.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path', 'fund_sum_request']
+            })
+            req.method = 'standardVerify'
+            req.filePath = data?.document_path || null;
+            req.sum = data?.fund_sum_request || null;
+            next();
+        } catch (error) {
+            next(error)
+        }
+    }
+    preloadAssistApprove = async (req, res, next) => {
+        try {
             const data = await reimbursementsAssist.findOne({
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'generalApprove'
-            req.filePath = data?.document_path || null;
+            req.method = 'standardApprove'
+            req.filePath = data?.document_path || null
             next();
-        }catch(error){
+        } catch (error) {
             next(error)
         }
     }
-    preloadFuneral = async (req, res, next) => {
-        try{
+    preloadFuneralVerify = async (req, res, next) => {
+        try {
+            const data = await reimbursementsEmployeeDeceased.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path', 'fund_sum_request']
+            })
+            req.method = 'funeralVerify'
+            req.filePath = data?.document_path || null;
+            req.sum = data?.fund_sum_request || null;
+            next();
+        } catch (error) {
+            next(error)
+        }
+    }
+    preloadFuneralApprove = async (req, res, next) => {
+        try {
             const data = await reimbursementsEmployeeDeceased.findOne({
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'generalApprove'
+            req.method = 'funeralApprove'
             req.filePath = data?.document_path || null;
             next();
-        }catch(error){
+        } catch (error) {
+            next(error)
+        }
+    }
+    preloadEducationVeify = async (req, res, next) => {
+        try {
+            const data = await reimbursementsChildrenEducation.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path']
+            })
+            req.method = 'educationVerify';
+            req.filePath = data?.document_path || null;
+            console.log('req filepath ==',req.filePath )
+            next();
+        } catch (error) {
+            next(error)
+        }
+    }
+    preloadEducationApprove = async (req, res, next) => {
+        try {
+            const data = await reimbursementsChildrenEducation.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path']
+            })
+            req.method = 'educationApprove'
+            req.filePath = data?.document_path || null
+            next();
+        } catch (error) {
             next(error)
         }
     }

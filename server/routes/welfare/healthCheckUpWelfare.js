@@ -29,13 +29,14 @@ router.get('/remaining', authPermission, getRemaining, reimbursementsGeneralCont
 router.get('/file/get-by-name', authPermission, getFileByName);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsGeneralController.getById);
 router.get('/:id', authPermission, byIdMiddleWare, reimbursementsGeneralController.getById);
-
+// Post Methods
 router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, healthCheck, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.post('/file/upload/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 router.post('/file/delete/:id', authPermission, deleteFileFromRecord);
-
+// Put Methods
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadDocumentPath, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
+router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadGeneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
+router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadGeneralApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsGeneralController.delete);
 

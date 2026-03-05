@@ -15,6 +15,23 @@ var smtp = {
 
 exports.sendMail = (to, reimNumber, actionId, name) => {
     const method = "SendMail";
+    const userMail = process.env.USER_MAIL;
+    const passwordMail = process.env.PASSWORD_MAIL;
+    const hasValidMailConfig =
+        !!userMail &&
+        !!passwordMail &&
+        userMail !== "อีเมลที่จะใช้เป็นผู้ส่ง" &&
+        !passwordMail.includes("youtube.com") &&
+        !passwordMail.includes("เจนรหัสมาวางตามวิดิโอ");
+
+    if (!hasValidMailConfig) {
+        logger.info("Skip sending mail because SMTP config is placeholder/invalid", {
+            method,
+            data: { to, reimNumber, actionId }
+        });
+        return;
+    }
+
     let content = "";
     const nameWithNoProfix = name.split(" ").slice(1).join(" ");
     switch (actionId) {
@@ -29,7 +46,7 @@ exports.sendMail = (to, reimNumber, actionId, name) => {
     }
     var smtpTransport = mailer.createTransport(smtp);
     var mail = {
-        from: `"Buu Informatics Welfare Reimburstment" <${process.env.USER_MAIL}>`,
+        from: `"Buu Informatics Welfare Reimburstment" <${userMail}>`,
         to,
         subject: `ระบบเบิกสวัสดิการ แจ้งเตือนการแก้ไขข้อมูลคำขอเบิกสวัสดิการเลขที่ ${reimNumber}`,
         html: `
@@ -47,7 +64,7 @@ exports.sendMail = (to, reimNumber, actionId, name) => {
     smtpTransport.sendMail(mail, function (error, response) {
         smtpTransport.close();
         if (error) {
-            logger.error(`Error ${error.message}`, { method, data: { mail } });
+            logger.info(`Mail send failed: ${error.message}`, { method, data: { to, reimNumber, actionId } });
         } else {
             logger.info(`Success`, { method, data: { mail } });
         }

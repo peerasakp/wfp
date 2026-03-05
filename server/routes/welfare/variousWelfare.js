@@ -21,7 +21,8 @@ const {
 } = require('../../middleware/variousWelfare')
 const { various } = require('../../middleware/pdf-management/pdfManagement.middleware')
 const esign = require('../../middleware/e-signature/esign.middleware')
-const minio = require('../../middleware/e-signature/minio.middleware')
+const minio = require('../../middleware/e-signature/minio.middleware');
+const { min } = require('date-fns/min');
 
 // Get Methods
 router.get('/', authPermission, bindFilter, reimbursementsAssistController.list);
@@ -33,9 +34,10 @@ router.get('/:id', authPermission, byIdMiddleWare, reimbursementsAssistControlle
 router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.create, various, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 // Put Methods
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadAssist, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
+router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadAssistVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.update);
+router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadAssistApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsAssistController.delete);
 

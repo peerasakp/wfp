@@ -802,13 +802,13 @@
                     style="background : #BFBFBF;" label="ย้อนกลับ" no-caps :to="{ name: 'welfare_management_list' }" />
                 <q-btn :disable="validate" id="button-draft"
                     class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
-                    label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading" />
+                    label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
                 <q-btn id="button-approve" class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit"
                     style="background-color: #E52020" label="ไม่อนุมัติ" no-caps @click="submit(4)"
-                    v-if="!isView && !isLoading" />
+                    v-if="!isView && !isLoading && !isFinancialPendingFinal" />
                 <q-btn :disable="validate" id="button-approve" class="font-medium font-16 weight-8 text-white q-px-md"
                     dense type="submit" style="background-color: #43a047" label="อนุมัติ" no-caps @click="submit(3)"
-                    v-if="!isView && !isLoading" />
+                    v-if="!isView && !isLoading && !isFinancialPendingFinal" />
             </div>
         </template>
     </PageLayout>
@@ -839,6 +839,7 @@ import { formatDateThaiSlash, formatDateSlash, formatDateServer } from "src/comp
 import DatePicker from "src/components/DatePicker.vue";
 import { ref, watch, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "src/stores/authStore";
 import userManagementService from "src/boot/service/userManagementService";
 import reimbursementChildrenEducationService from "src/boot/service/reimbursementChildrenEducationService";
 import data from 'src/components/api_province_with_amphure_tambon.json';
@@ -853,6 +854,10 @@ const isError = ref({});
 const isView = ref(false);
 const isLoadings = ref(false);
 const router = useRouter();
+const authStore = useAuthStore();
+const isFinancialPendingFinal = computed(
+    () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
+);
 
 // File upload state
 const fileData = ref({
@@ -969,7 +974,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-    model.value = null;
+    isLoading.value = false;
+    isLoadings.value = false;
 });
 const optionsProvince = computed(() => {
     if (!isView.value) return data;
@@ -2113,7 +2119,10 @@ async function submit(actionId) {
         preConfirm: async () => {
             try {
                 if (isEdit.value) {
-                    fetch = await welfareManagementService.updateChildren(route.params.id, payload);
+                    fetch = await welfareManagementService.updateChildren(route.params.id, {
+                        ...payload,
+                        isFinalApprove: authStore.roleId === 5,
+                    });
                     await uploadFiles(route.params.id);
                 } else {
                     fetch = await reimbursementChildrenEducationService.create(payload);

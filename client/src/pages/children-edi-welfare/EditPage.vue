@@ -906,7 +906,11 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  model.value = null;
+  isLoading.value = false;
+  isLoadings.value = false;
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value);
+  }
 });
 const optionsProvince = computed(() => {
   if (!isView.value) return data;
@@ -1165,9 +1169,17 @@ async function downloadData() {
 
 async function fetchRemaining() {
   try {
-    const subCategoriesId = model.value.child.map(child => child.subCategoriesId);
+    const subCategoriesId = [...new Set(
+      (model.value.child || [])
+        .map(child => child.subCategoriesId)
+        .filter(id => !!id)
+    )];
+    if (!subCategoriesId.length) {
+      remaining.value = [];
+      return;
+    }
 
-    // Loop ผ่าน subCategoriesId แต่ละตัวและทำการ request แยก
+    const merged = [];
     for (const id of subCategoriesId) {
       const fetchRemainingData = await reimbursementChildrenEducationService.getRemaining({
         createFor: model.value.createFor,
@@ -1178,16 +1190,17 @@ async function fetchRemaining() {
 
       if (returnedData) {
         const dataArray = Object.values(returnedData);  // แปลงเป็น array
-        remaining.value = dataArray.map(item => ({
+        merged.push(...dataArray.map(item => ({
           subCategoryId: item.subCategoryId,
           childName: item.childName,
           fund: item?.fund,
           totalSumRequested: item?.totalSumRequested,
           perTime: item?.perTime,
           fundRemaining: item?.fundRemaining
-        }));
+        })));
       }
     }
+    remaining.value = merged;
   } catch (error) {
     console.error("❌ Error fetching remaining:", error);
   }
@@ -1195,9 +1208,17 @@ async function fetchRemaining() {
 
 async function fetchTotalCountRequested() {
   try {
-    const subCategoriesId = model.value.child.map(child => child.subCategoriesId);
+    const subCategoriesId = [...new Set(
+      (model.value.child || [])
+        .map(child => child.subCategoriesId)
+        .filter(id => !!id)
+    )];
+    if (!subCategoriesId.length) {
+      totalCount.value = [];
+      return;
+    }
 
-    // Loop ผ่าน subCategoriesId แต่ละตัวและทำการ request แยก
+    const merged = [];
     for (const id of subCategoriesId) {
       const fetchRemainingData = await reimbursementChildrenEducationService.getTotalCountRequested({
         createFor: model.value.createFor,
@@ -1208,16 +1229,17 @@ async function fetchTotalCountRequested() {
 
       if (returnedData) {
         const dataArray = Object.values(returnedData);  // แปลงเป็น array
-        totalCount.value = dataArray.map(item => ({
+        merged.push(...dataArray.map(item => ({
           subCategoryId: item.subCategoryId,
           childName: item.childName,
           fund: item?.fund,
           totalSumRequested: item?.totalSumRequested,
           perTime: item?.perTime,
           fundRemaining: item?.fundRemaining
-        }));
+        })));
       }
     }
+    totalCount.value = merged;
   } catch (error) {
     console.error("❌ Error fetching remaining:", error);
   }
@@ -1292,9 +1314,11 @@ async function fetchSchoolName() {
     if (result.data && Array.isArray(result.data.ChildInformation)) {
       shcoolData.value = result.data.ChildInformation;
     } else {
+      shcoolData.value = [];
       console.warn("⚠️ ไม่มีข้อมูล schoolData หรือ ChildInformation ไม่ถูกต้อง", result.data);
     }
   } catch (error) {
+    shcoolData.value = [];
     console.error("❌ Error fetching school data:", error);
   }
 }
@@ -1314,27 +1338,11 @@ watch(
       schoolName: child.schoolNamegeneral || child.schoolNameDemonstration,
     }))
   }),
-  async ({ eligibleBenefits, eligibleSubSenefits, children }) => {
-
-    if (!eligibleBenefits.length && !eligibleSubSenefits.length) {
-      return;
-    }
-
-    const hasValidSchoolType = children.some(child => child.schoolType);
-    if (!hasValidSchoolType) {
-      return;
-    }
-
-    // ✅ รอ Vue อัปเดตค่าให้เสร็จก่อนเรียก API
+  async ({ children }) => {
+    const hasValidSchoolType = children.some(child => !!child.schoolType);
+    if (!hasValidSchoolType) return;
     await nextTick();
-
-    // ✅ หน่วงเวลาเล็กน้อยเพื่อตรวจสอบซ้ำ
-    setTimeout(() => {
-      if (!model.value.child.some(child => child.schoolType)) {
-        return;
-      }
-      getSubCategory();
-    }, 300);
+    await getSubCategory();
   },
   { deep: true, immediate: true }
 );
@@ -1346,34 +1354,46 @@ const getSubCategory = async () => {
     }
 
     for (const child of model.value.child) {
-      let categoriesId = null;
+      const categoriesIds = [];
+      const schoolType = (child.schoolType || '').trim();
+      const isGeneralSchool = schoolType === 'ทั่วไป';
+      const isDemoSchool = schoolType.includes('สาธิตพิบูล');
+      const isDemoNormal = (child.schoolNameDemonstration || '') === 'สาธิตพิบูลบําเพ็ญ';
+      const isDemoInter = (child.schoolNameDemonstration || '') === 'สาธิตพิบูลบําเพ็ญ นานาชาติ';
 
-      if (model.value.eligibleBenefits.includes('ก') && child.schoolType === 'ทั่วไป') {
-        categoriesId = 13;
-      } else if (model.value.eligibleBenefits.includes('ข') && child.schoolType === 'ทั่วไป') {
-        categoriesId = 14;
-      } else if (model.value.eligibleBenefits.includes('ก') && model.value.eligibleSubSenefits.includes('ค') && child.schoolType === 'สาธิตพิบูลบําเพ็ญ' && child.schoolNameDemonstration === 'สาธิตพิบูลบําเพ็ญ') {
-        categoriesId = 15;
-      } else if (model.value.eligibleBenefits.includes('ข') && model.value.eligibleSubSenefits.includes('ค') && child.schoolType === 'สาธิตพิบูลบําเพ็ญ' && child.schoolNameDemonstration === 'สาธิตพิบูลบําเพ็ญ') {
-        categoriesId = 16;
-      } else if (model.value.eligibleBenefits.includes('ก') && model.value.eligibleSubSenefits.includes('ค') && child.schoolType === 'สาธิตพิบูลบําเพ็ญ' && child.schoolNameDemonstration === 'สาธิตพิบูลบําเพ็ญ นานาชาติ') {
-        categoriesId = 17;
-      } else if (model.value.eligibleBenefits.includes('ข') && model.value.eligibleSubSenefits.includes('ค') && child.schoolType === 'สาธิตพิบูลบําเพ็ญ' && child.schoolNameDemonstration === 'สาธิตพิบูลบําเพ็ญ นานาชาติ') {
-        categoriesId = 18;
+      // General school: if benefit has not been selected yet, show both sets (13/14)
+      if (isGeneralSchool) {
+        if (model.value.eligibleBenefits.includes('ก')) categoriesIds.push(13);
+        if (model.value.eligibleBenefits.includes('ข')) categoriesIds.push(14);
+        if (categoriesIds.length === 0) categoriesIds.push(13, 14);
       }
 
-      if (!categoriesId) {
+      if (isDemoSchool && model.value.eligibleSubSenefits.includes('ค')) {
+        if (isDemoNormal) {
+          if (model.value.eligibleBenefits.includes('ก')) categoriesIds.push(15);
+          if (model.value.eligibleBenefits.includes('ข')) categoriesIds.push(16);
+        } else if (isDemoInter) {
+          if (model.value.eligibleBenefits.includes('ก')) categoriesIds.push(17);
+          if (model.value.eligibleBenefits.includes('ข')) categoriesIds.push(18);
+        }
+      }
+
+      if (categoriesIds.length === 0) {
         child.subCategories = [];
         continue;
       }
 
-      const result = await reimbursementChildrenEducationService.getSubCategories({
-        categories_id: categoriesId
-      });
+      const subCategoryResults = await Promise.all(
+        categoriesIds.map((id) =>
+          reimbursementChildrenEducationService.getSubCategories({ categories_id: id })
+        )
+      );
 
+      const merged = subCategoryResults
+        .flatMap((result) => result?.data ?? [])
+        .filter((item, index, arr) => index === arr.findIndex((x) => x.id === item.id));
 
-      // เก็บค่า subCategories ไว้ในตัวเด็ก
-      child.subCategories = result.data.map(item => ({
+      child.subCategories = merged.map((item) => ({
         value: item.id,
         label: item.name
       }));
@@ -1758,6 +1778,7 @@ watch(
       if (canCreateFor.value) {
         if ((newValue !== null && newValue !== undefined) && !isView.value) {
           fetchRemaining();
+          fetchTotalCountRequested();
           fetchUserData(newValue);
         }
       }
@@ -1770,15 +1791,6 @@ watch(
         position: "bottom-left",
         type: "negative",
       });
-    }
-  }
-);
-
-watch(
-  () => model.value.createFor,
-  async (newValue) => {
-    if (newValue !== null) {
-      await fetchRemaining();
     }
   }
 );
@@ -2030,8 +2042,13 @@ async function submit(actionId) {
             };
           }
         }
+        const responseData = error?.response?.data;
+        const fallbackMessage =
+          typeof responseData === "string"
+            ? responseData
+            : responseData?.message || responseData?.error;
         Swal.fire({
-          html: error?.response?.data?.message ?? `เกิดข้อผิดพลาดกรุณาลองอีกครั้ง`,
+          html: fallbackMessage ?? error?.message ?? `เกิดข้อผิดพลาดกรุณาลองอีกครั้ง`,
           icon: "error",
           confirmButtonText: "ตกลง",
           customClass: {

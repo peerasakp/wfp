@@ -119,19 +119,14 @@ class Controller extends BaseController {
                 ],
             });
 
-            if (results && results.length > 0) {
-                const datas = JSON.parse(JSON.stringify(results));
+            const datas = JSON.parse(JSON.stringify(results || []));
+            const canRequest = !dynamicCheckRemaining(datas);
 
-                if (dynamicCheckRemaining(datas)) datas.canRequest = false;
-                var reimChildrenEducation = {};
-                reimChildrenEducation.datas = {
-                    ...datas,
-                    canRequest: datas.canRequest ?? true
-                };
-
-                logger.info('Complete', { method, data: { id } });
-                return res.status(200).json(reimChildrenEducation);
-            }
+            logger.info('Complete', { method, data: { id } });
+            return res.status(200).json({
+                datas,
+                canRequest
+            });
 
         } catch (error) {
             console.error("Error:", error);
@@ -196,19 +191,14 @@ class Controller extends BaseController {
                 ],
             });
 
-            if (results && results.length > 0) {
-                const datas = JSON.parse(JSON.stringify(results));
+            const datas = JSON.parse(JSON.stringify(results || []));
+            const canRequest = !dynamicCheckRemaining(datas);
 
-                if (dynamicCheckRemaining(datas)) datas.canRequest = false;
-                var reimChildrenEducation = {};
-                reimChildrenEducation.datas = {
-                    ...datas,
-                    canRequest: datas.canRequest ?? true
-                };
-
-                logger.info('Complete', { method, data: { id } });
-                return res.status(200).json(reimChildrenEducation);
-            }
+            logger.info('Complete', { method, data: { id } });
+            return res.status(200).json({
+                datas,
+                canRequest
+            });
 
         } catch (error) {
             console.error("Error:", error);
@@ -227,8 +217,10 @@ class Controller extends BaseController {
         const dataCreate = req.body;
         dataCreate.fund_receipt = isNaN(dataCreate.fund_receipt) ? 0 : parseFloat(dataCreate.fund_receipt);
         try {
+            let createdId = null;
             const results = await sequelize.transaction(async t => {
                 const newReimbursementsChild = await reimbursementsChildrenEducation.create(dataCreate, { transaction: t });
+                createdId = newReimbursementsChild.id;
                 if (!isNullOrEmpty(child)) {
                     if (child.length > 3) {
                         throw new Error("CHILD_LIMIT_EXCEEDED");
@@ -309,10 +301,17 @@ class Controller extends BaseController {
 
                 // if (!isNullOrEmpty(child)) return itemsReturned;
                 // return newReimbursementsChild;
-                req.createdId = newReimbursementsChild.id; 
+                // return {
+                //     id: newReimbursementsChild.id
+                // };
+                req.createdId = createdId;
+                next()
             });
-            next();
-            //res.status(201).json({ newItem: results, message: "บันทึกข้อมูลสำเร็จ" });
+            logger.info('Complete', { method, data: { id } });
+            // return res.status(201).json({
+            //     newItem: { id: createdId ?? results?.id },
+            //     message: "บันทึกข้อมูลสำเร็จ"
+            // });
         } catch (error) {
             logger.error(`Error ${error.message}`, {
                 method,
@@ -351,6 +350,12 @@ class Controller extends BaseController {
 
                 if (updated === 0 && isNullOrEmpty(child)) {
                     return { updated: false };
+                }
+
+                // Support update paths that only modify reimbursement fields
+                // (e.g. document_path from e-sign flow) without child payload.
+                if (isNullOrEmpty(child) && isNullOrEmpty(deletedChild)) {
+                    return { updated: updated > 0 };
                 }
 
                 if (!isNullOrEmpty(deletedChild)) {

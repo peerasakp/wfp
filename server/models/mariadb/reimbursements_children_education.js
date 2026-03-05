@@ -36,8 +36,12 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DECIMAL(10,2),
       allowNull: true
     },
+    document_path: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
     status: {
-      type: DataTypes.ENUM('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ'),
+      type: DataTypes.ENUM('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ'),
       allowNull: false
     },
     spouse: {

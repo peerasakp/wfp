@@ -403,13 +403,13 @@
           style="background : #BFBFBF;" label="ย้อนกลับ" no-caps :to="{ name: 'welfare_management_list' }" />
           <q-btn :disable="isButtonDisabled || isValidate" id="button-draft"
           class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
-          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading" />
+          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
         <q-btn id="button-approve"
         class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #E52020"
-        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="!isView && !isLoading" />
+        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
         <q-btn :disable="isButtonDisabled || isValidate" id="button-approve"
           class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #43a047"
-          label="อนุมัติ" no-caps @click="submit(3)" v-if="!isView && !isLoading" />
+          label="อนุมัติ" no-caps @click="submit(3)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
       </div>
     </template>
   </PageLayout>
@@ -450,6 +450,9 @@ defineOptions({
   name: "funeral_welfare_edit",
 });
 const authStore = useAuthStore();
+const isFinancialPendingFinal = computed(
+  () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
+);
 
 // File upload state
 const fileData = ref({
@@ -603,8 +606,7 @@ onMounted(async () => {
   isLoading.value = false;
 });
 onBeforeUnmount(() => {
-  model.value = null;
-
+  isLoading.value = false;
 });
 const filteredOptions = computed(() => {
   return options.value.filter((option) => {
@@ -1147,7 +1149,10 @@ async function submit(actionId) {
     preConfirm: async () => {
       try {
         if (isEdit.value) {
-          fetch = await welfareManagementService.updateFuneral(route.params.id, payload);
+          fetch = await welfareManagementService.updateFuneral(route.params.id, {
+            ...payload,
+            isFinalApprove: authStore.roleId === 5,
+          });
           await uploadFiles(route.params.id);
         }
         else {
