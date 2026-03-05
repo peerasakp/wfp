@@ -353,7 +353,7 @@ CREATE TABLE `reimbursements_assist` (
   `fund_receipt_vechicle` decimal(10,2) DEFAULT NULL,
   `fund_vechicle` decimal(10,2) DEFAULT NULL,
   `document_path` varchar(255) DEFAULT NULL,
-  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ') NOT NULL,
+  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ') NOT NULL, -- รออนุมัติ
   `deceased` varchar(255) DEFAULT NULL,
   `deceased_type` int(11) DEFAULT NULL,
   `request_date` date DEFAULT NULL,
