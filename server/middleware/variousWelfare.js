@@ -212,7 +212,12 @@ const checkNullValue = async (req, res, next) => {
 const bindCreate = async (req, res, next) => {
     try {
         const { fundReceipt, fundEligible, fundSumRequest, fundSumReceipt, createFor, actionId, categoryId } = req.body;
-        const { id } = req.user;
+        const { id, roleId } = req.user;
+        if (roleId === 2 && !isNullOrEmpty(createFor) && createFor !== id) {
+            return res.status(400).json({
+                message: "เจ้าหน้าที่การเงินสามารถสร้างคำร้องของตนเองเท่านั้น",
+            });
+        }
         if (!isNullOrEmpty(createFor) && !req.isEditor) {
             return res.status(400).json({
                 message: "ไม่มีสิทธิ์สร้างให้คนอื่นได้",
@@ -304,6 +309,11 @@ const bindUpdate = async (req, res, next) => {
             if (req.access && !allowStatusByRole.includes(datas.status)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
+                });
+            }
+            if (req.access && roleId === 2 && (actionId !== status.approve && actionId !== status.NotApproved)) {
+                return res.status(400).json({
+                    message: "เจ้าหน้าที่การเงินสามารถทำได้เฉพาะอนุมัติ/ไม่อนุมัติ",
                 });
             }
             if (req.access && (actionId === status.NotApproved || actionId === status.approve) && !isNullOrEmpty(actionId)) {

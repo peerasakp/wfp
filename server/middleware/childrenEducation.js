@@ -494,6 +494,9 @@ const bindCreate = async (req, res, next) => {
 
         const { id, roleId } = req.user;
 
+        if (roleId === roleType.financialUser && !isNullOrEmpty(createFor) && createFor !== id) {
+            return res.status(400).json({ message: "เจ้าหน้าที่การเงินสามารถสร้างคำร้องของตนเองเท่านั้น" });
+        }
         if (!isNullOrEmpty(createFor) && roleId !== roleType.financialUser) {
             return res.status(400).json({ message: "ไม่มีสิทธิ์สร้างให้คนอื่นได้" });
         }
@@ -651,6 +654,11 @@ const bindUpdate = async (req, res, next) => {
             if (req.access && !allowStatusByRole.includes(datas.status)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
+                });
+            }
+            if (req.access && roleId === roleType.financialUser && (actionId !== statusType.approve && actionId !== statusType.NotApproved)) {
+                return res.status(400).json({
+                    message: "เจ้าหน้าที่การเงินสามารถทำได้เฉพาะอนุมัติ/ไม่อนุมัติ",
                 });
             }
 
