@@ -407,7 +407,7 @@
         <q-btn id="button-approve"
         class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #E52020"
         label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
-        <q-btn :disable="isButtonDisabled || isValidate" id="button-approve"
+        <q-btn :disable="isFinancialWaitPayment ? false : (isButtonDisabled || isValidate)" id="button-approve"
           class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #43a047"
           label="อนุมัติ" no-caps @click="submit(3)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
       </div>
@@ -452,6 +452,9 @@ defineOptions({
 const authStore = useAuthStore();
 const isFinancialPendingFinal = computed(
   () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
+);
+const isFinancialWaitPayment = computed(
+  () => authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน"
 );
 
 // File upload state

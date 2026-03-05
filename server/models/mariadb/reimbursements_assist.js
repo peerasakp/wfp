@@ -57,7 +57,7 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: true
     },
     status: {
-      type: DataTypes.ENUM('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ'),
+      type: DataTypes.ENUM('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ','รอจ่ายเงิน'),
       allowNull: false
     },
     deceased: {

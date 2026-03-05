@@ -359,15 +359,27 @@ const bindUpdate = async (req, res, next) => {
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
-            if (req.access && (datas.status != (roleId === 5 ? statusText.waitFinalApprove : statusText.waitApprove))) {
+            const allowStatusByRole = roleId === 5
+                ? [statusText.waitFinalApprove]
+                : roleId === 2
+                    ? [statusText.waitApprove, statusText.waitPayment]
+                    : [statusText.waitApprove];
+            if (req.access && !allowStatusByRole.includes(datas.status)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
             if (req.access && (actionId === status.NotApproved || actionId === status.approve) && !isNullOrEmpty(actionId)) {
-                const statusId = actionId === status.approve && roleId === 2
-                    ? status.waitFinalApprove
-                    : actionId;
+                let statusId = actionId;
+                if (actionId === status.approve) {
+                    if (roleId === 2 && datas.status === statusText.waitApprove) {
+                        statusId = status.waitFinalApprove;
+                    } else if (roleId === 5 && datas.status === statusText.waitFinalApprove) {
+                        statusId = status.waitPayment;
+                    } else if (roleId === 2 && datas.status === statusText.waitPayment) {
+                        statusId = status.approve;
+                    }
+                }
                 const dataBinding = {
                     status: statusId,
                     updated_by: id,
