@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 const reimbursementChildrenEducationController = require('../../controllers/reimbursementChildrenEducationController');
-const { logReimbursementCreate, logReimbursementUpdate, logReimbursementView } = require('../../middleware/activityLog');
 const { authPermission,
         bindFilter,
         getRemaining, 
@@ -31,14 +30,14 @@ router.get('/latest-school', authPermission, reimbursementChildrenEducationContr
 router.get('/get-latest-school/latest-school', authPermissionEditor, reimbursementChildrenEducationController.getLatestSchoolByChildName);
 router.get('/get-file', authPermission, getFileByName);
 
-router.get('/:id',authPermission, byIdMiddleWare, reimbursementChildrenEducationController.getById, logReimbursementView('CHILDREN_EDUCATION'));
-router.get('/get-welfare/:id',authPermissionEditor, byIdMiddleWare, reimbursementChildrenEducationController.getById, logReimbursementView('CHILDREN_EDUCATION'));
+router.get('/:id',authPermission, byIdMiddleWare, reimbursementChildrenEducationController.getById);
+router.get('/get-welfare/:id',authPermissionEditor, byIdMiddleWare, reimbursementChildrenEducationController.getById);
 
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining,checkRemaining, reimbursementChildrenEducationController.create, logReimbursementCreate('CHILDREN_EDUCATION'));
+router.post('/', authPermission, checkNullValue, bindCreate, getRemaining,checkRemaining, reimbursementChildrenEducationController.create);
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 
-router.put('/:id', authPermission,checkNullValue, bindUpdate, getRemaining,checkRemaining, reimbursementChildrenEducationController.update, logReimbursementUpdate('CHILDREN_EDUCATION'));
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, reimbursementChildrenEducationController.update, logReimbursementUpdate('CHILDREN_EDUCATION'));
+router.put('/:id', authPermission,checkNullValue, bindUpdate, getRemaining,checkRemaining, reimbursementChildrenEducationController.update);
+router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, reimbursementChildrenEducationController.update);
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
 
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementChildrenEducationController.deleteReimbursement);

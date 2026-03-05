@@ -1,7 +1,6 @@
 const { initLogger } = require('../logger');
 const logger = initLogger('ActivityLogger');
 const { activityLogs } = require('../models/mariadb');
-const statusEnum = require('../enum/status');
 
 // ฟิลด์ที่ไม่ควรเก็บลง log ตามหลัก PDPA (เช่น รหัสผ่าน, token)
 const SENSITIVE_FIELDS = ['password', 'newPassword', 'oldPassword', 'accessToken', 'token', 'secretKey'];
@@ -80,70 +79,8 @@ const logExport = (exportType) => async (req, res, next) => {
   next();
 };
 
-// ----------------- Reimbursement Activity Logs -----------------
-// ใช้กับใบเบิกสวัสดิการประเภทต่าง ๆ (health / medical / dental / various / children / funeral ฯลฯ)
-
-function buildReimbursementDetail(req, type, baseDetail = {}) {
-  return {
-    ...baseDetail,
-    reimbursementType: type,
-    reimbursementId: req.params?.id ?? req.createdId ?? null,
-  };
-}
-
-// CREATE: หลังสร้างใบเบิก (POST)
-const logReimbursementCreate = (type) => async (req, res, next) => {
-  await createActivityLog(req, {
-    action: 'CREATE',
-    detail: buildReimbursementDetail(req, type, {
-      event: 'REIMBURSEMENT_CREATE',
-    }),
-  });
-  next();
-};
-
-// UPDATE / APPROVE / REJECT: หลังแก้ไขใบเบิก (PUT)
-const logReimbursementUpdate = (type) => async (req, res, next) => {
-  let action = 'UPDATE';
-  let event = 'REIMBURSEMENT_UPDATE';
-
-  const status = req.body?.status;
-  if (typeof status !== 'undefined') {
-    if (status === statusEnum.approve) {
-      action = 'APPROVE';
-      event = 'REIMBURSEMENT_APPROVE';
-    } else if (status === statusEnum.NotApproved) {
-      action = 'REJECT';
-      event = 'REIMBURSEMENT_REJECT';
-    }
-  }
-
-  await createActivityLog(req, {
-    action,
-    detail: buildReimbursementDetail(req, type, {
-      event,
-      status,
-    }),
-  });
-  next();
-};
-
-// VIEW: เมื่อเปิดดูรายละเอียดใบเบิก (GET /:id, /get-welfare/:id)
-const logReimbursementView = (type) => async (req, res, next) => {
-  await createActivityLog(req, {
-    action: 'VIEW',
-    detail: buildReimbursementDetail(req, type, {
-      event: 'REIMBURSEMENT_VIEW',
-    }),
-  });
-  next();
-};
-
 module.exports = {
   createActivityLog,
   logExport,
-  logReimbursementCreate,
-  logReimbursementUpdate,
-  logReimbursementView,
 };
 

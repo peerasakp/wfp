@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 const reimbursementsAssistController = require('../../controllers/variousWelfareFuneralFamilyController');
-const { logReimbursementCreate, logReimbursementUpdate, logReimbursementView } = require('../../middleware/activityLog');
 const {
     authPermission,
     bindFilter,
@@ -28,14 +27,14 @@ const minio = require('../../middleware/e-signature/minio.middleware')
 router.get('/', authPermission, bindFilter, reimbursementsAssistController.list);
 router.get('/remaining', authPermission, getRemaining, reimbursementsAssistController.getRemaining);
 router.get('/get-file', authPermission, getFileByName);
-router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsAssistController.getById, logReimbursementView('VARIOUS_FUNERAL_FAMILY'));
-router.get('/:id', authPermission, byIdMiddleWare, reimbursementsAssistController.getById, logReimbursementView('VARIOUS_FUNERAL_FAMILY'));
+router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsAssistController.getById);
+router.get('/:id', authPermission, byIdMiddleWare, reimbursementsAssistController.getById);
 
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.create, funeralFamily, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update, logReimbursementCreate('VARIOUS_FUNERAL_FAMILY'));
+router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.create, funeralFamily, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 
-router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.update, logReimbursementUpdate('VARIOUS_FUNERAL_FAMILY'));
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsAssistController.update, esign.preloadFuneral, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update, logReimbursementUpdate('VARIOUS_FUNERAL_FAMILY'));
+router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.update);
+router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsAssistController.update, esign.preloadFuneral, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
 
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsAssistController.delete);
