@@ -202,7 +202,12 @@ const checkNullValue = async (req, res, next) => {
 const bindCreate = async (req, res, next) => {
     try {
         const { fundReceipt, fundSumRequest, dateReceipt, createFor, actionId } = req.body;
-        const { id } = req.user;
+        const { id, roleId } = req.user;
+        if (roleId === 2 && !isNullOrEmpty(createFor) && createFor !== id) {
+            return res.status(400).json({
+                message: "เจ้าหน้าที่การเงินสามารถสร้างคำร้องของตนเองเท่านั้น",
+            });
+        }
         if (!isNullOrEmpty(createFor) && !req.isEditor) {
             return res.status(400).json({
                 message: "ไม่มีสิทธิ์สร้างให้คนอื่นได้",
@@ -274,15 +279,32 @@ const bindUpdate = async (req, res, next) => {
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
-            if (req.access && (datas.status != (roleId === 5 ? statusText.waitFinalApprove : statusText.waitApprove))) {
+            const allowStatusByRole = roleId === 5
+                ? [statusText.waitFinalApprove]
+                : roleId === 2
+                    ? [statusText.waitApprove, statusText.waitPayment]
+                    : [statusText.waitApprove];
+            if (req.access && !allowStatusByRole.includes(datas.status)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
+            if (req.access && roleId === 2 && (actionId !== status.approve && actionId !== status.NotApproved)) {
+                return res.status(400).json({
+                    message: "เจ้าหน้าที่การเงินสามารถทำได้เฉพาะอนุมัติ/ไม่อนุมัติ",
+                });
+            }
             if (req.access && (actionId === status.NotApproved || actionId === status.approve) && !isNullOrEmpty(actionId)) {
-                const statusId = actionId === status.approve && roleId === 2
-                    ? status.waitFinalApprove
-                    : actionId;
+                let statusId = actionId;
+                if (actionId === status.approve) {
+                    if (roleId === 2 && datas.status === statusText.waitApprove) {
+                        statusId = status.waitFinalApprove;
+                    } else if (roleId === 5 && datas.status === statusText.waitFinalApprove) {
+                        statusId = status.waitPayment;
+                    } else if (roleId === 2 && datas.status === statusText.waitPayment) {
+                        statusId = status.approve;
+                    }
+                }
                 const dataBinding = {
                     status: statusId,
                     updated_by: id,

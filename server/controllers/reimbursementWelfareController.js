@@ -25,14 +25,16 @@ class Controller extends BaseController {
                         Sequelize.literal(`CASE 
                             WHEN status = 'รอตรวจสอบ' THEN 1
                             WHEN status = 'รออนุมัติ' THEN 2
-                            WHEN status = 'อนุมัติ' THEN 3
-                            ELSE 4
+                            WHEN status = 'รอจ่ายเงิน' THEN 3
+                            WHEN status = 'อนุมัติ' THEN 4
+                            ELSE 5
                         END`), 'ASC'
                     ],
                     [
                         Sequelize.literal(`CASE 
                             WHEN status = 'รอตรวจสอบ' THEN request_date
                             WHEN status = 'รออนุมัติ' THEN updated_at
+                            WHEN status = 'รอจ่ายเงิน' THEN updated_at
                             ELSE NULL
                         END`), 'ASC'
                     ],

@@ -259,11 +259,11 @@
           style="background : #BFBFBF;" label="ย้อนกลับ" no-caps :to="{ name: 'welfare_management_list' }" />
         <q-btn :disable="isValidate" id="button-draft"
           class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
-          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
+          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal && !isFinancialActionOnly" />
         <q-btn id="button-approve"
         class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #E52020"
         label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
-        <q-btn :disable="!canRequest || isValidate" id="button-approve"
+        <q-btn :disable="isFinancialWaitPayment ? false : (!canRequest || isValidate)" id="button-approve"
           class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #43a047"
           label="อนุมัติ" no-caps @click="submit(3)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
       </div>
@@ -300,6 +300,12 @@ const router = useRouter();
 const route = useRoute();
 const isFinancialPendingFinal = computed(
   () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
+);
+const isFinancialActionOnly = computed(
+  () => authStore.roleId === 2
+);
+const isFinancialWaitPayment = computed(
+  () => authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน"
 );
 const model = ref({
   createFor: null,
