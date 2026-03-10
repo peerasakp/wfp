@@ -5,6 +5,7 @@ const {
     reimbursementsEmployeeDeceased,
     reimbursementsChildrenEducation
 } = require('../../models/mariadb');
+const statusText = require('../../enum/statusText');
 const { where } = require('sequelize');
 
 class esign {
@@ -742,6 +743,63 @@ class esign {
             next();
         } catch (error) {
             next(error)
+        }
+    }
+
+    // Compatibility preload used by several welfare routes.
+    preloadDocumentPath = async (req, res, next) => {
+        try {
+            const data = await reimbursementsGeneral.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path', 'fund_sum_request', 'status']
+            });
+            req.filePath = data?.document_path || null;
+            req.sum = data?.fund_sum_request || null;
+            req.method = (
+                data?.status === statusText.waitFinalApprove ||
+                data?.status === statusText.waitPayment
+            ) ? 'standardApprove' : 'standardVerify';
+            next();
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // Compatibility preload used by various/funeral employee routes.
+    preloadAssist = async (req, res, next) => {
+        try {
+            const data = await reimbursementsAssist.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path', 'fund_sum_request', 'status']
+            });
+            req.filePath = data?.document_path || null;
+            req.sum = data?.fund_sum_request || null;
+            req.method = (
+                data?.status === statusText.waitFinalApprove ||
+                data?.status === statusText.waitPayment
+            ) ? 'standardApprove' : 'standardVerify';
+            next();
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // Compatibility preload used by family funeral routes.
+    preloadFuneral = async (req, res, next) => {
+        try {
+            const data = await reimbursementsEmployeeDeceased.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path', 'fund_sum_request', 'status']
+            });
+            req.filePath = data?.document_path || null;
+            req.sum = data?.fund_sum_request || null;
+            req.method = (
+                data?.status === statusText.waitFinalApprove ||
+                data?.status === statusText.waitPayment
+            ) ? 'funeralApprove' : 'funeralVerify';
+            next();
+        } catch (error) {
+            next(error);
         }
     }
 }
