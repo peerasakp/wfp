@@ -36,7 +36,7 @@ router.post('/file/upload/:id', authPermission, handleFileUpload, uploadFilesFor
 router.post('/file/delete/:id', authPermission, deleteFileFromRecord);
 
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update, logReimbursementUpdate('HEALTH_CHECKUP'));
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadDocumentPath, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update, logReimbursementUpdate('HEALTH_CHECKUP'));
+router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadGeneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update, logReimbursementUpdate('HEALTH_CHECKUP'));
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsGeneralController.delete);
 
