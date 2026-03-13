@@ -49,7 +49,7 @@
         <template v-slot:no-data="{ icon }">
           <div class="full-width row flex-center text-negative q-gutter-sm">
             <q-icon size="2em" :name="icon" />
-            <span class="font-remark font-regular ">
+            <span class="font-14 font-regular ">
               ไม่พบข้อมูล
             </span>
           </div>
