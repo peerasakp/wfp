@@ -28,15 +28,15 @@ const minio = require('../../middleware/e-signature/minio.middleware')
 router.get('/', authPermission, bindFilter, reimbursementsAssistController.list);
 router.get('/remaining', authPermission, getRemaining, reimbursementsAssistController.getRemaining);
 router.get('/get-file', authPermission, getFileByName);
-router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsAssistController.getById, logReimbursementView('VARIOUS'));
-router.get('/:id', authPermission, byIdMiddleWare, reimbursementsAssistController.getById, logReimbursementView('VARIOUS'));
+router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, logReimbursementView('VARIOUS'), reimbursementsAssistController.getById);
+router.get('/:id', authPermission, byIdMiddleWare, logReimbursementView('VARIOUS'), reimbursementsAssistController.getById);
 // Post Methods
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.create, various, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update, logReimbursementCreate('VARIOUS'));
+router.post('/', authPermission, logReimbursementCreate('VARIOUS'), checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.create, various, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 // Put Methods
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadAssist, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update, logReimbursementUpdate('VARIOUS'));
+router.put('/update-welfare/:id', authPermissionEditor, logReimbursementUpdate('VARIOUS'), checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadAssist, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
-router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.update, logReimbursementUpdate('VARIOUS'));
+router.put('/:id', authPermission, logReimbursementUpdate('VARIOUS'), checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.update);
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsAssistController.delete);
 

@@ -28,15 +28,15 @@ const minio = require('../../middleware/e-signature/minio.middleware')
 router.get('/', authPermission, bindFilter, reimbursementsGeneralController.list);
 router.get('/remaining', authPermission, getRemaining, reimbursementsGeneralController.getRemaining);
 router.get('/file/get-by-name', authPermission, getFileByName);
-router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, reimbursementsGeneralController.getById, logReimbursementView('HEALTH_CHECKUP'));
-router.get('/:id', authPermission, byIdMiddleWare, reimbursementsGeneralController.getById, logReimbursementView('HEALTH_CHECKUP'));
+router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, logReimbursementView('HEALTH_CHECKUP'), reimbursementsGeneralController.getById);
+router.get('/:id', authPermission, byIdMiddleWare, logReimbursementView('HEALTH_CHECKUP'), reimbursementsGeneralController.getById);
 
-router.post('/', authPermission, checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, healthCheck, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update, logReimbursementCreate('HEALTH_CHECKUP'));
+router.post('/', authPermission, logReimbursementCreate('HEALTH_CHECKUP'), checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, healthCheck, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.post('/file/upload/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 router.post('/file/delete/:id', authPermission, deleteFileFromRecord);
 
-router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update, logReimbursementUpdate('HEALTH_CHECKUP'));
-router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadGeneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update, logReimbursementUpdate('HEALTH_CHECKUP'));
+router.put('/:id', authPermission, logReimbursementUpdate('HEALTH_CHECKUP'), checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
+router.put('/update-welfare/:id', authPermissionEditor, logReimbursementUpdate('HEALTH_CHECKUP'), checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadGeneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsGeneralController.delete);
 
