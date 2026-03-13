@@ -21,7 +21,7 @@ const {
 } = require('../../middleware/healthCheckUpWelfare')
 const { healthCheck } = require('../../middleware/pdf-management/pdfManagement.middleware');
 const esign = require('../../middleware/e-signature/esign.middleware')
-const minio = require('../../middleware/e-signature/minio.middleware')
+const minio = require('../../middleware/e-signature/minio.middleware');
 
 // Get Methods
 router.get('/', authPermission, bindFilter, reimbursementsGeneralController.list);
@@ -37,6 +37,7 @@ router.post('/file/delete/:id', authPermission, deleteFileFromRecord);
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
 router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadGeneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadGeneralApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
+router.put('/disburse-welfare/:id', authPermissionEditor, esign.preloadGeneralDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsGeneralController.delete);
 

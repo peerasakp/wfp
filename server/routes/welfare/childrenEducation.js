@@ -38,6 +38,7 @@ router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesFor
 router.put('/:id', authPermission,checkNullValue, bindUpdate, getRemaining,checkRemaining, reimbursementChildrenEducationController.update);
 router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, esign.preloadEducationVeify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update);
 router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadEducationApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update)
+router.put('/disburse-welfare/:id', authPermissionEditor, esign.preloadEducationDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update)
 // Delete Methods
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementChildrenEducationController.deleteReimbursement);

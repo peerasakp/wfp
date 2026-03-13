@@ -38,6 +38,7 @@ router.put('/update-welfare/:id', authPermissionEditor, checkNullValue, bindUpda
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
 router.put('/:id', authPermission, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.update);
 router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadAssistApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
+router.put('/disburse-welfare/:id', authPermission, esign.preloadAssistDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update)
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsAssistController.delete);
 
