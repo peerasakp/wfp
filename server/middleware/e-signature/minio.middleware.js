@@ -108,7 +108,7 @@ class minio {
         try {
             console.log('==================== putfile ===================')
             const token = await this.auth('write', 'l7hdoiyMMtelzqUJoXofCxI3m56CPXZ6', 'put');
-            const filePath = req.filePath
+            const filePath = req.esign.filePath
             const data = new formData();
             data.append('qrVerify', 'false');
             data.append('path', '/');
@@ -116,7 +116,6 @@ class minio {
             data.append('bucket', 'informatics.welfare.storage');
             data.append('originalExtension', 'pdf');
             data.append('fileUpload', fs.createReadStream(filePath)); // Mock up
-
             const respone = await axios.post(
                 this.minioPath.putFile,
                 data,
@@ -166,13 +165,6 @@ class minio {
             const savePath = await this.downloadAndSaveFile(respone.data.result.file_1.download,  `sign_${req.fileName}.pdf`)
             req.getRespone = respone.data;
             req.savePath = savePath
-            // res.json({
-            //     put: req.putRespone,
-            //     stamp: req.stamper,
-            //     get: respone.data,
-            //     savePath: savePath
-            //     // delete: respone.data
-            // })
             next();
         } catch (error) {
             console.log(error)

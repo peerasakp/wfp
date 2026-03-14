@@ -1,11 +1,12 @@
 const axios = require('axios');
+const fs = require('fs');
+const { PDFDocument } = require('pdf-lib');
 const {
     reimbursementsGeneral,
     reimbursementsAssist,
     reimbursementsEmployeeDeceased,
     reimbursementsChildrenEducation
 } = require('../../models/mariadb');
-const { where } = require('sequelize');
 
 class esign {
     constructor() {
@@ -106,9 +107,10 @@ class esign {
         try {
             console.log('===================== stamper ======================')
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
-            const stampConfig = this.prepareData(req.sum, req.user.name, req.method);
+            const stampConfig = this.prepareData(req.esign.sum, req.user.name, req.esign.method);
+            console.log('==================== req.user ====================', req.user)
             const data = {
-                psn_id: '00000000',
+                psn_id: req.user.psn_id,
                 positionType: 'normal',
                 multiStamp: stampConfig.multiStamper,
                 imgWidth: stampConfig.signImgWidth,
@@ -131,11 +133,11 @@ class esign {
                 }
             )
             req.stamper = response.data;
-            if (req.method == 'standardDisburse') {
-                req.method = 'standardReceipt';
+            if (req.esign.method == 'standardDisburse') {
+                req.esign.method = 'standardReceipt';
                 await this.stamper(req, res, next);
-            } else if (req.method == 'funeralDisburse') {
-                req.method = 'funeralReceipt';
+            } else if (req.esign.method == 'funeralDisburse') {
+                req.esign.method = 'funeralReceipt';
                 await this.stamper(req, res, next);
             }
             else {
@@ -145,6 +147,61 @@ class esign {
             console.log('stamper error');
             next(error)
         }
+    }
+
+    // signature()
+    // This function is used to
+    signature = async (psnID) => {
+        try {
+            const token = await this.auth('read', this.provisionKey.sign, 'sign')
+            const data = { psn_id: psnID }
+            const respone = await axios.post(
+                this.esignPath.sign,
+                data,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token.access_token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )
+            return respone.result;
+        } catch (error) {
+            return null;
+        }
+    }
+    //
+    // This function is used to
+    acknowledgeDisburse = async (req, res, next) => {
+        const signature = await this.signature(req.esign.psn_id);
+        const document = req.savePath;
+        try {
+            // Read PDF file
+            const pdfBytes = fs.readFileSync(document);
+            const pdfDoc = await PDFDocument.load(pdfBytes);
+            // convert base64 to png
+            const signBase64 = signature.SIGN_BASE64.replace(/^data:image\/png;base64,/,'')
+            const signBytes = Buffer.from(signBase64, 'base64');
+            const signImg = await pdfDoc.embedPng(signBytes);
+            // Mark position
+            const pages = pdfDoc.getPage();;
+            const pageToSign = pages[1];
+
+            pageToSign.drawImage(
+                signImg, 
+                {
+                    x: '380',
+                    y: '-580',
+                    width: '84',
+                    height: '42'
+                })
+            const signPdfBytes = await pdfDoc.save();
+            fs.writeFileSync(document, signPdfBytes);
+            next();
+        } catch (error) {
+            next(error);
+        }
+
     }
 
     nornalize = (req, res, next) => {
@@ -843,9 +900,11 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path', 'fund_sum_request']
             })
-            req.method = 'standardVerify'
-            req.filePath = data?.document_path || null;
-            req.sum = data?.fund_sum_request || null;
+            req.esign = {
+                method: 'standardVerify',
+                filePath: data?.document_path || null,
+                sum: data?.fund_sum_request || null
+            }
             next();
         } catch (error) {
             next(error)
@@ -857,8 +916,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'standardApprove'
-            req.filePath = data?.document_path || null;
+            req.esign = {
+                method: 'standardApprove',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)
@@ -870,8 +931,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'standardDisburse'
-            req.filePath = data?.document_path || null;
+            req.esign = {
+                method: 'standardDisburse',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error);
@@ -884,9 +947,11 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path', 'fund_sum_request']
             })
-            req.method = 'standardVerify'
-            req.filePath = data?.document_path || null;
-            req.sum = data?.fund_sum_request || null;
+            req.esign = {
+                method: 'standardVerify',
+                filePath: data?.document_path || null,
+                sum: data?.fund_sum_request || null
+            }
             next();
         } catch (error) {
             next(error)
@@ -900,6 +965,10 @@ class esign {
             })
             req.method = 'standardApprove'
             req.filePath = data?.document_path || null
+            req.esign = {
+                method: 'standardApprove',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)
@@ -911,8 +980,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'standardDisburse'
-            req.filePath = data?.document_path || null
+            req.esign = {
+                method: 'standardDisburse',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)
@@ -924,9 +995,11 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path', 'fund_sum_request']
             })
-            req.method = 'funeralVerify'
-            req.filePath = data?.document_path || null;
-            req.sum = data?.fund_sum_request || null;
+            req.esign = {
+                method: 'funeralVerify',
+                filePath: data?.document_path || null,
+                sum: data?.fund_sum_request || null
+            }
             next();
         } catch (error) {
             next(error)
@@ -938,8 +1011,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'funeralApprove'
-            req.filePath = data?.document_path || null;
+            req.esign = {
+                method: 'funeralApprove',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)
@@ -951,8 +1026,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'funeralDisburse'
-            req.filePath = data?.document_path || null;
+            req.esign = {
+                method: 'funeralDisburse',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)
@@ -964,9 +1041,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'educationVerify';
-            req.filePath = data?.document_path || null;
-            console.log('req filepath ==', req.filePath)
+            req.esign = {
+                method: 'educationVerify',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)
@@ -978,8 +1056,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'educationApprove'
-            req.filePath = data?.document_path || null
+            req.esign = {
+                method: 'educationApprove',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)
@@ -991,8 +1071,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'educationDisburse'
-            req.filePath = data?.document_path || null
+            req.esign = {
+                method: 'educationDisburse',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)

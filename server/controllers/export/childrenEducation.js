@@ -73,8 +73,10 @@ const createPdfChildrenEducation = async (req, res, next) => {
         // res.end(pdfBuffer);
 
         logger.info('Complete', { method, data: { id } });
-        req.filePath = filePath;
-        req.method = 'education'
+        req.esign = {
+            method: 'education',
+            filePath: filePath
+        }
         next()
 
     } catch (error) {
