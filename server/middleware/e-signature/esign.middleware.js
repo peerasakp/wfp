@@ -107,7 +107,7 @@ class esign {
     stamper = async (req, res, next) => {
         try {
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
-            const stampConfig = this.prepareStampConfig(req.esign.sum, req.user.name, req.esign.method);
+            const stampConfig = this.prepareStampConfig(req.esign.sum, req.user.name, req.user.position, req.esign.method);
             const data = {
                 psn_id: req.user.psn_id,
                 positionType: 'normal',
@@ -233,7 +233,7 @@ class esign {
 
     // prepareStampConfig()
     // This function is used to prepare
-    prepareStampConfig = (sum, name, welfareType) => {
+    prepareStampConfig = (sum, name, position, welfareType) => {
         let data = {
             signAt: '',
             pageToSign: '',
@@ -365,6 +365,16 @@ class esign {
                         position: 'left_top',
                         translateX: '365',
                         translateY: '-425'
+                    }, {
+                        text: position,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '425',
+                        translateY: '-440'
                     }, {
                         text: date.day,
                         fontSize: '16',
@@ -806,6 +816,16 @@ class esign {
                         translateX: '240',
                         translateY: '-250'
                     }, {
+                        text: position,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '285',
+                        translateY: '-269'
+                    }, {
                         text: date.day,
                         fontSize: '16',
                         opacity: '1',
@@ -1131,7 +1151,7 @@ class esign {
             req.esign = {
                 method: 'educationDisburse',
                 filePath: data?.document_path || null,
-                owner_psn: data?.psn_id || null
+                owner_psn: creator?.psn_id || null
             }
             next();
         } catch (error) {
