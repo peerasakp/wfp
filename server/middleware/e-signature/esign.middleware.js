@@ -5,7 +5,8 @@ const {
     reimbursementsGeneral,
     reimbursementsAssist,
     reimbursementsEmployeeDeceased,
-    reimbursementsChildrenEducation
+    reimbursementsChildrenEducation,
+    users
 } = require('../../models/mariadb');
 
 class esign {
@@ -171,20 +172,20 @@ class esign {
     //
     // This function is used to
     acknowledgeDisburse = async (req, res, next) => {
-        const signature = await this.signature(req.user.psn_id);
+        const signature = await this.signature(req.esign.owner_psn);
         const document = req.savePath;
         try {
             // Read PDF file
             const pdfBytes = fs.readFileSync(document);
             const pdfDoc = await PDFDocument.load(pdfBytes);
             // convert base64 to png
-            const signBase64 = signature.SIGN_BASE64.replace(/^data:image\/png;base64,/,'')
+            const signBase64 = signature.SIGN_BASE64.replace(/^data:image\/png;base64,/, '')
             const signBytes = Buffer.from(signBase64, 'base64');
             const signImg = await pdfDoc.embedPng(signBytes);
             // Mark position
             const acknowledgeConfigs = this.prepareDisburseConfig(req.esign.method);
             const pages = pdfDoc.getPages();
-            for(const pageConfig of acknowledgeConfigs){
+            for (const pageConfig of acknowledgeConfigs) {
                 pages[pageConfig.page].drawImage(
                     signImg,
                     {
@@ -895,7 +896,7 @@ class esign {
     // This function is used to
     prepareDisburseConfig = (type) => {
         let data = []
-        switch(type){
+        switch (type) {
             case 'standardReceipt':
                 data.push({
                     page: 1,
@@ -930,7 +931,7 @@ class esign {
         }
         return data
     }
-    
+
     preloadGeneralVerify = async (req, res, next) => {
         try {
             const data = await reimbursementsGeneral.findOne({
@@ -966,11 +967,16 @@ class esign {
         try {
             const data = await reimbursementsGeneral.findOne({
                 where: { id: req.params.id },
-                attributes: ['document_path']
+                attributes: ['document_path', 'created_by']
+            })
+            const creator = await users.findOne({
+                where: { id: data.created_by },
+                attributes: ['psn_id']
             })
             req.esign = {
                 method: 'standardDisburse',
                 filePath: data?.document_path || null,
+                owner_psn: creator?.psn_id || null,
             }
             next();
         } catch (error) {
@@ -1015,11 +1021,16 @@ class esign {
         try {
             const data = await reimbursementsAssist.findOne({
                 where: { id: req.params.id },
-                attributes: ['document_path']
+                attributes: ['document_path', 'created_by']
+            })
+            const creator = await users.findOne({
+                where: { id: data.created_by },
+                attributes: ['psn_id']
             })
             req.esign = {
                 method: 'standardDisburse',
                 filePath: data?.document_path || null,
+                owner_psn: creator?.psn_id || null,
             }
             next();
         } catch (error) {
@@ -1061,11 +1072,16 @@ class esign {
         try {
             const data = await reimbursementsEmployeeDeceased.findOne({
                 where: { id: req.params.id },
-                attributes: ['document_path']
+                attributes: ['document_path', 'created_by']
+            })
+            const creator = await users.findOne({
+                where: { id: data.created_by },
+                attributes: ['psn_id']
             })
             req.esign = {
                 method: 'funeralDisburse',
                 filePath: data?.document_path || null,
+                owner_psn: creator?.psn_id || null
             }
             next();
         } catch (error) {
@@ -1106,11 +1122,16 @@ class esign {
         try {
             const data = await reimbursementsChildrenEducation.findOne({
                 where: { id: req.params.id },
-                attributes: ['document_path']
+                attributes: ['document_path', 'created_by']
+            })
+            const creator = await users.findOne({
+                where: { id: data.created_by },
+                attributes: ['psn_id']
             })
             req.esign = {
                 method: 'educationDisburse',
                 filePath: data?.document_path || null,
+                owner_psn: data?.psn_id || null
             }
             next();
         } catch (error) {
