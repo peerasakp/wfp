@@ -108,10 +108,31 @@ class esign {
     // This function is used to stamped document on Minio
     stamper = async (req, res, next) => {
         try {
+            let signerPsnId = req.user?.psn_id || null;
+            if (!signerPsnId && req.user?.id) {
+                const signer = await users.findOne({
+                    where: { id: req.user.id },
+                    attributes: ['psn_id']
+                });
+                signerPsnId = signer?.psn_id || null;
+                if (signerPsnId) {
+                    req.user.psn_id = signerPsnId;
+                }
+            }
+            if (!signerPsnId) {
+                return res.status(400).json({
+                    message: 'ไม่พบเลขบัตรประชาชนผู้ลงนาม (psn_id) ในข้อมูลผู้ใช้งาน',
+                });
+            }
+            if (!req.fileName) {
+                return res.status(400).json({
+                    message: 'ไม่พบไฟล์เอกสารสำหรับลงนามดิจิทัล',
+                });
+            }
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
             const stampConfig = this.prepareStampConfig(req.esign.sum, req.user.name, req.user.position, req.esign.method);
             const data = {
-                psn_id: req.user.psn_id,
+                psn_id: signerPsnId,
                 positionType: 'normal',
                 multiStamp: stampConfig.multiStamper,
                 imgWidth: stampConfig.signImgWidth,
@@ -146,7 +167,13 @@ class esign {
             }
         } catch (error) {
             console.log('stamper error');
-            next(error)
+            const externalError =
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message;
+            return res.status(400).json({
+                message: externalError || 'ไม่สามารถลงนามดิจิทัลได้ กรุณาตรวจสอบข้อมูลผู้ลงนาม',
+            });
         }
     }
 

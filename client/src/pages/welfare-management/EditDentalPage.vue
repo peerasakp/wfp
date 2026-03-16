@@ -606,6 +606,7 @@ async function submit(actionId) {
           fetch = await welfareManagementService.updateDental(route.params.id, {
             ...payload,
             isFinalApprove: authStore.roleId === 5,
+            isDisburseApprove: authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน",
           });
         }
         else {

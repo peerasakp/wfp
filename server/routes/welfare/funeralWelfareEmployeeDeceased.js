@@ -37,7 +37,7 @@ router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesFor
 router.put('/:id', authPermission, logReimbursementUpdate('FUNERAL_EMPLOYEE'), checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.update);
 router.put('/update-welfare/:id', authPermissionEditor,logReimbursementUpdate('FUNERAL_EMPLOYEE'), checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadFuneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsEmployeeDeceasedController.update);
 router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadFuneralApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsEmployeeDeceasedController.update)
-router.put('/disburse-welfare/:id', authPermissionEditor, esign.preloadFuneralDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.acknowledgeDisburse, esign.nornalize, reimbursementsEmployeeDeceasedController.update)
+router.put('/disburse-welfare/:id', authPermissionEditor, logReimbursementUpdate('FUNERAL_EMPLOYEE'), checkNullValue, bindUpdate, esign.preloadFuneralDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.acknowledgeDisburse, esign.nornalize, reimbursementsEmployeeDeceasedController.update)
 // Delete Methods
 router.delete('/:id', authPermission, deletedMiddleware, reimbursementsEmployeeDeceasedController.delete);
 
