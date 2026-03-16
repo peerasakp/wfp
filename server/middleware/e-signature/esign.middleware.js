@@ -105,10 +105,8 @@ class esign {
     // This function is used to stamped document on Minio
     stamper = async (req, res, next) => {
         try {
-            console.log('===================== stamper ======================')
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
-            const stampConfig = this.prepareData(req.esign.sum, req.user.name, req.esign.method);
-            console.log('==================== req.user ====================', req.user)
+            const stampConfig = this.prepareStampConfig(req.esign.sum, req.user.name, req.esign.method);
             const data = {
                 psn_id: req.user.psn_id,
                 positionType: 'normal',
@@ -165,7 +163,7 @@ class esign {
                     }
                 }
             )
-            return respone.result;
+            return respone.data.result;
         } catch (error) {
             return null;
         }
@@ -173,7 +171,7 @@ class esign {
     //
     // This function is used to
     acknowledgeDisburse = async (req, res, next) => {
-        const signature = await this.signature(req.esign.psn_id);
+        const signature = await this.signature(req.user.psn_id);
         const document = req.savePath;
         try {
             // Read PDF file
@@ -184,24 +182,24 @@ class esign {
             const signBytes = Buffer.from(signBase64, 'base64');
             const signImg = await pdfDoc.embedPng(signBytes);
             // Mark position
-            const pages = pdfDoc.getPage();;
-            const pageToSign = pages[1];
-
-            pageToSign.drawImage(
-                signImg, 
-                {
-                    x: '380',
-                    y: '-580',
-                    width: '84',
-                    height: '42'
-                })
+            const acknowledgeConfigs = this.prepareDisburseConfig(req.esign.method);
+            const pages = pdfDoc.getPages();
+            for(const pageConfig of acknowledgeConfigs){
+                pages[pageConfig.page].drawImage(
+                    signImg,
+                    {
+                        x: pageConfig.positionX,
+                        y: pageConfig.positionY,
+                        width: 84,
+                        height: 42
+                    })
+            }
             const signPdfBytes = await pdfDoc.save();
             fs.writeFileSync(document, signPdfBytes);
             next();
         } catch (error) {
             next(error);
         }
-
     }
 
     nornalize = (req, res, next) => {
@@ -232,9 +230,9 @@ class esign {
         return formatedDate
     }
 
-    // prepareData()
+    // prepareStampConfig()
     // This function is used to prepare
-    prepareData = (sum, name, welfareType) => {
+    prepareStampConfig = (sum, name, welfareType) => {
         let data = {
             signAt: '',
             pageToSign: '',
@@ -245,6 +243,7 @@ class esign {
             multiStamper: []
         }
         const date = this.signedDate()
+        const formatedDate = date.day + ' ' + date.month + ' ' + date.year;
         switch (welfareType) {
             case 'standard':
                 data.pageToSign = '2';
@@ -449,7 +448,6 @@ class esign {
                 ]
                 break;
             case 'standardReceipt':
-                var formatedDate = date.day + ' ' + date.month + ' ' + date.year;
                 data.pageToSign = '3';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
@@ -680,7 +678,6 @@ class esign {
                 ]
                 break
             case 'funeralReceipt':
-                var formatedDate = date.day + ' ' + date.month + ' ' + date.year;
                 data.pageToSign = '3';
                 data.signImgWidth = '84';
                 data.signImgHeight = '42';
@@ -695,7 +692,7 @@ class esign {
                         fontColor: [0, 0, 0],
                         outlineColor: [0, 0, 0],
                         position: 'left_top',
-                        translateX: '450',
+                        translateX: '456',
                         translateY: '-164'
                     }
                 ]
@@ -894,6 +891,46 @@ class esign {
         return data;
     }
 
+    // prepareDisburseConfig()
+    // This function is used to
+    prepareDisburseConfig = (type) => {
+        let data = []
+        switch(type){
+            case 'standardReceipt':
+                data.push({
+                    page: 1,
+                    positionX: 380,
+                    positionY: 236
+                })
+                data.push({
+                    page: 2,
+                    positionX: 240,
+                    positionY: 72
+                })
+                break;
+            case 'funeralReceipt':
+                data.push({
+                    page: 1,
+                    positionX: 380,
+                    positionY: 578
+                })
+                data.push({
+                    page: 2,
+                    positionX: 240,
+                    positionY: 104
+                })
+                break;
+            case 'educationDisburse':
+                data.push({
+                    page: 2,
+                    positionX: 250,
+                    positionY: 416
+                })
+                break;
+        }
+        return data
+    }
+    
     preloadGeneralVerify = async (req, res, next) => {
         try {
             const data = await reimbursementsGeneral.findOne({
