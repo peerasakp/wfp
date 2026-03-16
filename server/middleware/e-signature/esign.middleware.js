@@ -1,9 +1,12 @@
 const axios = require('axios');
+const fs = require('fs');
+const { PDFDocument } = require('pdf-lib');
 const {
     reimbursementsGeneral,
     reimbursementsAssist,
     reimbursementsEmployeeDeceased,
-    reimbursementsChildrenEducation
+    reimbursementsChildrenEducation,
+    users
 } = require('../../models/mariadb');
 const statusText = require('../../enum/statusText');
 const { where } = require('sequelize');
@@ -105,11 +108,10 @@ class esign {
     // This function is used to stamped document on Minio
     stamper = async (req, res, next) => {
         try {
-            console.log('====================== stamper ========================================')
             const token = await this.auth("write", this.provisionKey.stamper, "stamper");
-            const stampConfig = this.prepareData(req.sum, req.user.name, req.method);
+            const stampConfig = this.prepareStampConfig(req.esign.sum, req.user.name, req.user.position, req.esign.method);
             const data = {
-                psn_id: '00000000',
+                psn_id: req.user.psn_id,
                 positionType: 'normal',
                 multiStamp: stampConfig.multiStamper,
                 imgWidth: stampConfig.signImgWidth,
@@ -121,7 +123,7 @@ class esign {
                 documentName: req.fileName,
                 bucket: 'informatics.welfare.storage'
             }
-            const respone = await axios.post(
+            const response = await axios.post(
                 this.esignPath.stamper,
                 data,
                 {
@@ -131,11 +133,75 @@ class esign {
                     }
                 }
             )
-            req.stamper = respone.data;
-            next();
+            req.stamper = response.data;
+            if (req.esign.method == 'standardDisburse') {
+                req.esign.method = 'standardReceipt';
+                await this.stamper(req, res, next);
+            } else if (req.esign.method == 'funeralDisburse') {
+                req.esign.method = 'funeralReceipt';
+                await this.stamper(req, res, next);
+            }
+            else {
+                next();
+            }
         } catch (error) {
             console.log('stamper error');
-            throw error
+            next(error)
+        }
+    }
+
+    // signature()
+    // This function is used to
+    signature = async (psnID) => {
+        try {
+            const token = await this.auth('read', this.provisionKey.sign, 'sign')
+            const data = { psn_id: psnID }
+            const respone = await axios.post(
+                this.esignPath.sign,
+                data,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token.access_token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )
+            return respone.data.result;
+        } catch (error) {
+            return null;
+        }
+    }
+    //
+    // This function is used to
+    acknowledgeDisburse = async (req, res, next) => {
+        const signature = await this.signature(req.esign.owner_psn);
+        const document = req.savePath;
+        try {
+            // Read PDF file
+            const pdfBytes = fs.readFileSync(document);
+            const pdfDoc = await PDFDocument.load(pdfBytes);
+            // convert base64 to png
+            const signBase64 = signature.SIGN_BASE64.replace(/^data:image\/png;base64,/, '')
+            const signBytes = Buffer.from(signBase64, 'base64');
+            const signImg = await pdfDoc.embedPng(signBytes);
+            // Mark position
+            const acknowledgeConfigs = this.prepareDisburseConfig(req.esign.method);
+            const pages = pdfDoc.getPages();
+            for (const pageConfig of acknowledgeConfigs) {
+                pages[pageConfig.page].drawImage(
+                    signImg,
+                    {
+                        x: pageConfig.positionX,
+                        y: pageConfig.positionY,
+                        width: 84,
+                        height: 42
+                    })
+            }
+            const signPdfBytes = await pdfDoc.save();
+            fs.writeFileSync(document, signPdfBytes);
+            next();
+        } catch (error) {
+            next(error);
         }
     }
 
@@ -167,9 +233,9 @@ class esign {
         return formatedDate
     }
 
-    // prepareData()
+    // prepareStampConfig()
     // This function is used to prepare
-    prepareData = (sum, name, welfareType) => {
+    prepareStampConfig = (sum, name, position, welfareType) => {
         let data = {
             signAt: '',
             pageToSign: '',
@@ -180,6 +246,7 @@ class esign {
             multiStamper: []
         }
         const date = this.signedDate()
+        const formatedDate = date.day + ' ' + date.month + ' ' + date.year;
         switch (welfareType) {
             case 'standard':
                 data.pageToSign = '2';
@@ -301,6 +368,16 @@ class esign {
                         translateX: '365',
                         translateY: '-425'
                     }, {
+                        text: position,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '425',
+                        translateY: '-440'
+                    }, {
                         text: date.day,
                         fontSize: '16',
                         opacity: '1',
@@ -330,6 +407,76 @@ class esign {
                         position: 'left_top',
                         translateX: '500',
                         translateY: '-460'
+                    }
+                ]
+                break;
+            case 'standardDisburse':
+                data.pageToSign = '2';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '380';
+                data.signPositionY = '-615';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-648'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '367',
+                        translateY: '-670'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '430',
+                        translateY: '-670'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '500',
+                        translateY: '-670'
+                    }
+                ]
+                break;
+            case 'standardReceipt':
+                data.pageToSign = '3';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '240';
+                data.signPositionY = '-752';
+                data.multiStamper = [
+                    {
+                        text: formatedDate,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '450',
+                        translateY: '-172'
                     }
                 ]
                 break;
@@ -493,6 +640,76 @@ class esign {
                     }
                 ]
                 break;
+            case 'funeralDisburse':
+                data.pageToSign = '2';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '380';
+                data.signPositionY = '-272';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '365',
+                        translateY: '-305'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '367',
+                        translateY: '-324'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '430',
+                        translateY: '-324'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '500',
+                        translateY: '-324'
+                    }
+                ]
+                break
+            case 'funeralReceipt':
+                data.pageToSign = '3';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '240';
+                data.signPositionY = '-724';
+                data.multiStamper = [
+                    {
+                        text: formatedDate,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '456',
+                        translateY: '-164'
+                    }
+                ]
+                break
             case 'education':
                 data.pageToSign = '2';
                 data.signImgWidth = '84';
@@ -601,6 +818,16 @@ class esign {
                         translateX: '240',
                         translateY: '-250'
                     }, {
+                        text: position,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '285',
+                        translateY: '-269'
+                    }, {
                         text: date.day,
                         fontSize: '16',
                         opacity: '1',
@@ -633,8 +860,98 @@ class esign {
                     }
                 ]
                 break;
+            case 'educationDisburse':
+                data.pageToSign = '3';
+                data.signImgWidth = '84';
+                data.signImgHeight = '42';
+                data.signPositionX = '250';
+                data.signPositionY = '-436';
+                data.multiStamper = [
+                    {
+                        text: name,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '240',
+                        translateY: '-468'
+                    }, {
+                        text: date.day,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '230',
+                        translateY: '-490'
+                    }, {
+                        text: date.month,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '290',
+                        translateY: '-490'
+                    }, {
+                        text: date.year,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '370',
+                        translateY: '-490'
+                    }
+                ]
+                break;
         }
         return data;
+    }
+
+    // prepareDisburseConfig()
+    // This function is used to
+    prepareDisburseConfig = (type) => {
+        let data = []
+        switch (type) {
+            case 'standardReceipt':
+                data.push({
+                    page: 1,
+                    positionX: 380,
+                    positionY: 236
+                })
+                data.push({
+                    page: 2,
+                    positionX: 240,
+                    positionY: 72
+                })
+                break;
+            case 'funeralReceipt':
+                data.push({
+                    page: 1,
+                    positionX: 380,
+                    positionY: 578
+                })
+                data.push({
+                    page: 2,
+                    positionX: 240,
+                    positionY: 104
+                })
+                break;
+            case 'educationDisburse':
+                data.push({
+                    page: 2,
+                    positionX: 250,
+                    positionY: 416
+                })
+                break;
+        }
+        return data
     }
 
     preloadGeneralVerify = async (req, res, next) => {
@@ -643,9 +960,11 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path', 'fund_sum_request']
             })
-            req.method = 'standardVerify'
-            req.filePath = data?.document_path || null;
-            req.sum = data?.fund_sum_request || null;
+            req.esign = {
+                method: 'standardVerify',
+                filePath: data?.document_path || null,
+                sum: data?.fund_sum_request || null
+            }
             next();
         } catch (error) {
             next(error)
@@ -657,22 +976,47 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'standardApprove'
-            req.filePath = data?.document_path || null;
+            req.esign = {
+                method: 'standardApprove',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)
         }
     }
+    preloadGeneralDisburse = async (req, res, next) => {
+        try {
+            const data = await reimbursementsGeneral.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path', 'created_by']
+            })
+            const creator = await users.findOne({
+                where: { id: data.created_by },
+                attributes: ['psn_id']
+            })
+            req.esign = {
+                method: 'standardDisburse',
+                filePath: data?.document_path || null,
+                owner_psn: creator?.psn_id || null,
+            }
+            next();
+        } catch (error) {
+            next(error);
+        }
+    }
+
     preloadAssistVerify = async (req, res, next) => {
         try {
             const data = await reimbursementsAssist.findOne({
                 where: { id: req.params.id },
                 attributes: ['document_path', 'fund_sum_request']
             })
-            req.method = 'standardVerify'
-            req.filePath = data?.document_path || null;
-            req.sum = data?.fund_sum_request || null;
+            req.esign = {
+                method: 'standardVerify',
+                filePath: data?.document_path || null,
+                sum: data?.fund_sum_request || null
+            }
             next();
         } catch (error) {
             next(error)
@@ -686,6 +1030,30 @@ class esign {
             })
             req.method = 'standardApprove'
             req.filePath = data?.document_path || null
+            req.esign = {
+                method: 'standardApprove',
+                filePath: data?.document_path || null,
+            }
+            next();
+        } catch (error) {
+            next(error)
+        }
+    }
+    preloadAssistDisburse = async (req, res, next) => {
+        try {
+            const data = await reimbursementsAssist.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path', 'created_by']
+            })
+            const creator = await users.findOne({
+                where: { id: data.created_by },
+                attributes: ['psn_id']
+            })
+            req.esign = {
+                method: 'standardDisburse',
+                filePath: data?.document_path || null,
+                owner_psn: creator?.psn_id || null,
+            }
             next();
         } catch (error) {
             next(error)
@@ -697,9 +1065,11 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path', 'fund_sum_request']
             })
-            req.method = 'funeralVerify'
-            req.filePath = data?.document_path || null;
-            req.sum = data?.fund_sum_request || null;
+            req.esign = {
+                method: 'funeralVerify',
+                filePath: data?.document_path || null,
+                sum: data?.fund_sum_request || null
+            }
             next();
         } catch (error) {
             next(error)
@@ -711,8 +1081,30 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'funeralApprove'
-            req.filePath = data?.document_path || null;
+            req.esign = {
+                method: 'funeralApprove',
+                filePath: data?.document_path || null,
+            }
+            next();
+        } catch (error) {
+            next(error)
+        }
+    }
+    preloadFuneralDisburse = async (req, res, next) => {
+        try {
+            const data = await reimbursementsEmployeeDeceased.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path', 'created_by']
+            })
+            const creator = await users.findOne({
+                where: { id: data.created_by },
+                attributes: ['psn_id']
+            })
+            req.esign = {
+                method: 'funeralDisburse',
+                filePath: data?.document_path || null,
+                owner_psn: creator?.psn_id || null
+            }
             next();
         } catch (error) {
             next(error)
@@ -724,9 +1116,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'educationVerify';
-            req.filePath = data?.document_path || null;
-            console.log('req filepath ==',req.filePath )
+            req.esign = {
+                method: 'educationVerify',
+                filePath: data?.document_path || null,
+            }
             next();
         } catch (error) {
             next(error)
@@ -738,8 +1131,30 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'educationApprove'
-            req.filePath = data?.document_path || null
+            req.esign = {
+                method: 'educationApprove',
+                filePath: data?.document_path || null,
+            }
+            next();
+        } catch (error) {
+            next(error)
+        }
+    }
+    preloadEducationDisburse = async (req, res, next) => {
+        try {
+            const data = await reimbursementsChildrenEducation.findOne({
+                where: { id: req.params.id },
+                attributes: ['document_path', 'created_by']
+            })
+            const creator = await users.findOne({
+                where: { id: data.created_by },
+                attributes: ['psn_id']
+            })
+            req.esign = {
+                method: 'educationDisburse',
+                filePath: data?.document_path || null,
+                owner_psn: creator?.psn_id || null
+            }
             next();
         } catch (error) {
             next(error)

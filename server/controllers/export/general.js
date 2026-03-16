@@ -79,8 +79,11 @@ const createPdfGeneral = async (req, res, next) => {
         //     success: true,
         //     fileName,
         // });
-        req.filePath = filePath;
-        req.method = 'standard'
+        
+        req.esign = {
+            method: 'standard',
+            filePath: filePath
+        }
         next();
     } catch (error) {
         if (browser) {

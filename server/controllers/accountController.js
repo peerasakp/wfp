@@ -25,7 +25,7 @@ exports.login = async (req, res, next) => {
                 'name',
                 'password',
                 'email',
-
+                'psn_id'
             ],
             include: [
                 {
