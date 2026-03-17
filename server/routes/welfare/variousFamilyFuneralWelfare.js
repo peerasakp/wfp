@@ -35,7 +35,7 @@ router.post('/', authPermission, logReimbursementCreate('VARIOUS_FUNERAL_FAMILY'
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 
 router.put('/:id', authPermission, logReimbursementUpdate('VARIOUS_FUNERAL_FAMILY'), checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.update);
-router.put('/update-welfare/:id', authPermissionEditor, logReimbursementUpdate('VARIOUS_FUNERAL_FAMILY'), checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsAssistController.update, esign.preloadFuneral, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
+router.put('/update-welfare/:id', authPermissionEditor, logReimbursementUpdate('VARIOUS_FUNERAL_FAMILY'), checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsAssistController.update, esign.preloadFuneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
 
 router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadAssistApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);

@@ -9,7 +9,6 @@ const {
     users
 } = require('../../models/mariadb');
 const statusText = require('../../enum/statusText');
-const { where } = require('sequelize');
 
 class esign {
     constructor() {
@@ -253,9 +252,9 @@ class esign {
             'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
         ]
         const formatedDate = {
-            day: today.getDate(),
-            month: monthsTH[today.getMonth()],
-            year: today.getFullYear() + 543
+            day: this.toThaiNumeric(today.getDate()),
+            month: this.toThaiNumeric(monthsTH[today.getMonth()]),
+            year: this.toThaiNumeric(today.getFullYear() + 543)
         }
         return formatedDate
     }
@@ -1000,7 +999,7 @@ class esign {
             req.esign = {
                 method: 'standardVerify',
                 filePath: data?.document_path || null,
-                sum: data?.fund_sum_request || null
+                sum: this.toThaiNumeric(data?.fund_sum_request) || null
             }
             next();
         } catch (error) {
@@ -1052,7 +1051,7 @@ class esign {
             req.esign = {
                 method: 'standardVerify',
                 filePath: data?.document_path || null,
-                sum: data?.fund_sum_request || null
+                sum: this.toThaiNumeric(data?.fund_sum_request) || null
             }
             next();
         } catch (error) {
@@ -1096,6 +1095,7 @@ class esign {
             next(error)
         }
     }
+    
     preloadFuneralVerify = async (req, res, next) => {
         try {
             const data = await reimbursementsEmployeeDeceased.findOne({
@@ -1105,7 +1105,7 @@ class esign {
             req.esign = {
                 method: 'funeralVerify',
                 filePath: data?.document_path || null,
-                sum: data?.fund_sum_request || null
+                sum: this.toThaiNumeric(data?.fund_sum_request) || null
             }
             next();
         } catch (error) {
@@ -1147,6 +1147,7 @@ class esign {
             next(error)
         }
     }
+    
     preloadEducationVeify = async (req, res, next) => {
         try {
             const data = await reimbursementsChildrenEducation.findOne({
@@ -1198,61 +1199,9 @@ class esign {
         }
     }
 
-    // Compatibility preload used by several welfare routes.
-    preloadDocumentPath = async (req, res, next) => {
-        try {
-            const data = await reimbursementsGeneral.findOne({
-                where: { id: req.params.id },
-                attributes: ['document_path', 'fund_sum_request', 'status']
-            });
-            req.filePath = data?.document_path || null;
-            req.sum = data?.fund_sum_request || null;
-            req.method = (
-                data?.status === statusText.waitFinalApprove ||
-                data?.status === statusText.waitPayment
-            ) ? 'standardApprove' : 'standardVerify';
-            next();
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    // Compatibility preload used by various/funeral employee routes.
-    preloadAssist = async (req, res, next) => {
-        try {
-            const data = await reimbursementsAssist.findOne({
-                where: { id: req.params.id },
-                attributes: ['document_path', 'fund_sum_request', 'status']
-            });
-            req.filePath = data?.document_path || null;
-            req.sum = data?.fund_sum_request || null;
-            req.method = (
-                data?.status === statusText.waitFinalApprove ||
-                data?.status === statusText.waitPayment
-            ) ? 'standardApprove' : 'standardVerify';
-            next();
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    // Compatibility preload used by family funeral routes.
-    preloadFuneral = async (req, res, next) => {
-        try {
-            const data = await reimbursementsEmployeeDeceased.findOne({
-                where: { id: req.params.id },
-                attributes: ['document_path', 'fund_sum_request', 'status']
-            });
-            req.filePath = data?.document_path || null;
-            req.sum = data?.fund_sum_request || null;
-            req.method = (
-                data?.status === statusText.waitFinalApprove ||
-                data?.status === statusText.waitPayment
-            ) ? 'funeralApprove' : 'funeralVerify';
-            next();
-        } catch (error) {
-            next(error);
-        }
+    toThaiNumeric = (number) => {
+        const thaiDigits = ['๐','๑','๒','๓','๔','๕','๖','๗','๘','๙'];
+        return String(number).replace(/[0-9]/g, (d) => thaiDigits[d]);
     }
 }
 
