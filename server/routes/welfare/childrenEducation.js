@@ -34,7 +34,7 @@ router.get('/get-file', authPermission, getFileByName);
 router.get('/:id',authPermission, byIdMiddleWare, logReimbursementView('CHILDREN_EDUCATION'), reimbursementChildrenEducationController.getById);
 router.get('/get-welfare/:id',authPermissionEditor, byIdMiddleWare, logReimbursementView('CHILDREN_EDUCATION'), reimbursementChildrenEducationController.getById);
 
-router.post('/', authPermission, logReimbursementCreate('CHILDREN_EDUCATION'), checkNullValue, bindCreate, getRemaining,checkRemaining, reimbursementChildrenEducationController.create);
+router.post('/', authPermission, logReimbursementCreate('CHILDREN_EDUCATION'), checkNullValue, bindCreate, getRemaining,checkRemaining, reimbursementChildrenEducationController.create, childEducation, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update);
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 
 // Put Methods

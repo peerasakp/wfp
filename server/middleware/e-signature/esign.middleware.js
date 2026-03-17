@@ -121,7 +121,7 @@ class esign {
             }
             if (!signerPsnId) {
                 return res.status(400).json({
-                    message: 'ไม่พบเลขบัตรประชาชนผู้ลงนาม (psn_id) ในข้อมูลผู้ใช้งาน',
+                    message: 'ไม่พบหมายเลข psn_id ผู้ลงนามในข้อมูลผู้ใช้งาน',
                 });
             }
             if (!req.fileName) {
@@ -634,6 +634,16 @@ class esign {
                         position: 'left_top',
                         translateX: '370',
                         translateY: '-90'
+                    }, {
+                        text: position,
+                        fontSize: '16',
+                        opacity: '1',
+                        fontWeight: 'normal',
+                        fontColor: [0, 0, 0],
+                        outlineColor: [0, 0, 0],
+                        position: 'left_top',
+                        translateX: '425',
+                        translateY: '-104'
                     }, {
                         text: date.day,
                         fontSize: '16',
