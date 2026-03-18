@@ -233,7 +233,7 @@ class minio {
         }
     }
 
-    resolveTemplateDirectory = (formateType) => {
+    resolveTemplateDirectory = (formatType) => {
         const directoryMap = {
             standard: ['standard', 'standardVerify', 'standardApprove', 'standardDisburse', 'standardReceipt'],
             funeral: ['funeral', 'funeralVerify', 'funeralApprove', 'funeralDisburse', 'funeralReceipt'],
@@ -241,16 +241,16 @@ class minio {
         };
 
         for (const [directory, types] of Object.entries(directoryMap)) {
-            if (types.includes(formateType)) return directory;
+            if (types.includes(formatType)) return directory;
         }
 
         return null;
     };
 
-    resolveFilePrefix = (formateType) => {
-        if (formateType.includes('Verify')) return 'verified';
-        if (formateType.includes('Approve')) return 'approved';
-        if (formateType.includes('Disburse') || templateType.includes('Receipt')) return 'disbursed';
+    resolveFilePrefix = (formatType) => {
+        if (formatType.includes('Verify')) return 'verified';
+        if (formatType.includes('Approve')) return 'approved';
+        if (formatType.includes('Disburse') || formatType.includes('Receipt')) return 'disbursed';
         return 'signed';
     }
 }
