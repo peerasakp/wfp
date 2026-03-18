@@ -37,6 +37,7 @@ const checkNullValue = async (req, res, next) => {
 			employeeTypeId,
 			departmentId,
 			firstWorkingDate,
+			psnId,
 			roleId,
 			houseNumber,
 			district,
@@ -52,6 +53,8 @@ const checkNullValue = async (req, res, next) => {
 		if (isNullOrEmpty(employeeTypeId)) errorObj['employeeTypeId'] = 'กรุณากรอกประเภทบุคลากร';
 		if (isNullOrEmpty(departmentId)) errorObj['departmentId'] = 'กรุณากรอกส่วนงาน';
 		if (isNullOrEmpty(firstWorkingDate)) errorObj['firstWorkingDate'] = 'กรุณากรอกวันที่เริ่มเข้าปฏิบัติงาน';
+		if (isNullOrEmpty(psnId)) errorObj['psnId'] = 'กรุณากรอกรหัสประชาชน';
+		if (!isNullOrEmpty(psnId) && `${psnId}`.length > 8) errorObj['psnId'] = 'รหัสประชาชนต้องไม่เกิน 8 ตัวอักษร';
 		if (isNullOrEmpty(roleId)) errorObj['roleId'] = 'กรุณาเลือกบทบาท';
 		if (isNullOrEmpty(houseNumber)) errorObj['houseNumber'] = 'กรุณากรอกบ้านเลขที่';
 		if (isNullOrEmpty(district)) errorObj['district'] = 'กรุณากรอก อำเภอ/เขต';
@@ -79,6 +82,7 @@ const bindCreate = async (req, res, next) => {
 			departmentId,
 			sectorId,
 			firstWorkingDate,
+			psnId,
 			roleId,
 			houseNumber,
 			street,
@@ -106,6 +110,7 @@ const bindCreate = async (req, res, next) => {
 			departments_id: departmentId,
 			sector_id: sectorId,
 			first_working_date: firstWorkingDate,
+			psn_id: psnId ?? null,
 			roles_id: roleId,
 			child: req.body.child,
 			created_by: id,
@@ -152,7 +157,7 @@ const bindUpdate = async (req, res, next) => {
 	try {
 		const {
 			prefix,
-			username, name, positionId, employeeTypeId, departmentId, sectorId, firstWorkingDate, roleId, deleteChild,
+			username, name, positionId, employeeTypeId, departmentId, sectorId, firstWorkingDate, psnId, roleId, deleteChild,
 			houseNumber,
 			street,
 			district,
@@ -179,6 +184,7 @@ const bindUpdate = async (req, res, next) => {
 			departments_id: departmentId,
 			sector_id: sectorId,
 			first_working_date: firstWorkingDate,
+			psn_id: psnId ?? null,
 			roles_id: roleId,
 			child: req.body.child,
 			updated_by: id,

@@ -109,6 +109,11 @@
               </InputGroup>
             </q-card-section>
             <q-card-section class="row column wrap font-medium q-pt-none font-16 text-grey-9">
+              <InputGroup for-id="psn-id" is-dense v-model="model.psnId" :data="model.psnId ?? '-'" is-require
+                label="รหัสประชาชน" placeholder="" type="text" :is-view="isView"
+                :error-message="isError?.psnId" :error="!!isError?.psnId"
+                :rules="[(val) => !!val || 'กรุณากรอกรหัสประชาชน']" lazy-rules>
+              </InputGroup>
               <p class="q-mb-sm require">บทบาท</p>
               <q-option-group v-if="!isView && !isLoading" v-model="model.roleId" :options="optionRole"
                 option-value="id" option-label="name" :color="isError.roleId ? 'red' : 'primary'"
@@ -285,6 +290,7 @@ const model = ref({
   sectorId: null,
   sectorName: null,
   firstWorkingDate: null,
+  psnId: null,
   roleId: null,
   roleName: null,
   houseNumber: null,
@@ -504,6 +510,10 @@ async function submit() {
     isError.value.firstWorkingDate = 'กรุณาเลือกวันที่เข้าปฏิบัติงาน'
     validate = true
   }
+  if (!model.value.psnId) {
+    isError.value.psnId = 'กรุณากรอกรหัสประชาชน'
+    validate = true
+  }
   if (!model.value.houseNumber) {
     isError.value.houseNumber = 'กรุณากรอกบ้านเลขที่'
     validate = true
@@ -707,6 +717,7 @@ async function init() {
         name: name ?? '-',
         username: dataBinding.username ?? '-',
         firstWorkingDate: convertDate,
+        psnId: dataBinding?.psnId ?? null,
         positionId: dataBinding?.position?.id ?? '-',
         positionsName: dataBinding?.position?.name ?? '-',
         employeeTypeId: dataBinding?.employeeType?.id ?? '-',

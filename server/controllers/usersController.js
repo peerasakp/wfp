@@ -95,6 +95,7 @@ class Controller extends BaseController {
                     'name',
                     'username',
                     'first_working_date',
+                    [col("psn_id"), "psnId"],
                     [col("house_number"), "houseNumber"],
                     [col("street"), "street"],
                     [col("district"), "district"],
