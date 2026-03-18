@@ -28,7 +28,7 @@ const createPdfGeneral = async (req, res, next) => {
     try {
         const puppeteer = require('puppeteer');
         const path = require('path');
-        const outDoucment_Directory = path.join(__dirname, '../../document');
+        const outDoucment_Directory = path.join(__dirname, '../../documents');
 
         browser = await puppeteer.launch()
         //     {

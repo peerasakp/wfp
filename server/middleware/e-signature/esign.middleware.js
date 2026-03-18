@@ -201,7 +201,7 @@ class esign {
     // This function is used to
     acknowledgeDisburse = async (req, res, next) => {
         const signature = await this.signature(req.esign.owner_psn);
-        const document = req.savePath;
+        const document = req.esign.newFilePath;
         try {
             // Read PDF file
             const pdfBytes = fs.readFileSync(document);
@@ -234,7 +234,7 @@ class esign {
     nornalize = (req, res, next) => {
         try {
             req.params.id = req.params.id || req.createdId;
-            req.body.document_path = req.savePath;
+            req.body.document_path = req.esign.newFilePath;
             next();
         } catch (error) {
             throw error

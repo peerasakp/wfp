@@ -23,7 +23,7 @@ const createPdfChildrenEducation = async (req, res, next) => {
         console.log('=============== PDF Create ====================')
         const puppeteer = require('puppeteer');
         const path = require('path');
-        const outDoucment_Directory = path.join(__dirname, '../../document')
+        const outDoucment_Directory = path.join(__dirname, '../../documents')
         const chromiumPath = getChromiumPath();
         browser = await puppeteer.launch()
         //     {

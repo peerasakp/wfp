@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { th } = require('date-fns/locale/th');
 const formData = require('form-data');
 const fs = require('fs');
 const path = require('path');
@@ -162,9 +163,13 @@ class minio {
                     }
                 }
             )
-            const savePath = await this.downloadAndSaveFile(respone.data.result.file_1.download,  `sign_${req.fileName}.pdf`)
-            req.getRespone = respone.data;
-            req.savePath = savePath
+            const templateType = this.resolveTemplateDirectory(req.esign.method);
+            const prefix = this.resolveFilePrefix(req.esign.method)
+            const savePath = await this.downloadAndSaveFile(respone.data.result.file_1.download, `${prefix}_${req.fileName}`, templateType)
+            req.esign = {
+                ...req.esign,
+                newFilePath: savePath
+            }
             next();
         } catch (error) {
             console.log(error)
@@ -190,20 +195,26 @@ class minio {
                     data: data
                 }
             )
-            req.delete = respone.data
-            console.log('=================== delete success =================',req.getRespone, req.savePath, req.delete)
+            fs.unlinkSync(req.esign.filePath);
+            console.log('=================== delete success =================', req.esign)
             next();
         } catch (error) {
-            console.log(error);
+            next(error);
         }
     }
 
     // downloadAndSaveFile()
     // This function is used to download and save file to target directory.
-    downloadAndSaveFile = async (url, fileName) => {
-        try{
-            const outDoucment_Directory = path.join(__dirname, '../../document');
-            const filePath = path.join(outDoucment_Directory, fileName)
+    downloadAndSaveFile = async (url, fileName, formatType) => {
+        try {
+            const baseDirectory = path.join(__dirname, '../../documents');
+            const targetDirectory = path.join(baseDirectory, formatType);
+
+            if (!fs.existsSync(targetDirectory)) {
+                fs.mkdirSync(targetDirectory, { recursive: true });
+            }
+
+            const filePath = path.join(targetDirectory, fileName)
             const respone = await axios({
                 method: 'GET',
                 url: url,
@@ -217,9 +228,30 @@ class minio {
                 });
                 writer.on('error', reject)
             });
-        }catch(error){
+        } catch (error) {
             throw error
         }
+    }
+
+    resolveTemplateDirectory = (formateType) => {
+        const directoryMap = {
+            standard: ['standard', 'standardVerify', 'standardApprove', 'standardDisburse', 'standardReceipt'],
+            funeral: ['funeral', 'funeralVerify', 'funeralApprove', 'funeralDisburse', 'funeralReceipt'],
+            education: ['education', 'educationVerify', 'educationApprove', 'educationDisburse'],
+        };
+
+        for (const [directory, types] of Object.entries(directoryMap)) {
+            if (types.includes(formateType)) return directory;
+        }
+
+        return null;
+    };
+
+    resolveFilePrefix = (formateType) => {
+        if (formateType.includes('Verify')) return 'verified';
+        if (formateType.includes('Approve')) return 'approved';
+        if (formateType.includes('Disburse') || templateType.includes('Receipt')) return 'disbursed';
+        return 'signed';
     }
 }
 
