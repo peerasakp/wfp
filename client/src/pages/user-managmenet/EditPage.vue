@@ -12,7 +12,8 @@
               class="row wrap q-col-gutter-y-md q-col-gutter-x-md font-medium q-pb-xs font-16 text-grey-9">
               <InputGroup for-id="username" is-dense v-model="model.username" :data="model.username ?? '-'" is-require
                 label="บัญชีผู้ใช้งาน" placeholder="" type="text" :is-view="isView" :error-message="isError?.username"
-                :error="!!isError?.username" :rules="[(val) => !!val || 'กรุณากรอกบัญชีผู้ใช้งาน']" lazy-rules>
+                :error="!!isError?.username" :rules="[(val) => !!val || 'กรุณากรอกบัญชีผู้ใช้งาน']" lazy-rules
+                @blur="fetchPersonData" @keyup.enter="fetchPersonData">
               </InputGroup>
               <InputGroup for-id="prefix" is-dense :data="model.prefix ?? '-'" is-require label="คำนำหน้า"
                 placeholder="" type="text" :is-view="isView">
@@ -285,6 +286,7 @@ const model = ref({
   sectorId: null,
   sectorName: null,
   firstWorkingDate: null,
+  psn_id: null,
   roleId: null,
   roleName: null,
   houseNumber: null,
@@ -502,6 +504,10 @@ async function submit() {
   }
   if (!model.value.firstWorkingDate) {
     isError.value.firstWorkingDate = 'กรุณาเลือกวันที่เข้าปฏิบัติงาน'
+    validate = true
+  }
+  if (!model.value.psn_id) {
+    isError.value.username = 'กรุณากรอกหมายเลข psn id'
     validate = true
   }
   if (!model.value.houseNumber) {
@@ -753,5 +759,20 @@ async function init() {
   } else {
     isLoading.value = false
   }
+}
+// fetchPersonData()
+// This function is used to fetch person's data form usm.
+async function fetchPersonData() {
+    try {
+        const result = await userManagementService.getPersonByUsername(model.value.username);
+        const person = result.data?.data;
+        if (person) {
+            model.value.psn_id = person.psn_id
+            model.value.name = person.psn_fullname
+            model.value.prefix = person.prf_nameth
+        }
+    } catch (error) {
+        console.log(error);
+    }
 }
 </script>

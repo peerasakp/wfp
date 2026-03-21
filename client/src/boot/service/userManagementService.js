@@ -53,4 +53,7 @@ export default {
       Promise.reject(error);
     }
   },
+  getPersonByUsername(uslogin) {
+    return api.get(`${path}/ums/${uslogin}`);
+},
 };
