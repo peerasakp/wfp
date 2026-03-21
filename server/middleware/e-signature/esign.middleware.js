@@ -1,5 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 const { PDFDocument } = require('pdf-lib');
 const {
     reimbursementsGeneral,
@@ -200,11 +201,11 @@ class esign {
     //
     // This function is used to
     acknowledgeDisburse = async (req, res, next) => {
-        const signature = await this.signature(req.esign.owner_psn);
-        const document = req.esign.newFilePath;
+        const signature = await this.signature(req.user.psn_id);
+        const document = path.join(__dirname, '../../documents', req.esign.filePath);
         try {
             // Read PDF file
-            const pdfBytes = fs.readFileSync(document);
+            const pdfBytes = fs.readFileSync(req.esign.filePath);
             const pdfDoc = await PDFDocument.load(pdfBytes);
             // convert base64 to png
             const signBase64 = signature.SIGN_BASE64.replace(/^data:image\/png;base64,/, '')
@@ -224,7 +225,7 @@ class esign {
                     })
             }
             const signPdfBytes = await pdfDoc.save();
-            fs.writeFileSync(document, signPdfBytes);
+            fs.writeFileSync(req.esign.filePath, signPdfBytes);
             next();
         } catch (error) {
             next(error);
@@ -955,7 +956,7 @@ class esign {
     prepareDisburseConfig = (type) => {
         let data = []
         switch (type) {
-            case 'standardReceipt':
+            case 'standard':
                 data.push({
                     page: 1,
                     positionX: 380,
@@ -967,7 +968,7 @@ class esign {
                     positionY: 72
                 })
                 break;
-            case 'funeralReceipt':
+            case 'funeral':
                 data.push({
                     page: 1,
                     positionX: 380,
@@ -979,7 +980,7 @@ class esign {
                     positionY: 104
                 })
                 break;
-            case 'educationDisburse':
+            case 'education':
                 data.push({
                     page: 2,
                     positionX: 250,
@@ -996,11 +997,13 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path', 'fund_sum_request']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'standardVerify',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
                 sum: this.toThaiNumeric(data?.fund_sum_request) || null
             }
+            console.log('===== preload :', req.esign);
             next();
         } catch (error) {
             next(error)
@@ -1012,9 +1015,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'standardApprove',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
             }
             next();
         } catch (error) {
@@ -1031,9 +1035,10 @@ class esign {
                 where: { id: data.created_by },
                 attributes: ['psn_id']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'standardDisburse',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
                 owner_psn: creator?.psn_id || null,
             }
             next();
@@ -1048,9 +1053,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path', 'fund_sum_request']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'standardVerify',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
                 sum: this.toThaiNumeric(data?.fund_sum_request) || null
             }
             next();
@@ -1064,11 +1070,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
-            req.method = 'standardApprove'
-            req.filePath = data?.document_path || null
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'standardApprove',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
             }
             next();
         } catch (error) {
@@ -1085,9 +1090,10 @@ class esign {
                 where: { id: data.created_by },
                 attributes: ['psn_id']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'standardDisburse',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
                 owner_psn: creator?.psn_id || null,
             }
             next();
@@ -1102,9 +1108,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path', 'fund_sum_request']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'funeralVerify',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
                 sum: this.toThaiNumeric(data?.fund_sum_request) || null
             }
             next();
@@ -1118,9 +1125,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'funeralApprove',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
             }
             next();
         } catch (error) {
@@ -1137,9 +1145,10 @@ class esign {
                 where: { id: data.created_by },
                 attributes: ['psn_id']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'funeralDisburse',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
                 owner_psn: creator?.psn_id || null
             }
             next();
@@ -1154,9 +1163,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'educationVerify',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
             }
             next();
         } catch (error) {
@@ -1169,9 +1179,10 @@ class esign {
                 where: { id: req.params.id },
                 attributes: ['document_path']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'educationApprove',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
             }
             next();
         } catch (error) {
@@ -1188,9 +1199,10 @@ class esign {
                 where: { id: data.created_by },
                 attributes: ['psn_id']
             })
+            const fullFilePath = path.join(__dirname, '../../documents', data?.document_path)
             req.esign = {
                 method: 'educationDisburse',
-                filePath: data?.document_path || null,
+                filePath: fullFilePath,
                 owner_psn: creator?.psn_id || null
             }
             next();

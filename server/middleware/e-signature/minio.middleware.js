@@ -166,13 +166,14 @@ class minio {
             const templateType = this.resolveTemplateDirectory(req.esign.method);
             const prefix = this.resolveFilePrefix(req.esign.method)
             const savePath = await this.downloadAndSaveFile(respone.data.result.file_1.download, `${prefix}_${req.fileName}`, templateType)
+            const relativePath = savePath.split(/documents[\\/]/)[1];
             req.esign = {
                 ...req.esign,
-                newFilePath: savePath
+                newFilePath: relativePath
             }
             next();
         } catch (error) {
-            console.log(error)
+            next(error);
         }
     }
 
@@ -195,6 +196,7 @@ class minio {
                     data: data
                 }
             )
+            const relativePath = path.join(__dirname, '../../documents', req.esign.filePath)
             fs.unlinkSync(req.esign.filePath);
             console.log('=================== delete success =================', req.esign)
             next();

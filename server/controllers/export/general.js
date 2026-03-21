@@ -1,24 +1,11 @@
 const { initLogger } = require('../../logger');
 const logger = initLogger('ExportHealthCreate');
-var htmlToPdf = require("html-pdf-node");
-const ejs = require("ejs");
+const puppeteer = require('puppeteer');
 const path = require('path');
-const { bahttext } = require('bahttext');
+const ejs = require("ejs");
 const fs = require('fs');
+const { bahttext } = require('bahttext');
 require('dotenv').config();
-
-// Detect Chromium path based on environment
-const getChromiumPath = () => {
-    // Check for Docker/Linux path first
-    if (fs.existsSync('/usr/bin/chromium-browser')) {
-        return '/usr/bin/chromium-browser';
-    }
-    if (fs.existsSync('/usr/bin/chromium')) {
-        return '/usr/bin/chromium';
-    }
-    // For Windows/local development, let puppeteer find it automatically
-    return undefined;
-};
 
 const createPdfGeneral = async (req, res, next) => {
     const method = 'CreateGeneralData';
@@ -26,9 +13,10 @@ const createPdfGeneral = async (req, res, next) => {
     let browser;
 
     try {
-        const puppeteer = require('puppeteer');
-        const path = require('path');
         const outDoucment_Directory = path.join(__dirname, '../../documents');
+        if (!fs.existsSync(outDoucment_Directory)) {
+            fs.mkdirSync(outDoucment_Directory, { recursive: true });
+        }
 
         browser = await puppeteer.launch()
         //     {
@@ -64,22 +52,11 @@ const createPdfGeneral = async (req, res, next) => {
         await page.setContent(html, { waitUntil: 'networkidle0' });
         await page.pdf({
             path: filePath,
-            format: 'A4' });
-
+            format: 'A4' }
+        );
         await browser.close();
 
-        // res.writeHead(200, {
-        //     "Content-Type": "application/pdf",
-        //     "Content-Disposition": `attachment; filename="welfare_${req.body?.datas?.reimNumber}.pdf"`,
-        // });
-        // res.end(pdfBuffer);
-
         logger.info('Complete', { method, data: { id } });
-        // res.status(200).json({
-        //     success: true,
-        //     fileName,
-        // });
-        
         req.esign = {
             method: 'standard',
             filePath: filePath
