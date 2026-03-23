@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { th } = require('date-fns/locale/th');
 const formData = require('form-data');
 const fs = require('fs');
 const path = require('path');
@@ -108,7 +109,7 @@ class minio {
         try {
             console.log('==================== putfile ===================')
             const token = await this.auth('write', 'l7hdoiyMMtelzqUJoXofCxI3m56CPXZ6', 'put');
-            const filePath = req.filePath
+            const filePath = req.esign.filePath
             const data = new formData();
             data.append('qrVerify', 'false');
             data.append('path', '/');
@@ -116,7 +117,6 @@ class minio {
             data.append('bucket', 'informatics.welfare.storage');
             data.append('originalExtension', 'pdf');
             data.append('fileUpload', fs.createReadStream(filePath)); // Mock up
-
             const respone = await axios.post(
                 this.minioPath.putFile,
                 data,
@@ -163,19 +163,17 @@ class minio {
                     }
                 }
             )
-            const savePath = await this.downloadAndSaveFile(respone.data.result.file_1.download,  `sign_${req.fileName}.pdf`)
-            req.getRespone = respone.data;
-            req.savePath = savePath
-            // res.json({
-            //     put: req.putRespone,
-            //     stamp: req.stamper,
-            //     get: respone.data,
-            //     savePath: savePath
-            //     // delete: respone.data
-            // })
+            const templateType = this.resolveTemplateDirectory(req.esign.method);
+            const prefix = this.resolveFilePrefix(req.esign.method)
+            const savePath = await this.downloadAndSaveFile(respone.data.result.file_1.download, `${prefix}_${req.fileName}`, templateType)
+            const relativePath = savePath.split(/documents[\\/]/)[1];
+            req.esign = {
+                ...req.esign,
+                newFilePath: relativePath
+            }
             next();
         } catch (error) {
-            console.log(error)
+            next(error);
         }
     }
 
@@ -198,20 +196,27 @@ class minio {
                     data: data
                 }
             )
-            req.delete = respone.data
-            console.log('=================== delete success =================',req.getRespone, req.savePath, req.delete)
+            const relativePath = path.join(__dirname, '../../documents', req.esign.filePath)
+            fs.unlinkSync(req.esign.filePath);
+            console.log('=================== delete success =================', req.esign)
             next();
         } catch (error) {
-            console.log(error);
+            next(error);
         }
     }
 
     // downloadAndSaveFile()
     // This function is used to download and save file to target directory.
-    downloadAndSaveFile = async (url, fileName) => {
-        try{
-            const outDoucment_Directory = path.join(__dirname, '../../document');
-            const filePath = path.join(outDoucment_Directory, fileName)
+    downloadAndSaveFile = async (url, fileName, formatType) => {
+        try {
+            const baseDirectory = path.join(__dirname, '../../documents');
+            const targetDirectory = path.join(baseDirectory, formatType);
+
+            if (!fs.existsSync(targetDirectory)) {
+                fs.mkdirSync(targetDirectory, { recursive: true });
+            }
+
+            const filePath = path.join(targetDirectory, fileName)
             const respone = await axios({
                 method: 'GET',
                 url: url,
@@ -225,9 +230,30 @@ class minio {
                 });
                 writer.on('error', reject)
             });
-        }catch(error){
+        } catch (error) {
             throw error
         }
+    }
+
+    resolveTemplateDirectory = (formatType) => {
+        const directoryMap = {
+            standard: ['standard', 'standardVerify', 'standardApprove', 'standardDisburse', 'standardReceipt'],
+            funeral: ['funeral', 'funeralVerify', 'funeralApprove', 'funeralDisburse', 'funeralReceipt'],
+            education: ['education', 'educationVerify', 'educationApprove', 'educationDisburse'],
+        };
+
+        for (const [directory, types] of Object.entries(directoryMap)) {
+            if (types.includes(formatType)) return directory;
+        }
+
+        return null;
+    };
+
+    resolveFilePrefix = (formatType) => {
+        if (formatType.includes('Verify')) return 'verified';
+        if (formatType.includes('Approve')) return 'approved';
+        if (formatType.includes('Disburse') || formatType.includes('Receipt')) return 'disbursed';
+        return 'signed';
     }
 }
 

@@ -1,18 +1,11 @@
 const { initLogger } = require('../../logger');
 const logger = initLogger('ExportChildrenEducationCreate');
-var htmlToPdf = require("html-pdf-node");
-const ejs = require("ejs");
+const puppeteer = require('puppeteer');
 const path = require('path');
-const { bahttext } = require('bahttext');
+const ejs = require("ejs");
 const fs = require('fs');
+const { bahttext } = require('bahttext');
 require('dotenv').config();
-
-// Detect Chromium path based on environment
-const getChromiumPath = () => {
-    if (fs.existsSync('/usr/bin/chromium-browser')) return '/usr/bin/chromium-browser';
-    if (fs.existsSync('/usr/bin/chromium')) return '/usr/bin/chromium';
-    return undefined;
-};
 
 const createPdfChildrenEducation = async (req, res, next) => {
     const method = 'CreateGeneralData';
@@ -20,11 +13,10 @@ const createPdfChildrenEducation = async (req, res, next) => {
     let browser;
 
     try {
-        console.log('=============== PDF Create ====================')
-        const puppeteer = require('puppeteer');
-        const path = require('path');
-        const outDoucment_Directory = path.join(__dirname, '../../document')
-        const chromiumPath = getChromiumPath();
+        const outDoucment_Directory = path.join(__dirname, '../../documents')
+        if (!fs.existsSync(outDoucment_Directory)) {
+            fs.mkdirSync(outDoucment_Directory, { recursive: true });
+        }
         browser = await puppeteer.launch()
         //     {
         //     ...(chromiumPath && { executablePath: chromiumPath }),
@@ -38,14 +30,12 @@ const createPdfChildrenEducation = async (req, res, next) => {
             fontSize: 14,
             textColor: '#333',
         });
-
         const receipt = await ejs.renderFile('./templateExport/receiptExport.html.ejs', {
             body: req.body.datas,
             async: true,
             bahttext,
             path: process.env.fileAccess,
         });
-
         const html = await ejs.renderFile('./templateExport/childrenEducationExport.html.ejs', {
             body: req.body.datas,
             receipt: receipt,
@@ -59,24 +49,18 @@ const createPdfChildrenEducation = async (req, res, next) => {
 
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: 'networkidle0' });
-        await page.pdf({ 
+        await page.pdf({
             path: filePath,
-            format: 'A4' 
+            format: 'A4'
         });
-        
         await browser.close();
 
-        // res.writeHead(200, {
-        //     "Content-Type": "application/pdf",
-        //     "Content-Disposition": `attachment; filename="welfare_${req.body?.datas?.reimNumber}.pdf"`,
-        // });
-        // res.end(pdfBuffer);
-
         logger.info('Complete', { method, data: { id } });
-        req.filePath = filePath;
-        req.method = 'education'
+        req.esign = {
+            method: 'education',
+            filePath: filePath
+        }
         next()
-
     } catch (error) {
         if (browser) {
             await browser.close();

@@ -114,6 +114,10 @@ module.exports = function (sequelize, DataTypes) {
         model: 'sector',
         key: 'id'
       }
+    },
+    psn_id: {
+      type: DataTypes.STRING(8),
+      allowNull: true
     }
   }, {
     sequelize,
