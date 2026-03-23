@@ -36,7 +36,7 @@ router.post('/file/upload/:id', authPermission, handleFileUpload, uploadFilesFor
 router.post('/file/delete/:id', authPermission, deleteFileFromRecord);
 // Put Methods
 router.put('/:id', authPermission, checkNullValue, logReimbursementUpdate('DENTAL'),bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
-router.put('/update-welfare/:id', authPermissionEditor,logReimbursementUpdate('DENTAL'), checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsGeneralController.update, esign.preloadGeneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
+router.put('/update-welfare/:id', authPermissionEditor,logReimbursementUpdate('DENTAL'), checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadGeneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.put('/approve-welfare/:id', authPermissionEditor, logReimbursementUpdate('DENTAL'), checkNullValue, bindUpdate, esign.preloadGeneralApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.put('/disburse-welfare/:id', authPermissionEditor, logReimbursementUpdate('DENTAL'), checkNullValue, bindUpdate, esign.preloadGeneralDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update)
 // Delete Methods
