@@ -37,8 +37,8 @@ router.post('/', authPermission, logReimbursementCreate('CHILDREN_EDUCATION'), c
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 // Put Methods
 router.put('/:id', authPermission,logReimbursementUpdate('CHILDREN_EDUCATION'),checkNullValue, bindUpdate, getRemaining,checkRemaining, reimbursementChildrenEducationController.update);
-router.put('/update-welfare/:id', authPermissionEditor,logReimbursementUpdate('CHILDREN_EDUCATION') ,checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, esign.preloadEducationVeify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update);
-router.put('/approve-welfare/:id', authPermissionEditor, checkNullValue, bindUpdate, esign.preloadEducationApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update)
+router.put('/update-welfare/:id', authPermissionEditor, logReimbursementUpdate('CHILDREN_EDUCATION') ,checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, esign.preloadEducationVeify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update);
+router.put('/approve-welfare/:id', authPermissionEditor,logReimbursementUpdate('CHILDREN_EDUCATION'), checkNullValue, bindUpdate, esign.preloadEducationApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update)
 router.put('/disburse-welfare/:id', authPermissionEditor, logReimbursementUpdate('CHILDREN_EDUCATION'), checkNullValue, bindUpdate, esign.preloadEducationDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementChildrenEducationController.update)
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
 // Delete Methods
