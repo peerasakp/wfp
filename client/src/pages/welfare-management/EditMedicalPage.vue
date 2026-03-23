@@ -59,7 +59,7 @@
             <q-card-section class="flex justify-between q-px-md q-pt-md q-pb-md font-18 font-bold">
               <p class="q-mb-none">ข้อมูลการเบิกสวัสดิการ</p>
               <a class="q-mb-none font-regular font-16 text-blue-7 cursor-pointer"
-                v-if="isView && (model.status == 'รอตรวจสอบ')" @click.stop.prevent="
+                v-if="(isView || authStore.roleId === 5) && ['รอตรวจสอบ', 'รออนุมัติ', 'รอจ่ายเงิน', 'อนุมัติ'].includes(model.status)" @click.stop.prevent="
                   downloadData()">
                 <q-icon :name="outlinedDownload" />
                 <span> Export</span>
