@@ -9,25 +9,24 @@ const {
     reimbursementsChildrenEducation,
     users
 } = require('../../models/mariadb');
-const statusText = require('../../enum/statusText');
 
 class esign {
     constructor() {
         // super(reimbursementsGeneral)
         this.esignPath = {
-            signAuth: 'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson/oauth2/token',
-            sign: 'https://kong-dev.buu.ac.th/e-sign/e-sign.CheckCertificateAndSignatureByPerson',
-            stamperAuth: 'https://kong-dev.buu.ac.th/service-api/e-sign.setaStamper.MultiStampTextSignElectronicSignatureWithImage/oauth2/token',
-            stamper: 'https://kong-dev.buu.ac.th/service-api/e-sign.setaStamper.MultiStampTextSignElectronicSignatureWithImage'
+            signAuth: process.env.signAuth,
+            sign: process.env.sign,
+            stamperAuth: process.env.stamperAuth,
+            stamper: process.env.stamper
         }
         this.client = {
-            clientSecret: '6RzgQnt7VhjlvnUdHX2W9s0Qp2owcyqJ',
-            clientID: 'U5QhNd2ss5qz3W2uUVlDHSiAd0ktM68G',
-            userID: 'informatics-welfare'
+            clientSecret: process.env.clientSecrete,
+            clientID: process.env.clientID,
+            userID: process.env.userID
         }
         this.provisionKey = {
-            sign: 'o31wlYvJANGMjh7RvKXce3jWvXbuCtEu',
-            stamper: 'RQbO5w8uavpcA28MOMzmg2HwH2Ur2Rjp'
+            sign: process.env.signKey,
+            stamper: process.env.stamperKey
         }
     }
 
@@ -201,8 +200,11 @@ class esign {
     //
     // This function is used to
     acknowledgeDisburse = async (req, res, next) => {
+        console.log('===== in acklo')
+        console.log('===== provcess.env:', process.env.mockfinbug)
+        console.log('====== esignPath :', this.esignPath)
+        console.log('====== client :', this.client)
         const signature = await this.signature(req.user.psn_id);
-        const document = path.join(__dirname, '../../documents', req.esign.filePath);
         try {
             // Read PDF file
             const pdfBytes = fs.readFileSync(req.esign.filePath);

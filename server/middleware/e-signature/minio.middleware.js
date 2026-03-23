@@ -3,22 +3,26 @@ const { th } = require('date-fns/locale/th');
 const formData = require('form-data');
 const fs = require('fs');
 const path = require('path');
-const { stream } = require('winston');
 
 class minio {
     constructor() {
         this.minioPath = {
-            putFileAuth: 'https://kong-dev.buu.ac.th/service-api/minio.PutFile/oauth2/token',
-            putFile: 'https://kong-dev.buu.ac.th/service-api/minio.PutFile',
-            getFileAuth: 'https://kong-dev.buu.ac.th/service-api/minio.GetPublicFile/oauth2/token',
-            getFile: 'https://kong-dev.buu.ac.th/service-api/minio.GetPublicFile',
-            deleteFileAuth: 'https://kong-dev.buu.ac.th/service-api/minio.DeleteFile/oauth2/token',
-            deleteFile: 'https://kong-dev.buu.ac.th/service-api/minio.DeleteFile'
+            putFileAuth: process.env.putFileAuth,
+            putFile: process.env.putFile,
+            getFileAuth: process.env.getFileAuth,
+            getFile: process.env.getFile,
+            deleteFileAuth: process.env.deleteFileAuth,
+            deleteFile: process.env.deleteFile
         }
         this.client = {
-            clientSecret: '6RzgQnt7VhjlvnUdHX2W9s0Qp2owcyqJ',
-            clientID: 'U5QhNd2ss5qz3W2uUVlDHSiAd0ktM68G',
-            userID: 'informatics-welfare'
+            clientSecret: process.env.clientSecret,
+            clientID: process.env.clientID,
+            userID: process.env.userID
+        }
+        this.provisionKey = {
+            putFile: process.env.putFileKey,
+            getPublicFile: process.env.getFileKey,
+            deleteFile: process.env.deleteFileKey
         }
     }
 
@@ -108,7 +112,7 @@ class minio {
     putFile = async (req, res, next) => {
         try {
             console.log('==================== putfile ===================')
-            const token = await this.auth('write', 'l7hdoiyMMtelzqUJoXofCxI3m56CPXZ6', 'put');
+            const token = await this.auth('write', this.provisionKey.putFile, 'put');
             const filePath = req.esign.filePath
             const data = new formData();
             data.append('qrVerify', 'false');
@@ -140,7 +144,7 @@ class minio {
     getPublicFile = async (req, res, next) => {
         try {
             console.log('Getfile Success :::::::::::::')
-            const token = await this.auth('read', 'DI3abB5mVqz1L3tibii1hrjuUo89lfcW', 'get')
+            const token = await this.auth('read', this.provisionKey.getPublicFile, 'get')
             const data = {
                 filePath:
                 {
@@ -181,7 +185,7 @@ class minio {
     // This function is used to delete pdf file in Minio
     deleteFile = async (req, res, next) => {
         try {
-            const token = await this.auth('write', 'UV1yu0y4JaYl3WduIMNw8qMuk9SJSChD', 'delete')
+            const token = await this.auth('write', this.provisionKey.deleteFile, 'delete')
             const data = {
                 filePath: req.fileName,
                 bucket: "informatics.welfare.storage"
