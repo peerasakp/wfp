@@ -93,3 +93,6 @@ public/uploads/
 public/uploads/*
 
 document/*
+
+.env
+.env.*

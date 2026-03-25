@@ -3,13 +3,16 @@ const axios = require('axios');
 class ums {
     constructor() {
         this.ePersonPath = {
-            ePersonAuth: 'https://kong-dev.buu.ac.th/service-api/ums.SPersonByInformatics/oauth2/token',
-            ePersonData: 'https://kong-dev.buu.ac.th/service-api/ums.SPersonByInformatics'
+            ePersonAuth: process.env.ePersonAuth,
+            ePersonData: process.env.ePersonData
         }
         this.client = {
-            clientSecret: '6RzgQnt7VhjlvnUdHX2W9s0Qp2owcyqJ',
-            clientID: 'U5QhNd2ss5qz3W2uUVlDHSiAd0ktM68G',
-            userID: 'informatics-welfare'
+            clientSecret: process.env.clientSecret,
+            clientID: process.env.clientID,
+            userID: process.env.userID
+        }
+        this.provisionKey = {
+            ePerson:  process.env.ePersonKey
         }
     }
     // auth()
@@ -20,7 +23,7 @@ class ums {
                 client_id: this.client.clientID,
                 grant_type: "password",
                 scope: "read",
-                provision_key: "sTy5Ke0I3G1ET9tpGZOrrM3k9iX9MlUm",
+                provision_key: this.provisionKey.ePerson,
                 authenticated_userid: this.client.userID
             }
             const respone = await axios.post(
