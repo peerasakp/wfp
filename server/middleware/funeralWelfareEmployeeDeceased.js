@@ -442,7 +442,8 @@ const bindCreate = async (req, res, next) => {
                 message: "เจ้าหน้าที่การเงินสามารถสร้างคำร้องของตนเองเท่านั้น",
             });
         }
-        if (!isNullOrEmpty(createFor) && !req.isEditor) {
+        // HR staff (roleId=3) can create for others too (select beneficiary in UI)
+        if (!isNullOrEmpty(createFor) && !req.isEditor && roleId !== 3) {
             return res.status(400).json({
                 message: "ไม่มีสิทธิ์สร้างให้คนอื่นได้",
             });
@@ -497,7 +498,7 @@ const bindUpdate = async (req, res, next) => {
             fundReceipt, deceased, organizer, fundRequest, fundReceiptWreath, fundWreathUniversity, fundWreathArrange,
             fundReceiptVehicle, fundVehicle, selectedWreath, selectedVehicle, actionId, fundSumRequest, fundSumReceipt, createFor } = req.body;
         const { id, roleId } = req.user;
-        if (!isNullOrEmpty(createFor) && !req.isEditor) {
+        if (!isNullOrEmpty(createFor) && !req.isEditor && roleId !== 3) {
             return res.status(400).json({
                 message: "ไม่มีสิทธิ์แก้ไขให้คนอื่นได้",
             });

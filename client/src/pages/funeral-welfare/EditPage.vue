@@ -628,7 +628,8 @@ const isEdit = computed(() => {
   return !isNaN(route.params.id);
 });
 const canCreateFor = computed(() => {
-  return authStore.isEditor;
+  // HR staff (roleId=3) can select "ผู้เบิก" instead of auto-filling HR profile.
+  return authStore.isEditor || authStore.roleId === 3;
 });
 const isFetchRemaining = ref(false);
 

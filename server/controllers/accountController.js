@@ -121,24 +121,69 @@ exports.login = async (req, res, next) => {
                     if (user.roleName === 'คณบดี') {
                       user.path = null;
                       user.pathEditor = editorMenus.filter((m) => m.to === "welfare_management_list");
-                    } else {
+                    }
+                    // HR can see all reimbursement menus (including funeral-welfare)
+                    else if (user.roleName === 'เจ้าหน้าที่รับผิดชอบด้านบุคคล') {
                       const path = [
-                          {
-                              title: "หน้าหลัก",
-                              icon: "outlinedHome",
-                              to: "home",
-                          },
-                          ...userMenus
+                        {
+                          title: "หน้าหลัก",
+                          icon: "outlinedHome",
+                          to: "home",
+                        },
+                        ...userMenus,
+                      ];
+                      user.path = path;
+                      if (editorMenus) user.pathEditor = editorMenus;
+                    }
+                    // Other roles: hide only funeral-welfare menu
+                    else {
+                      const filteredMenus = userMenus.filter((m) => m?.to !== 'funeral_welfare_list');
+                      const path = [
+                        {
+                          title: "หน้าหลัก",
+                          icon: "outlinedHome",
+                          to: "home",
+                        },
+                        ...filteredMenus,
                       ];
                       user.path = path;
                       if (editorMenus) user.pathEditor = editorMenus;
                     }
                 }
                 else{
-                    const pathEditor = userPermission.map((userObj) => getpathMenuEditor(userObj)).filter((result) => result !== null && result !== undefined);
-                    user.path = null;
-                    if (pathEditor) user.pathEditor = pathEditor;
-                    user.redirectTo = "user_management_list";
+                    // roleId === 4 branch (e.g. super/admin). Still respect the HR restriction if needed.
+                    if (user.roleName === 'เจ้าหน้าที่รับผิดชอบด้านบุคคล') {
+                        const userMenus = userPermission
+                          .map((userObj) => getpathMenu(userObj))
+                          .filter((result) => result !== null && result !== undefined);
+                        const path = [
+                          {
+                            title: "หน้าหลัก",
+                            icon: "outlinedHome",
+                            to: "home",
+                          },
+                          ...userMenus,
+                        ];
+                        user.path = path;
+                        user.pathEditor = null;
+                        delete user.redirectTo;
+                    } else {
+                        const filteredMenus = userPermission
+                          .map((userObj) => getpathMenu(userObj))
+                          .filter((result) => result !== null && result !== undefined)
+                          .filter((m) => m?.to !== 'funeral_welfare_list');
+                        const path = [
+                          {
+                            title: "หน้าหลัก",
+                            icon: "outlinedHome",
+                            to: "home",
+                          },
+                          ...filteredMenus,
+                        ];
+                        user.path = path;
+                        user.pathEditor = null;
+                        delete user.redirectTo;
+                    }
                 }
                 logger.info('Complete', { method, data: { username } });
                 // PDPA / Audit: Log การเข้าสู่ระบบ (LOGIN)
