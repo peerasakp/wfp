@@ -181,6 +181,10 @@ const uploadFilesForRecord = async (req, res, next) => {
 const authPermission = async (req, res, next) => {
     const method = 'AuthPermission';
     const { roleId } = req.user;
+    if (roleId === 4) {
+        req.isEditor = true;
+        return next();
+    }
     try {
         const isAccess = await permissionsHasRoles.count({
             where: {
@@ -206,6 +210,10 @@ const authPermission = async (req, res, next) => {
 const authPermissionEditor = async (req, res, next) => {
     const method = 'AuthPermissionEditor';
     const { roleId } = req.user;
+    if (roleId === 4) {
+        req.access = true;
+        return next();
+    }
     try {
         const isAccess = await permissionsHasRoles.count({
             where: {
@@ -437,6 +445,9 @@ const bindCreate = async (req, res, next) => {
             fundReceipt, deceased, organizer, fundRequest, fundReceiptWreath, fundWreathUniversity, fundWreathArrange,
             fundReceiptVehicle, fundVehicle, selectedWreath, selectedVehicle, actionId, fundSumRequest, fundSumReceipt, createFor } = req.body;
         const { id, roleId } = req.user;
+        if (roleId === 4) {
+            return res.status(403).json({ message: "ไม่มีสิทธิ์สร้างสวัสดิการ" });
+        }
         if (roleId === 2 && !isNullOrEmpty(createFor) && createFor !== id) {
             return res.status(400).json({
                 message: "เจ้าหน้าที่การเงินสามารถสร้างคำร้องของตนเองเท่านั้น",
@@ -498,6 +509,9 @@ const bindUpdate = async (req, res, next) => {
             fundReceipt, deceased, organizer, fundRequest, fundReceiptWreath, fundWreathUniversity, fundWreathArrange,
             fundReceiptVehicle, fundVehicle, selectedWreath, selectedVehicle, actionId, fundSumRequest, fundSumReceipt, createFor } = req.body;
         const { id, roleId } = req.user;
+        if (roleId === 4) {
+            return res.status(403).json({ message: "ไม่มีสิทธิ์แก้ไขสวัสดิการ" });
+        }
         if (!isNullOrEmpty(createFor) && !req.isEditor && roleId !== 3) {
             return res.status(400).json({
                 message: "ไม่มีสิทธิ์แก้ไขให้คนอื่นได้",
