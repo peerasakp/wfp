@@ -751,7 +751,7 @@ function getFileName(filename) {
 function getFileType(fileName) {
   if (!fileName) return 'unknown';
   const ext = fileName.split('.').pop().toLowerCase();
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+  if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return 'image';
   if (ext === 'pdf') return 'pdf';
   return 'unknown';
 }
