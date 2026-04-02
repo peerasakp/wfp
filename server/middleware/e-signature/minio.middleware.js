@@ -112,6 +112,7 @@ class minio {
     putFile = async (req, res, next) => {
         try {
             console.log('==================== putfile ===================')
+            console.log('==== client: ', this.client)
             const token = await this.auth('write', this.provisionKey.putFile, 'put');
             const filePath = req.esign.filePath
             const data = new formData();
