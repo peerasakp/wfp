@@ -20,7 +20,7 @@ class esign {
             stamper: process.env.stamper
         }
         this.client = {
-            clientSecret: process.env.clientSecrete,
+            clientSecret: process.env.clientSecret,
             clientID: process.env.clientID,
             userID: process.env.userID
         }
@@ -200,10 +200,6 @@ class esign {
     //
     // This function is used to
     acknowledgeDisburse = async (req, res, next) => {
-        console.log('===== in acklo')
-        console.log('===== provcess.env:', process.env.mockfinbug)
-        console.log('====== esignPath :', this.esignPath)
-        console.log('====== client :', this.client)
         const signature = await this.signature(req.user.psn_id);
         try {
             // Read PDF file

@@ -111,9 +111,9 @@
             </q-card-section>
             <q-card-section class="row column wrap font-medium q-pt-none font-16 text-grey-9">
               <InputGroup for-id="psn-id" is-dense v-model="model.psn_id" :data="model.psn_id ?? '-'" is-require
-                label="หมายเลข psn " placeholder="" type="text" :is-view="isView"
+                label="หมายเลขรหัสบุคลากร" placeholder="" type="text" :is-view="isView"
                 :error-message="isError?.psn_id" :error="!!isError?.psn_id"
-                :rules="[(val) => !!val || 'กรุณากรอกหมายเลข psn ']" lazy-rules>
+                :rules="[(val) => !!val || 'กรุณากรอกหมายเลขรหัสบุคลากร']" lazy-rules>
               </InputGroup>
               <p class="q-mb-sm require">บทบาท</p>
               <q-option-group v-if="!isView && !isLoading" v-model="model.roleId" :options="optionRole"
