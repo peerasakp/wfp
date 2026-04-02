@@ -93,6 +93,7 @@ public/uploads/
 public/uploads/*
 
 document/*
+documents/**/*.pdf
 
 .env
 .env.development
