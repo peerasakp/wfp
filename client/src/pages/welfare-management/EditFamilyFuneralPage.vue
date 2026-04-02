@@ -4,7 +4,7 @@
       <!--General Information Section -->
       <div class="row q-col-gutter-md q-pl-md q-pt-md">
         <div
-          :class="{ 'col-12': isView || isLoading , 'col-md-9 col-12': !isView && !isLoading }">
+          :class="{ 'col-12': isFormFieldsReadOnly || isLoading , 'col-md-9 col-12': !isFormFieldsReadOnly && !isLoading }">
           <q-card flat bordered class="full-height">
             <q-card-section class="font-18 font-bold">
               <p class="q-mb-none">ข้อมูลผู้เบิกสวัสดิการ</p>
@@ -36,7 +36,7 @@
             </q-card-section>
           </q-card>
         </div>
-        <div class="col-md-3 col-12" v-if="!isView ">
+        <div class="col-md-3 col-12" v-if="!isFormFieldsReadOnly ">
           <q-card flat bordered class="full-height">
             <q-card-section class="q-px-md font-18 font-bold">
               <p class="q-mb-none">สิทธิ์คงเหลือ</p>
@@ -69,13 +69,13 @@
                 <p class="q-pb-none font-18 font-bold ">ข้อมูลการเบิกสวัสดิการ</p>
               </div>
               <a class="q-mb-none font-regular font-16 text-blue-7 cursor-pointer"
-                v-if="(isView || authStore.roleId === 5) && ['รอตรวจสอบ', 'รออนุมัติ', 'รอจ่ายเงิน', 'อนุมัติ'].includes(model.status)" @click.stop.prevent="
+                v-if="(isFormFieldsReadOnly || authStore.roleId === 5) && ['รอตรวจสอบ', 'รออนุมัติ', 'รอจ่ายเงิน', 'อนุมัติ'].includes(model.status)" @click.stop.prevent="
                   downloadData()">
                 <q-icon :name="outlinedDownload" />
                 <span> Export</span>
               </a>
             </q-card-section>
-            <q-card-section v-show="isView || isEdit"
+            <q-card-section v-show="isFormFieldsReadOnly || isEdit"
               class="row wrap font-medium q-pb-sm q-pt-none font-16 text-grey-9">
               <p class="col-md-4 col-12 q-mb-none">เลขที่ใบเบิก : {{ model.reimNumber ?? "-" }}</p>
               <p class="col-md-4 col-12 q-mb-none">วันที่ร้องขอ : {{ formatDateThaiSlash(model.requestDate) ?? "-" }}
@@ -89,11 +89,11 @@
               <div v-for="option in deceaseOptions" :key="option.value" class="col-12 row q-mb-none ">
                 <div class="col-md-2 col-6">
                   <q-radio v-model="model.deceasedType" :val="option.value" :label="option.label" class="q-mr-md"
-                    :disable="isView" />
+                    :disable="isFormFieldsReadOnly" />
                 </div>
                 <InputGroup label="" v-if="model.deceasedType === option.value" v-model="model.decease"
                   :data="model.fund ?? '-'" placeholder="ชื่อ-นามสกุล" type="text" class="col-md-5 col-6"
-                  :is-view="isView" is-dense
+                  :is-view="isFormFieldsReadOnly" is-dense
                   :rules="[(val) => !!val || 'กรุณากรอกข้อมูลชื่อ - นามสกุลของผู้เสียชีวิต']">
                 </InputGroup>
               </div>
@@ -103,14 +103,14 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl">
                 <InputGroup for-id="fund-receipt" is-dense v-model="model.fundReceipt" :data="model.fundReceipt ?? '-'"
                   is-require label="จำนวนเงินตามใบสำคัญรับเงิน (บาท)" placeholder="บาท" type="number" class=""
-                  :is-view="isView" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน']"
+                  :is-view="isFormFieldsReadOnly" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน']"
                   :error-message="isError?.fundReceipt" :error="!!isError?.fundReceipt">
                 </InputGroup>
               </div>
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl">
                 <InputGroup for-id="fund-request" is-dense v-model="model.fundDecease" :data="model.fundDecease ?? '-'"
                   is-require label="จำนวนเงินที่ต้องการเบิก (บาท)" placeholder="บาท" type="number"
-                  class="q-py-xs-md q-py-lg-none" :is-view="isView" :rules="[
+                  class="q-py-xs-md q-py-lg-none" :is-view="isFormFieldsReadOnly" :rules="[
                     (val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินที่ต้องการเบิก',
                     (val) => !isOverDecease || 'จำนวนเงินที่ต้องการเบิกห้ามมากกว่าจำนวนเงินตามใบเสร็จ',
                     (val) => isOverfundRemaining !== 1 || 'จำนวนที่ขอเบิกเกินจำนวนที่สามารถเบิกได้',
@@ -120,8 +120,8 @@
               </div>
             </q-card-section>
             <q-card-section  v-if="model.selectedWreath || model.selectedVechicle"
-              class="row wrap font-medium q-pb-xs font-16 text-grey-9 items-center" :class="isView ? '' : 'q-pl-sm'">
-              <q-checkbox v-if="!isView" v-model="model.selectedWreath" />
+              class="row wrap font-medium q-pb-xs font-16 text-grey-9 items-center" :class="isFormFieldsReadOnly ? '' : 'q-pl-sm'">
+              <q-checkbox v-if="!isFormFieldsReadOnly" v-model="model.selectedWreath" />
               <p class="q-mb-none">ค่าสนับสนุนค่าพวงหรีด (จ่ายไม่เกินคนละ {{ remaining[7]?.fund ? remaining[7]?.fund
                 + " บาท" : remaining[7]?.perTimesRemaining ? remaining[7]?.perTimesRemaining + " บาท" :
                 remaining[7]?.perTimesRemaining ?? "ไม่จำกัดจำนวนเงิน"
@@ -137,7 +137,7 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl q-pt-md-sm">
                 <InputGroup for-id="fund-wreath-receipt" is-dense v-model="model.fundReceiptWreath"
                   :data="model.fundReceiptWreath ?? '-'" is-require label="จำนวนเงินตามใบสำคัญรับเงิน (บาท)"
-                  placeholder="บาท" type="number" class="" :is-view="isView" :disable="!model.selectedWreath" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน',
+                  placeholder="บาท" type="number" class="" :is-view="isFormFieldsReadOnly" :disable="!model.selectedWreath" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน',
                   (val) => val && (Number(model.fundWreathArrange) + (Number(model.fundWreathUniversity) || 0)) <= Number(val) || 'จำนวนเงินรวมของค่าพวงหรีด ต้องไม่เกินจำนวนเงินตามใบสำคัญรับเงิน'
                   ]" :error-message="isError?.fundReceiptWreath" :error="!!isError?.fundReceiptWreath">
                 </InputGroup>
@@ -145,7 +145,7 @@
               <div class="col-xl-4 col-lg-5 col-xl-4 col-12 q-pr-lg-xl q-pt-md-sm">
                 <InputGroup for-id="fund-wreath-arrange" is-dense v-model="model.fundWreathArrange"
                   :data="model.fundWreathArrange ?? '-'" label="จำนวนเงินที่ต้องการเบิก (บาท) (ในนามส่วนงาน)"
-                  placeholder="บาท" type="number" class="q-py-xs-md q-py-lg-none" :is-view="isView"
+                  placeholder="บาท" type="number" class="q-py-xs-md q-py-lg-none" :is-view="isFormFieldsReadOnly"
                   style="white-space: nowrap;" :disable="!model.selectedWreath" :rules="[
                     (val) => model.selectedWreath && !isOverWreathArrange || 'จำนวนเงินที่ต้องการเบิกห้ามมากว่าจำนวนเงินตามใบเสร็จ',
                     (val) => model.selectedWreath && isOverfundRemainingWreathArrange !== 2 || 'จำนวนที่ขอเบิกเกินจำนวนที่สามารถเบิกได้',
@@ -156,7 +156,7 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl q-pt-md-sm">
                 <InputGroup for-id="fund-wreath-university" is-dense v-model="model.fundWreathUniversity"
                   :data="model.fund ?? '-'" label="จำนวนเงินที่ต้องการเบิก (บาท) (ในนามมหาวิทยาลัย)" placeholder="บาท"
-                  type="number" class="font-14" :is-view="isView" style="white-space: nowrap;"
+                  type="number" class="font-14" :is-view="isFormFieldsReadOnly" style="white-space: nowrap;"
                   :disable="!model.selectedWreath" :rules="[
                     (val) => model.selectedWreath && !isOverWreathUniversity || 'จำนวนเงินที่ต้องการเบิกห้ามมากว่าจำนวนเงินตามใบเสร็จ',
                     (val) => model.selectedWreath && isOverfundRemainingWreathUniversity !== 2 || 'จำนวนที่ขอเบิกเกินจำนวนที่สามารถเบิกได้',
@@ -167,8 +167,8 @@
             </q-card-section>
             <q-separator  inset v-if="model.selectedWreath || model.selectedVechicle" />
             <q-card-section v-show="!canCreateFor"  v-if="model.selectedWreath || model.selectedVechicle"
-              class="row wrap font-medium q-pb-xs font-16 text-grey-9 items-center" :class="isView ? '' : 'q-pl-sm'">
-              <q-checkbox v-if="!isView" v-model="model.selectedVechicle" />
+              class="row wrap font-medium q-pb-xs font-16 text-grey-9 items-center" :class="isFormFieldsReadOnly ? '' : 'q-pl-sm'">
+              <q-checkbox v-if="!isFormFieldsReadOnly" v-model="model.selectedVechicle" />
               <p class="q-mb-none ">ค่าสนับสนุนค่าพาหนะเหมาจ่าย (จ่ายจริงคนละไม่เกิน
                 {{ remaining[9]?.fund ? remaining[9]?.fund
                   + " บาท" : remaining[9]?.perTimesRemaining ? remaining[9]?.perTimesRemaining + " บาท" :
@@ -180,7 +180,7 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl">
                 <InputGroup for-id="fund" is-dense v-model="model.fundReceiptVechicle"
                   :data="model.fundReceiptVechicle ?? '-'" is-require label="จำนวนเงินตามใบสำคัญรับเงิน (บาท)"
-                  placeholder="บาท" type="number" class="" :is-view="isView" :disable="!model.selectedVechicle"
+                  placeholder="บาท" type="number" class="" :is-view="isFormFieldsReadOnly" :disable="!model.selectedVechicle"
                   :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน']"
                   :error-message="isError?.fundReceiptVechicle" :error="!!isError?.fundReceiptVechicle">
                 </InputGroup>
@@ -188,7 +188,7 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl">
                 <InputGroup for-id="fund" is-dense v-model="model.fundVechicle" :data="model.fundVechicle ?? '-'"
                   is-require label="จำนวนเงินที่ต้องการเบิก (บาท)" placeholder="บาท" type="number"
-                  class="q-py-xs-md q-py-lg-none" :is-view="isView" :disable="!model.selectedVechicle" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนที่ต้องการเบิก',
+                  class="q-py-xs-md q-py-lg-none" :is-view="isFormFieldsReadOnly" :disable="!model.selectedVechicle" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนที่ต้องการเบิก',
                   (val) => model.selectedVechicle && !isOverVechicle || 'จำนวนเงินที่ต้องการเบิกห้ามมากว่าจำนวนเงินตามใบเสร็จ',
                     , (val) => isOverfundRemainingVechicle !== 2 || 'จำนวนที่ขอเบิกเกินจำนวนที่สามารถเบิกได้', (val) => !isOverfundRemainingVechicle || 'สามารถเบิกได้สูงสุด ' + remaining[9]?.perTimesRemaining + ' บาทต่อครั้ง'
                   ]" :error-message="isError?.fundVechicle" :error="!!isError?.fundVechicle">
@@ -305,13 +305,13 @@
           :to="{ name: 'welfare_management_list' }" />
         <q-btn :disable="isValidate" id="button-draft"
           class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
-          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal && !isFinancialActionOnly" />
+          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal && !isFinancialApprover" />
         <q-btn id="button-approve"
         class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #E52020"
-        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
+        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
         <q-btn :disable="isFinancialWaitPayment ? false : isValidate" id="button-approve" class="font-medium font-16 weight-8 text-white q-px-md" dense
           type="submit" style="background-color: #43a047" label="อนุมัติ" no-caps @click="submit(3)"
-          v-if="!isView && !isLoading && !isFinancialPendingFinal" />
+          v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
       </div>
     </template>
   </PageLayout>
@@ -359,8 +359,8 @@ const route = useRoute();
 const isFinancialPendingFinal = computed(
   () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
 );
-const isFinancialActionOnly = computed(
-  () => authStore.roleId === 2
+const isFinancialApprover = computed(
+  () => authStore.roleId === 2 || authStore.roleId === 5
 );
 const isFinancialWaitPayment = computed(
   () => authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน"
@@ -414,6 +414,9 @@ const isFetch = ref(false);
 
 const isError = ref({});
 const isView = ref(false);
+const isFormFieldsReadOnly = computed(
+  () => isView.value || isFinancialApprover.value
+);
 const isLoading = ref(false);
 const userData = ref({});
 const remaining = ref({});

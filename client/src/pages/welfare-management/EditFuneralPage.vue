@@ -3,7 +3,7 @@
     <template v-slot:page>
       <!--General Information Section -->
       <div class="row q-col-gutter-md q-pl-md q-pt-md">
-        <div :class="{ 'col-12': isView || isLoading, 'col-md-9 col-12': !isView && !isLoading }">
+        <div :class="{ 'col-12': isFormFieldsReadOnly || isLoading, 'col-md-9 col-12': !isFormFieldsReadOnly && !isLoading }">
           <q-card flat bordered class="full-height">
             <q-card-section class="font-18 font-bold">
               <p class="q-mb-none">ข้อมูลผู้เบิกสวัสดิการ</p>
@@ -36,7 +36,7 @@
           </q-card>
         </div>
 
-        <div class="col-md-3 col-12" v-if="!isView && !isLoading">
+        <div class="col-md-3 col-12" v-if="!isFormFieldsReadOnly && !isLoading">
           <q-card flat bordered class="full-height">
             <q-card-section class="q-px-md q-py-md font-18 font-bold">
               <p class="q-mb-none">สิทธิ์คงเหลือ</p>
@@ -70,13 +70,13 @@
               </div>
 
               <a class="q-mb-none font-regular font-16 text-blue-7 cursor-pointer"
-                v-if="(isView || authStore.roleId === 5) && ['รอตรวจสอบ', 'รออนุมัติ', 'รอจ่ายเงิน', 'อนุมัติ'].includes(model.status)" @click.stop.prevent="
+                v-if="(isFormFieldsReadOnly || authStore.roleId === 5) && ['รอตรวจสอบ', 'รออนุมัติ', 'รอจ่ายเงิน', 'อนุมัติ'].includes(model.status)" @click.stop.prevent="
                   downloadData()">
                 <q-icon :name="outlinedDownload" />
                 <span> Export</span>
               </a>
             </q-card-section>
-            <q-card-section v-show="isView || isEdit" class="row wrap font-medium q-pb-xs font-16 text-grey-9">
+            <q-card-section v-show="isFormFieldsReadOnly || isEdit" class="row wrap font-medium q-pb-xs font-16 text-grey-9">
               <p class="col-md-4 col-12 q-mb-none">เลขที่ใบเบิก : {{ model.reimNumber ?? "-" }}</p>
               <p class="col-md-4 col-12 q-mb-none">วันที่ร้องขอ : {{ formatDateThaiSlash(model.requestDate) ?? "-" }}
               </p>
@@ -84,7 +84,7 @@
             </q-card-section>
             <q-card-section class="row wrap q-col-gutter-y-md q-px-md q-py-md font-medium font-16 text-grey-9">
               <div class="col-lg-5 col-xl-4 col-12 q-mb-none q-pr-lg-xl">
-                <InputGroup label="ชื่อ - นามสกุล (ผู้เสียชีวิต)" is-require :is-view="isView" :data="isView ? deceasedName : null">
+                <InputGroup label="ชื่อ - นามสกุล (ผู้เสียชีวิต)" is-require :is-view="isFormFieldsReadOnly" :data="isFormFieldsReadOnly ? deceasedName : null">
                   <q-select v-model="model.deceased" :options="filteredOptions" :loading="isLoading" :clearable="true"
                     emit-value map-options option-value="id" option-label="name" :rules="[(val) => !!val || '']" dense
                     outlined use-input hide-selected fill-input input-debounce="100" hide-bottom-space
@@ -114,21 +114,21 @@
             <q-card-section class="row wrap font-medium font-16 text-grey-9 q-pt-none q-pb-sm">
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl ">
                 <InputGroup for-id="fund" is-dense v-model="model.organizer" :data="model.organizer ?? '-'" is-require
-                  label="จ่ายให้กับผู้จัดการงานศพ" placeholder="ชื่อ-นามสกุล" type="text" class="" :is-view="isView"
+                  label="จ่ายให้กับผู้จัดการงานศพ" placeholder="ชื่อ-นามสกุล" type="text" class="" :is-view="isFormFieldsReadOnly"
                   :rules="[(val) => !!val || 'กรุณากรอกข้อมูลชื่อ - นามสกุลของผู้จัดการงานศพ']">
                 </InputGroup>
               </div>
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl  ">
                 <InputGroup for-id="fund-receipt" is-dense v-model="model.fundReceipt" :data="model.fundReceipt === 0 ? '-' : model.fundReceipt ?? '-'"
                   is-require label="จำนวนเงินตามใบสำคัญรับเงิน (บาท)" placeholder="บาท" type="number" class="q-py-xs-md q-py-lg-none"
-                  :is-view="isView" 
+                  :is-view="isFormFieldsReadOnly" 
                   :error-message="isError?.fundReceipt" :error="!!isError?.fundReceipt">
                 </InputGroup>
               </div>
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl ">
                 <InputGroup for-id="fund-request" is-dense v-model="model.fundRequest" :data="model.fundRequest === 0 ? '-' : model.fundRequest ?? '-'"
                   is-require label="จำนวนเงินที่ต้องการเบิก (บาท)" placeholder="บาท" type="number" class=""
-                  :is-view="isView"  :rules="[
+                  :is-view="isFormFieldsReadOnly"  :rules="[
                     (val) => !isOverRequest || 'จำนวนเงินที่ต้องการเบิกห้ามมากว่าจำนวนเงินตามใบเสร็จ',
                     (val) => isOverfundRemaining !== 2 || 'จำนวนที่ขอเบิกเกินจำนวนที่สามารถเบิกได้',
                     (val) => isOverfundRemaining !== 1 || 'สามารถเบิกได้สูงสุด ' + remaining[9].perTimesRemaining + ' บาทต่อครั้ง',
@@ -141,8 +141,8 @@
             <q-separator v-show="thisStaff" inset />
 
             <q-card-section v-show="thisStaff" class="row wrap  font-medium q-pb-xs font-16 text-grey-9 items-center "
-              :class="isView ? '' : 'q-pl-sm '">
-              <q-checkbox v-model="model.selectedWreath" v-if="!isView" />
+              :class="isFormFieldsReadOnly ? '' : 'q-pl-sm '">
+              <q-checkbox v-model="model.selectedWreath" v-if="!isFormFieldsReadOnly" />
               <p class="q-mb-none ">ค่าสนับสนุนค่าพวงหรีด (จ่ายไม่เกินคนละ {{ remaining[10]?.fund ? remaining[10]?.fund
                 + " บาท" : remaining[10]?.perTimesRemaining ? remaining[10]?.perTimesRemaining + " บาท" : "กรุณาเลือกผู้เสียชีวิต" }}
                 ในนามมหาวิทยาลัย และไม่เกิน
@@ -154,7 +154,7 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl q-pt-md-sm">
                 <InputGroup for-id="fund-wreath-receipt" is-dense v-model="model.fundReceiptWreath"
                   :data="model.fundReceiptWreath ?? '-'" is-require label="จำนวนเงินตามใบสำคัญรับเงิน (บาท)"
-                  placeholder="บาท" type="number" class="" :is-view="isView" :disable="!model.selectedWreath" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน',
+                  placeholder="บาท" type="number" class="" :is-view="isFormFieldsReadOnly" :disable="!model.selectedWreath" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน',
                   (val) => val && (Number(model.fundWreathArrange) + (Number(model.fundWreathUniversity) || 0)) <= Number(val) || 'จำนวนเงินรวมของค่าพวงหรีด ต้องไม่เกินจำนวนเงินตามใบสำคัญรับเงิน'
                   ]" :error-message="isError?.fundReceiptWreath" :error="!!isError?.fundReceiptWreath">
                 </InputGroup>
@@ -162,7 +162,7 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl q-pt-md-sm">
                 <InputGroup for-id="fund-wreath-arrange" is-dense v-model="model.fundWreathArrange"
                   :data="model.fundWreathArrange ?? '-'" label="จำนวนเงินที่ต้องการเบิก (บาท) (ในนามส่วนงาน)"
-                  placeholder="บาท" type="number" class="q-py-xs-md q-py-lg-none" :is-view="isView" :disable="!model.selectedWreath" :rules="[
+                  placeholder="บาท" type="number" class="q-py-xs-md q-py-lg-none" :is-view="isFormFieldsReadOnly" :disable="!model.selectedWreath" :rules="[
                     (val) => model.selectedWreath && !isOverWreathArrange || 'จำนวนเงินที่ต้องการเบิกห้ามมากว่าจำนวนเงินตามใบเสร็จ',
                     (val) => model.selectedWreath && isOverfundRemainingWreathArrange !== 2 || 'จำนวนที่ขอเบิกเกินจำนวนที่สามารถเบิกได้',
                     (val) => model.selectedWreath && !isOverfundRemainingWreathArrange || 'สามารถเบิกได้สูงสุด ' + remaining[10]?.perTimesRemaining + ' บาทต่อครั้ง'
@@ -172,7 +172,7 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl q-pt-md-sm">
                 <InputGroup for-id="fund-wreath-university" is-dense v-model="model.fundWreathUniversity"
                   :data="model.fundWreathUniversity ?? '-'" label="จำนวนเงินที่ต้องการเบิก (บาท) (ในนามมหาวิทยาลัย)"
-                  placeholder="บาท" type="number" class="" :is-view="isView" style="white-space: nowrap;"
+                  placeholder="บาท" type="number" class="" :is-view="isFormFieldsReadOnly" style="white-space: nowrap;"
                   :disable="!model.selectedWreath" :rules="[
                     (val) => model.selectedWreath && !isOverWreathUniversity || 'จำนวนเงินที่ต้องการเบิกห้ามมากว่าจำนวนเงินตามใบเสร็จ',
                     (val) => model.selectedWreath && isOverfundRemainingWreathUniversity !== 2 || 'จำนวนที่ขอเบิกเกินจำนวนที่สามารถเบิกได้',
@@ -184,8 +184,8 @@
             <q-separator v-show="thisStaff" inset />
 
             <q-card-section v-show="thisStaff" class="row wrap font-medium q-pb-xs font-16 text-grey-9 items-center"
-              :class="isView ? '' : 'q-pl-sm'">
-              <q-checkbox v-if="!isView" v-model="model.selectedVehicle" />
+              :class="isFormFieldsReadOnly ? '' : 'q-pl-sm'">
+              <q-checkbox v-if="!isFormFieldsReadOnly" v-model="model.selectedVehicle" />
               <p class="q-mb-none">ค่าสนับสนุนค่าพาหนะเหมาจ่าย (จ่ายจริงคนละไม่เกิน
                 {{ remaining[12]?.fund ? remaining[12]?.fund
                 + " บาท" : remaining[12]?.perTimesRemaining ? remaining[12]?.perTimesRemaining + " บาท" : "กรุณาเลือกผู้เสียชีวิต" }})</p>
@@ -195,7 +195,7 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl ">
                 <InputGroup for-id="fund" is-dense v-model="model.fundReceiptVehicle"
                   :data="model.fundReceiptVehicle ?? '-'" is-require label="จำนวนเงินตามใบสำคัญรับเงิน (บาท)"
-                  placeholder="บาท" type="number" class="" :is-view="isView" :disable="!model.selectedVehicle"
+                  placeholder="บาท" type="number" class="" :is-view="isFormFieldsReadOnly" :disable="!model.selectedVehicle"
                   :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน']"
                   :error-message="isError?.fundReceiptVehicle" :error="!!isError?.fundReceiptVehicle">
                 </InputGroup>
@@ -203,7 +203,7 @@
               <div class="col-lg-5 col-xl-4 col-12 q-pr-lg-xl">
                 <InputGroup for-id="fund" is-dense v-model="model.fundVehicle" :data="model.fundVehicle ?? '-'"
                   is-require label="จำนวนเงินที่ต้องการเบิก (บาท)" placeholder="บาท" type="number" class="q-py-xs-md q-py-lg-none"
-                  :is-view="isView" :disable="!model.selectedVehicle" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนที่ต้องการเบิก',
+                  :is-view="isFormFieldsReadOnly" :disable="!model.selectedVehicle" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนที่ต้องการเบิก',
                   (val) => model.selectedVehicle && !isOverVehicle || 'จำนวนเงินที่ต้องการเบิกห้ามมากว่าจำนวนเงินตามใบเสร็จ',
                     , (val) => isOverfundRemainingVehicle !== 2 || 'จำนวนที่ขอเบิกเกินจำนวนที่สามารถเบิกได้', (val) => !isOverfundRemainingVehicle || 'สามารถเบิกได้สูงสุด ' + remaining[12]?.perTimesRemaining + ' บาทต่อครั้ง'
                   ]" :error-message="isError?.fundVehicle" :error="!!isError?.fundVehicle">
@@ -244,7 +244,7 @@
               <div class="col-12">
                 <div class="row items-center justify-between q-mb-xs">
                   <span>1. สำเนาใบมรณะบัตร</span>
-                  <div v-if="!isView">
+                  <div v-if="!isFormFieldsReadOnly">
                     <input ref="fileDeathCertInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'death_certificate')" />
                     <q-btn v-if="!fileData.death_certificate.name && !model.fileDeathCertificate" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด" @click="$refs.fileDeathCertInput.click()" />
                     <div v-else class="row items-center q-gutter-x-sm">
@@ -253,19 +253,19 @@
                       <q-btn v-if="model.fileDeathCertificate" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileDeathCertificate)" />
                     </div>
                   </div>
-                  <div v-else-if="isView && model.fileDeathCertificate" class="row items-center q-gutter-x-sm">
+                  <div v-else-if="isFormFieldsReadOnly && model.fileDeathCertificate" class="row items-center q-gutter-x-sm">
                     <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileDeathCertificate)" class="q-ma-none" size="sm" />
                     <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileDeathCertificate)" />
                     <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileDeathCertificate)" />
                   </div>
-                  <span v-else-if="isView && !model.fileDeathCertificate" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                  <span v-else-if="isFormFieldsReadOnly && !model.fileDeathCertificate" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
               </div>
               <!-- 2. สำเนาบัตรประชาชน -->
               <div class="col-12">
                 <div class="row items-center justify-between q-mb-xs">
                   <span>2. สำเนาบัตรประชาชน</span>
-                  <div v-if="!isView">
+                  <div v-if="!isFormFieldsReadOnly">
                     <input ref="fileIdCardInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'id_card')" />
                     <q-btn v-if="!fileData.id_card.name && !model.fileIdCard" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด" @click="$refs.fileIdCardInput.click()" />
                     <div v-else class="row items-center q-gutter-x-sm">
@@ -274,19 +274,19 @@
                       <q-btn v-if="model.fileIdCard" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileIdCard)" />
                     </div>
                   </div>
-                  <div v-else-if="isView && model.fileIdCard" class="row items-center q-gutter-x-sm">
+                  <div v-else-if="isFormFieldsReadOnly && model.fileIdCard" class="row items-center q-gutter-x-sm">
                     <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileIdCard)" class="q-ma-none" size="sm" />
                     <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileIdCard)" />
                     <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileIdCard)" />
                   </div>
-                  <span v-else-if="isView && !model.fileIdCard" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                  <span v-else-if="isFormFieldsReadOnly && !model.fileIdCard" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
               </div>
               <!-- 3. ใบสำคัญรับเงิน -->
               <div class="col-12">
                 <div class="row items-center justify-between q-mb-xs">
                   <span>3. ใบสำคัญรับเงิน</span>
-                  <div v-if="!isView">
+                  <div v-if="!isFormFieldsReadOnly">
                     <input ref="fileReceiptInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'receipt')" />
                     <q-btn v-if="!fileData.receipt.name && !model.fileReceipt" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด" @click="$refs.fileReceiptInput.click()" />
                     <div v-else class="row items-center q-gutter-x-sm">
@@ -295,12 +295,12 @@
                       <q-btn v-if="model.fileReceipt" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceipt)" />
                     </div>
                   </div>
-                  <div v-else-if="isView && model.fileReceipt" class="row items-center q-gutter-x-sm">
+                  <div v-else-if="isFormFieldsReadOnly && model.fileReceipt" class="row items-center q-gutter-x-sm">
                     <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileReceipt)" class="q-ma-none" size="sm" />
                     <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileReceipt)" />
                     <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceipt)" />
                   </div>
-                  <span v-else-if="isView && !model.fileReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                  <span v-else-if="isFormFieldsReadOnly && !model.fileReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                 </div>
               </div>
               <!-- Wreath section -->
@@ -309,7 +309,7 @@
                 <div class="col-12">
                   <div class="row items-center justify-between q-mb-xs">
                     <span>1. ใบเสร็จรับเงิน</span>
-                    <div v-if="!isView">
+                    <div v-if="!isFormFieldsReadOnly">
                       <input ref="fileWreathReceiptInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'wreath_receipt')" />
                       <q-btn v-if="!fileData.wreath_receipt.name && !model.fileWreathReceipt" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด" @click="$refs.fileWreathReceiptInput.click()" />
                       <div v-else class="row items-center q-gutter-x-sm">
@@ -318,18 +318,18 @@
                         <q-btn v-if="model.fileWreathReceipt" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileWreathReceipt)" />
                       </div>
                     </div>
-                    <div v-else-if="isView && model.fileWreathReceipt" class="row items-center q-gutter-x-sm">
+                    <div v-else-if="isFormFieldsReadOnly && model.fileWreathReceipt" class="row items-center q-gutter-x-sm">
                       <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileWreathReceipt)" class="q-ma-none" size="sm" />
                       <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileWreathReceipt)" />
                       <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileWreathReceipt)" />
                     </div>
-                    <span v-else-if="isView && !model.fileWreathReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                    <span v-else-if="isFormFieldsReadOnly && !model.fileWreathReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                   </div>
                 </div>
                 <div class="col-12">
                   <div class="row items-center justify-between q-mb-xs">
                     <span>2. ใบสำคัญรับเงิน (เจ้าหน้าที่ฯ)</span>
-                    <div v-if="!isView">
+                    <div v-if="!isFormFieldsReadOnly">
                       <input ref="fileWreathDocInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'wreath_document')" />
                       <q-btn v-if="!fileData.wreath_document.name && !model.fileWreathDocument" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด" @click="$refs.fileWreathDocInput.click()" />
                       <div v-else class="row items-center q-gutter-x-sm">
@@ -338,12 +338,12 @@
                         <q-btn v-if="model.fileWreathDocument" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileWreathDocument)" />
                       </div>
                     </div>
-                    <div v-else-if="isView && model.fileWreathDocument" class="row items-center q-gutter-x-sm">
+                    <div v-else-if="isFormFieldsReadOnly && model.fileWreathDocument" class="row items-center q-gutter-x-sm">
                       <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileWreathDocument)" class="q-ma-none" size="sm" />
                       <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileWreathDocument)" />
                       <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileWreathDocument)" />
                     </div>
-                    <span v-else-if="isView && !model.fileWreathDocument" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                    <span v-else-if="isFormFieldsReadOnly && !model.fileWreathDocument" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                   </div>
                 </div>
               </template>
@@ -353,7 +353,7 @@
                 <div class="col-12">
                   <div class="row items-center justify-between q-mb-xs">
                     <span>1. ใบสำคัญรับเงิน (เจ้าหน้าที่ฯ)</span>
-                    <div v-if="!isView">
+                    <div v-if="!isFormFieldsReadOnly">
                       <input ref="fileVehicleReceiptInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'vehicle_receipt')" />
                       <q-btn v-if="!fileData.vehicle_receipt.name && !model.fileVehicleReceipt" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด" @click="$refs.fileVehicleReceiptInput.click()" />
                       <div v-else class="row items-center q-gutter-x-sm">
@@ -362,18 +362,18 @@
                         <q-btn v-if="model.fileVehicleReceipt" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileVehicleReceipt)" />
                       </div>
                     </div>
-                    <div v-else-if="isView && model.fileVehicleReceipt" class="row items-center q-gutter-x-sm">
+                    <div v-else-if="isFormFieldsReadOnly && model.fileVehicleReceipt" class="row items-center q-gutter-x-sm">
                       <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileVehicleReceipt)" class="q-ma-none" size="sm" />
                       <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileVehicleReceipt)" />
                       <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileVehicleReceipt)" />
                     </div>
-                    <span v-else-if="isView && !model.fileVehicleReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                    <span v-else-if="isFormFieldsReadOnly && !model.fileVehicleReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                   </div>
                 </div>
                 <div class="col-12">
                   <div class="row items-center justify-between q-mb-xs">
                     <span>2. ใบสำคัญรับเงินหรือหลักฐานอื่น</span>
-                    <div v-if="!isView">
+                    <div v-if="!isFormFieldsReadOnly">
                       <input ref="fileVehicleDocInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'vehicle_document')" />
                       <q-btn v-if="!fileData.vehicle_document.name && !model.fileVehicleDocument" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด" @click="$refs.fileVehicleDocInput.click()" />
                       <div v-else class="row items-center q-gutter-x-sm">
@@ -382,12 +382,12 @@
                         <q-btn v-if="model.fileVehicleDocument" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileVehicleDocument)" />
                       </div>
                     </div>
-                    <div v-else-if="isView && model.fileVehicleDocument" class="row items-center q-gutter-x-sm">
+                    <div v-else-if="isFormFieldsReadOnly && model.fileVehicleDocument" class="row items-center q-gutter-x-sm">
                       <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileVehicleDocument)" class="q-ma-none" size="sm" />
                       <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileVehicleDocument)" />
                       <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileVehicleDocument)" />
                     </div>
-                    <span v-else-if="isView && !model.fileVehicleDocument" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                    <span v-else-if="isFormFieldsReadOnly && !model.fileVehicleDocument" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                   </div>
                 </div>
               </template>
@@ -403,13 +403,13 @@
           style="background : #BFBFBF;" label="ย้อนกลับ" no-caps :to="{ name: 'welfare_management_list' }" />
           <q-btn :disable="isButtonDisabled || isValidate" id="button-draft"
           class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
-          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal && !isFinancialActionOnly" />
+          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal && !isFinancialApprover" />
         <q-btn id="button-approve"
         class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #E52020"
-        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
+        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
         <q-btn :disable="isFinancialWaitPayment ? false : (isButtonDisabled || isValidate)" id="button-approve"
           class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #43a047"
-          label="อนุมัติ" no-caps @click="submit(3)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
+          label="อนุมัติ" no-caps @click="submit(3)" v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
       </div>
     </template>
   </PageLayout>
@@ -453,8 +453,8 @@ const authStore = useAuthStore();
 const isFinancialPendingFinal = computed(
   () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
 );
-const isFinancialActionOnly = computed(
-  () => authStore.roleId === 2
+const isFinancialApprover = computed(
+  () => authStore.roleId === 2 || authStore.roleId === 5
 );
 const isFinancialWaitPayment = computed(
   () => authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน"
@@ -596,6 +596,9 @@ const claimedUsers = ref([]);
 const isError = ref({});
 const remaining = ref({});
 const isView = ref(false);
+const isFormFieldsReadOnly = computed(
+  () => isView.value || isFinancialApprover.value
+);
 const isLoading = ref(false);
 const userData = ref({});
 const canRequest = ref({

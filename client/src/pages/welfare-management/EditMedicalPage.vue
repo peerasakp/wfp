@@ -3,7 +3,7 @@
     <template v-slot:page>
       <!--General Information Section -->
       <div class="row q-col-gutter-md q-pl-md q-pt-md">
-        <div :class="isView ? 'col' : 'col-md-9 col-12'">
+        <div :class="isFormFieldsReadOnly ? 'col' : 'col-md-9 col-12'">
           <q-card flat bordered class="full-height">
             <q-card-section class="font-18 font-bold">
               <p class="q-mb-none">ข้อมูลผู้เบิกสวัสดิการ</p>
@@ -35,7 +35,7 @@
             </q-card-section>
           </q-card>
         </div>
-        <div class="col-md-3 col-12" v-if="!isView">
+        <div class="col-md-3 col-12" v-if="!isFormFieldsReadOnly">
           <q-card flat bordered class="full-height">
             <q-card-section class="q-px-md font-18 font-bold">
               <p class="q-mb-none">สิทธิ์คงเหลือ</p>
@@ -59,13 +59,13 @@
             <q-card-section class="flex justify-between q-px-md q-pt-md q-pb-md font-18 font-bold">
               <p class="q-mb-none">ข้อมูลการเบิกสวัสดิการ</p>
               <a class="q-mb-none font-regular font-16 text-blue-7 cursor-pointer"
-                v-if="(isView || authStore.roleId === 5) && ['รอตรวจสอบ', 'รออนุมัติ', 'รอจ่ายเงิน', 'อนุมัติ'].includes(model.status)" @click.stop.prevent="
+                v-if="isFormFieldsReadOnly && ['รอตรวจสอบ', 'รออนุมัติ', 'รอจ่ายเงิน', 'อนุมัติ'].includes(model.status)" @click.stop.prevent="
                   downloadData()">
                 <q-icon :name="outlinedDownload" />
                 <span> Export</span>
               </a>
             </q-card-section>
-            <q-card-section v-show="isView || isEdit" class="row wrap font-medium q-pb-xs font-16 text-grey-9">
+            <q-card-section v-show="isFormFieldsReadOnly || isEdit" class="row wrap font-medium q-pb-xs font-16 text-grey-9">
               <p class="col-md-4 col-12 q-mb-none">เลขที่ใบเบิก : {{ model.reimNumber ?? "-" }}</p>
               <p class="col-md-4 col-12 q-mb-none">วันที่ร้องขอ : {{ formatDateThaiSlash(model.requestDate) ?? "-" }}
               </p>
@@ -74,8 +74,8 @@
               }}</span> </p>
             </q-card-section>
             <q-card-section class="row wrap font-medium q-pb-xs font-16 text-grey-9 items-center"
-              :class="isView ? '' : 'q-pl-sm'">
-              <q-checkbox v-if="!isView" v-model="model.selectedAccident" />
+              :class="isFormFieldsReadOnly ? '' : 'q-pl-sm'">
+              <q-checkbox v-if="!isFormFieldsReadOnly" v-model="model.selectedAccident" />
               <p class="q-mb-none">ประสบอุบัติเหตุขณะปฏิบัติงานในหน้าที่ (จ่ายไม่เกินคนละ {{ remaining?.accident.fund ?
                 remaining?.accident.fund + " บาทต่อปี" :
                 remaining?.accident.perTimesRemaining ? remaining?.accident.perTimesRemaining + " บาทต่อครั้ง" :
@@ -85,14 +85,14 @@
             <q-card-section class="row wrap font-medium q-pb-xs font-16 text-grey-9">
               <InputGroup for-id="fund-receipt-accident" is-dense v-model="model.fundReceipt"
                 :data="model.fundReceipt ?? '-'" is-require label="จำนวนเงินตามใบสำคัญรับเงิน (บาท)"
-                :disable="!model.selectedAccident" placeholder="บาท" type="number" :is-view="isView"
+                :disable="!model.selectedAccident" placeholder="บาท" type="number" :is-view="isFormFieldsReadOnly"
                 compclass="col-xs-12 col-lg-4 col-xl-3 q-mr-lg-xl"
                 :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน']"
                 :error-message="isError?.fundReceipt" :error="!!isError?.fundReceipt">
               </InputGroup>
               <InputGroup for-id="fund-claim-accident" is-dense v-model="model.fundEligible"
                 class="q-py-xs-md q-py-lg-none" :data="model.fundEligible ?? '-'" is-require
-                label="จำนวนเงินที่ต้องการเบิก (บาท)" placeholder="บาท" type="number" :is-view="isView"
+                label="จำนวนเงินที่ต้องการเบิก (บาท)" placeholder="บาท" type="number" :is-view="isFormFieldsReadOnly"
                 compclass="col-xs-12 col-lg-4 col-xl-3 q-ml-lg-xl" :disable="!model.selectedAccident" :rules="[
                   (val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินที่ต้องการเบิก',
                   (val) => model.selectedAccident && !isOverAccident || 'จำนวนเงินที่ต้องการเบิกห้ามมากกว่าจำนวนเงินตามใบเสร็จ',
@@ -104,8 +104,8 @@
 
             </q-card-section>
             <q-card-section class="row wrap q-pt-none font-medium q-pb-xs font-16 text-grey-9 items-center"
-              :class="isView ? '' : 'q-pl-sm'">
-              <q-checkbox v-if="!isView" v-model="model.selectedPatientVisit" />
+              :class="isFormFieldsReadOnly ? '' : 'q-pl-sm'">
+              <q-checkbox v-if="!isFormFieldsReadOnly" v-model="model.selectedPatientVisit" />
               <p class="q-mb-none">ค่าเยี่ยมไข้ผู้ปฏิบัติงาน (กรณีผู้ป่วยใน) คนละไม่เกิน {{ remaining?.patientVisit.fund
                 ?
                 remaining?.patientVisit.fund + " บาทต่อปี" :
@@ -117,14 +117,14 @@
                   remaining?.patientVisit.perYears ?? 'ไม่จำกัดครั้ง' }}</p>
             </q-card-section>
             <q-card-section class="row wrap font-medium q-pb-sm font-16 text-grey-9">
-              <InputGroup label="ตั้งแต่วันที่" :is-view="isView" compclass="col-xs-12 col-lg-4 col-xl-3 q-mr-lg-xl"
+              <InputGroup label="ตั้งแต่วันที่" :is-view="isFormFieldsReadOnly" compclass="col-xs-12 col-lg-4 col-xl-3 q-mr-lg-xl"
                 clearable :data="model.startDate ?? '-'" is-require>
                 <DatePicker :disabled="!model.selectedPatientVisit" class="col-12" is-dense
                   v-model:model="model.startDate" v-model:dateShow="model.startDate" for-id="start-date" :no-time="true"
                   :rules="[(val) => !!val || 'กรุณากรอก วัน/เดือน/ปี ตั้งแต่วันที่']"
                   :error-message="isError?.startDate" :error="!!isError?.startDate" />
               </InputGroup>
-              <InputGroup label="ถึงวันที่" :is-view="isView" compclass="col-xs-12 col-lg-4 col-xl-3 q-ml-lg-xl"
+              <InputGroup label="ถึงวันที่" :is-view="isFormFieldsReadOnly" compclass="col-xs-12 col-lg-4 col-xl-3 q-ml-lg-xl"
                 clearable :data="model.endDate ?? '-'" is-require>
                 <DatePicker is-dense :disabled="!model.selectedPatientVisit" v-model:model="model.endDate"
                   v-model:dateShow="model.endDate" for-id="end-date" :no-time="true"
@@ -135,14 +135,14 @@
             <q-card-section class="q-pt-none row wrap font-medium q-pb-xs font-16 text-grey-9">
               <InputGroup for-id="fund-receipt-visit" is-dense v-model="model.fundReceiptPatientVisit"
                 :data="model.fundReceiptPatientVisit ?? '-'" is-require label="จำนวนเงินตามใบสำคัญรับเงิน (บาท)"
-                :disable="!model.selectedPatientVisit" placeholder="บาท" type="number" :is-view="isView"
+                :disable="!model.selectedPatientVisit" placeholder="บาท" type="number" :is-view="isFormFieldsReadOnly"
                 compclass="col-xs-12 col-lg-4 col-xl-3 q-mr-lg-xl"
                 :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบสำคัญรับเงิน']"
                 :error-message="isError?.fundReceiptPatientVisit" :error="!!isError?.fundReceiptPatientVisit">
               </InputGroup>
               <InputGroup for-id="fund-claim-visit" is-dense v-model="model.fundSumRequestPatientVisit"
                 :data="model.fundSumRequestPatientVisit ?? '-'" is-require label="จำนวนเงินที่ต้องการเบิก (บาท)"
-                placeholder="บาท" type="number" :is-view="isView" class="q-py-xs-md q-py-lg-none"
+                placeholder="บาท" type="number" :is-view="isFormFieldsReadOnly" class="q-py-xs-md q-py-lg-none"
                 compclass="col-xs-12 col-lg-4 col-xl-3 q-ml-lg-xl" :disable="!model.selectedPatientVisit" :rules="[
                   (val) => !!val || 'กรุณากรอกข้อมูลจำนวนที่ต้องการเบิก',
                   (val) => model.selectedPatientVisit && !isOverPatientVisit || 'จำนวนเงินที่ต้องการเบิกห้ามมากกว่าจำนวนเงินตามใบเสร็จ',
@@ -246,13 +246,13 @@
           style="background : #BFBFBF;" label="ย้อนกลับ" no-caps :to="{ name: 'welfare_management_list' }" />
         <q-btn :disable="isValidate" id="button-draft"
           class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
-          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal && !isFinancialActionOnly" />
+          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal && !isFinancialApprover" />
         <q-btn id="button-approve"
         class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #E52020"
-        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
+        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
         <q-btn :disable="isFinancialWaitPayment ? false : ((!canRequest.accident && !canRequest.patientVisit) || isValidate)" id="button-approve"
           class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #43a047"
-          label="อนุมัติ" no-caps @click="submit(3)" v-if="!isView && !isLoading && !isFinancialPendingFinal" />
+          label="อนุมัติ" no-caps @click="submit(3)" v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
       </div>
     </template>
   </PageLayout>
@@ -307,8 +307,8 @@ const route = useRoute();
 const isFinancialPendingFinal = computed(
   () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
 );
-const isFinancialActionOnly = computed(
-  () => authStore.roleId === 2
+const isFinancialApprover = computed(
+  () => authStore.roleId === 2 || authStore.roleId === 5
 );
 const isFinancialWaitPayment = computed(
   () => authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน"
@@ -342,6 +342,9 @@ const canRequest = ref({
   patientVisit: false,
 });
 const isView = ref(false);
+const isFormFieldsReadOnly = computed(
+  () => isView.value || isFinancialApprover.value
+);
 const userInitialData = ref([]);
 const previewDialog = ref({ show: false, url: null, type: null, fileName: null, serverFileName: null });
 const isEdit = computed(() => {
