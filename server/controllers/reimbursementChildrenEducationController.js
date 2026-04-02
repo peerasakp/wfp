@@ -227,11 +227,13 @@ class Controller extends BaseController {
         const dataCreate = req.body;
         dataCreate.fund_receipt = isNaN(dataCreate.fund_receipt) ? 0 : parseFloat(dataCreate.fund_receipt);
         try {
+            let createdId = null;
             const results = await sequelize.transaction(async t => {
                 const newReimbursementsChild = await reimbursementsChildrenEducation.create(dataCreate, { transaction: t });
+                createdId = newReimbursementsChild.id;
                 if (!isNullOrEmpty(child)) {
                     if (child.length > 3) {
-                        return res.status(400).json({ message: "ไม่สามารถเพิ่มข้อมูลบุตรได้เกิน 3 คน" });
+                        throw new Error("CHILD_LIMIT_EXCEEDED");
                     }
             
                     for (let childObj of child) {
@@ -307,16 +309,25 @@ class Controller extends BaseController {
                     });
                 }
 
-                if (!isNullOrEmpty(child)) return itemsReturned;
-                return newReimbursementsChild;
+                // if (!isNullOrEmpty(child)) return itemsReturned;
+                // return newReimbursementsChild;
+                return {
+                    id: newReimbursementsChild.id
+                };
             });
-
-            res.status(201).json({ newItem: results, message: "บันทึกข้อมูลสำเร็จ" });
+            logger.info('Complete', { method, data: { id } });
+            return res.status(201).json({
+                newItem: { id: createdId ?? results?.id },
+                message: "บันทึกข้อมูลสำเร็จ"
+            });
         } catch (error) {
             logger.error(`Error ${error.message}`, {
                 method,
                 data: { id },
             });
+            if (error.message === "CHILD_LIMIT_EXCEEDED") {
+                return res.status(400).json({ message: "ไม่สามารถเพิ่มข้อมูลบุตรได้เกิน 3 คน" });
+            }
             next(error);
         }
     };
@@ -504,10 +515,10 @@ class Controller extends BaseController {
 
             if (result) {
                 logger.info('Complete', { method, data: { id } });
-                return res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+                return res.status(201).json({ updatedItem: { id: dataId }, newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
             }
 
-            res.status(400).json({ message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
+            res.status(400).json({ updatedItem: { id: dataId }, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
         }
         catch (error) {
             logger.error(`Error ${error.message}`, {
