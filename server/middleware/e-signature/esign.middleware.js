@@ -194,13 +194,29 @@ class esign {
             )
             return respone.data.result;
         } catch (error) {
+            console.error(
+                '[esign.signature]',
+                error?.response?.data ?? error?.message ?? error
+            );
             return null;
         }
     }
     //
     // This function is used to
     acknowledgeDisburse = async (req, res, next) => {
-        const signature = await this.signature(req.user.psn_id);
+        const psnForSign = req.user?.psn_id;
+        if (!psnForSign) {
+            return res.status(400).json({
+                message: 'ไม่พบ psn_id สำหรับดึงลายเซ็นดิจิทัล กรุณาตรวจสอบข้อมูลผู้ใช้',
+            });
+        }
+        const signature = await this.signature(psnForSign);
+        if (!signature?.SIGN_BASE64) {
+            return res.status(400).json({
+                message:
+                    'ไม่สามารถดึงลายเซ็นดิจิทัลได้ (SIGN_BASE64) กรุณาตรวจสอบบริการ e-sign, psn_id และสิทธิ์การลงนาม',
+            });
+        }
         try {
             // Read PDF file
             const pdfBytes = fs.readFileSync(req.esign.filePath);

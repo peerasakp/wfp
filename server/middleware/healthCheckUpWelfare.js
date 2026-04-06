@@ -1,4 +1,4 @@
-const { isNullOrEmpty, getFiscalYear, getYear2Digits, formatNumber, isInvalidNumber , dynamicCheckRemaining } = require('../middleware/utility');
+const { isNullOrEmpty, getFiscalYear, getYear2Digits, formatNumber, isInvalidNumber , dynamicCheckRemaining, canApplicantEditReimbursement, editorUpdateAllowedStatuses } = require('../middleware/utility');
 const { initLogger } = require('../logger');
 const logger = initLogger('HealthCheckupValidator');
 const { Op, literal, col } = require('sequelize')
@@ -321,7 +321,7 @@ const bindUpdate = async (req, res, next) => {
         }
         const dataId = req.params['id'];
         const results = await reimbursementsGeneral.findOne({
-            attributes: ["status", "created_by"],
+            attributes: ["status", "created_by", "document_path"],
             where: { id: dataId, categories_id: category.healthCheckup },
         });
         var createByData;
@@ -333,7 +333,7 @@ const bindUpdate = async (req, res, next) => {
                     message: "ไม่มีสิทธิ์แก้ไขให้คนอื่นได้",
                 });
             }
-            if (!req.access && datas.status !== statusText.draft) {
+            if (!req.access && !canApplicantEditReimbursement(datas, statusText)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
@@ -343,7 +343,8 @@ const bindUpdate = async (req, res, next) => {
                 : roleId === 2
                     ? [statusText.waitApprove, statusText.waitPayment]
                     : [statusText.waitApprove];
-            if (req.access && !allowStatusByRole.includes(datas.status)) {
+            const editorAllowed = editorUpdateAllowedStatuses(allowStatusByRole, statusText);
+            if (req.access && !editorAllowed.includes(datas.status)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });

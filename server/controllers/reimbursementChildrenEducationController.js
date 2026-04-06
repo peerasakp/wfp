@@ -7,6 +7,7 @@ const logger = initLogger('reimbursementChildrenEducationController');
 const childType = require('../enum/childType');
 const sub_categories = require('../models/mariadb/sub_categories');
 const { dynamicCheckRemaining } = require("../middleware/utility");
+const { tryContinueSubmitDraftEsign } = require("../middleware/submitDraftWithEsign.middleware");
 const status = require('../enum/status');
 
 class Controller extends BaseController {
@@ -513,6 +514,9 @@ class Controller extends BaseController {
 
             if (result) {
                 logger.info('Complete', { method, data: { id } });
+                if (tryContinueSubmitDraftEsign(req, res, next, { dataId, dataUpdate })) {
+                    return;
+                }
                 return res.status(201).json({ updatedItem: { id: dataId }, newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
             }
 

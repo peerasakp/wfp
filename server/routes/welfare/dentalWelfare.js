@@ -23,6 +23,8 @@ const {
 const { dental } = require('../../middleware/pdf-management/pdfManagement.middleware');
 const esign = require('../../middleware/e-signature/esign.middleware');
 const minio = require('../../middleware/e-signature/minio.middleware');
+const { prepareGeneralSubmitEsign, respondDraftCreateWithoutEsign } = require('../../middleware/submitDraftWithEsign.middleware');
+const category = require('../../enum/category');
 
 // Get Methods
 router.get('/', authPermission, bindFilter, reimbursementsGeneralController.list);
@@ -31,11 +33,11 @@ router.get('/file/get-by-name', authPermission, getFileByName);
 router.get('/:id', authPermission, byIdMiddleWare, logReimbursementView('DENTAL'), reimbursementsGeneralController.getById);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, logReimbursementView('DENTAL'), reimbursementsGeneralController.getById);
 // Post Methods
-router.post('/', authPermission, logReimbursementCreate('DENTAL'), checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, dental, esign.acknowledgeDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
+router.post('/', authPermission, logReimbursementCreate('DENTAL'), checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.create, respondDraftCreateWithoutEsign, dental, esign.acknowledgeDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.post('/file/upload/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 router.post('/file/delete/:id', authPermission, deleteFileFromRecord);
 // Put Methods
-router.put('/:id', authPermission, checkNullValue, logReimbursementUpdate('DENTAL'),bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update);
+router.put('/:id', authPermission, checkNullValue, logReimbursementUpdate('DENTAL'), prepareGeneralSubmitEsign(category.dentalWelfare), bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsGeneralController.update, dental, esign.acknowledgeDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.put('/update-welfare/:id', authPermissionEditor,logReimbursementUpdate('DENTAL'), checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, esign.preloadGeneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.put('/approve-welfare/:id', authPermissionEditor, logReimbursementUpdate('DENTAL'), checkNullValue, bindUpdate, esign.preloadGeneralApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update);
 router.put('/disburse-welfare/:id', authPermissionEditor, logReimbursementUpdate('DENTAL'), checkNullValue, bindUpdate, esign.preloadGeneralDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsGeneralController.update)

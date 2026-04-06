@@ -88,6 +88,24 @@ const dynamicCheckRemaining = (remaining) => {
   }
 };
 
+/** Applicant may edit draft, or resubmit after failed e-sign (wait approve, no document yet). */
+function canApplicantEditReimbursement(datas, statusTextEnum) {
+  if (datas.status === statusTextEnum.draft) return true;
+  const docMissing =
+    datas.document_path == null || String(datas.document_path).trim() === '';
+  return datas.status === statusTextEnum.waitApprove && docMissing;
+}
+
+/** Editors may open drafts from welfare management; keep role-specific approval statuses. */
+function editorUpdateAllowedStatuses(allowStatusByRole, statusTextEnum) {
+  if (!Array.isArray(allowStatusByRole)) {
+    return statusTextEnum?.draft != null ? [statusTextEnum.draft] : [];
+  }
+  return allowStatusByRole.includes(statusTextEnum.draft)
+    ? allowStatusByRole
+    : [...allowStatusByRole, statusTextEnum.draft];
+}
+
 module.exports = {
   isNullOrEmpty,
   checkRequire,
@@ -97,5 +115,7 @@ module.exports = {
   isInvalidNumber,
   betweenFiscalByYear,
   getFiscalYearDynamic,
-  dynamicCheckRemaining
+  dynamicCheckRemaining,
+  canApplicantEditReimbursement,
+  editorUpdateAllowedStatuses
 };

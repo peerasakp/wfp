@@ -131,8 +131,14 @@ const fetchDatareimChildrenEducation = async (req, res, next) => {
                 }
             ],
         });
-        if (!requestData && !childrenData) {
+        if (!requestData) {
             logger.info('Data not Found', { method, data: { id } });
+            return res.status(200).json({
+                message: "ไม่พบข้อมูล"
+            });
+        }
+        if (!childrenData || childrenData.length === 0) {
+            logger.info('Children data not Found', { method, data: { id, dataId } });
             return res.status(200).json({
                 message: "ไม่พบข้อมูล"
             });

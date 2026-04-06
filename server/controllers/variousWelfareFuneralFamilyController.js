@@ -7,6 +7,7 @@ const logger = initLogger('variousWelfareFuneralFamilyController');
 const { getFiscalYearDynamic, getFiscalYear, dynamicCheckRemaining } = require('../middleware/utility');
 const { isNullOrEmpty } = require('./utility');
 const status = require('../enum/status');
+const { tryContinueSubmitDraftEsign } = require('../middleware/submitDraftWithEsign.middleware');
 
 class Controller extends BaseController {
     constructor() {
@@ -674,6 +675,9 @@ class Controller extends BaseController {
 
             if (result) {
                 logger.info('Complete', { method, data: { id } });
+                if (tryContinueSubmitDraftEsign(req, res, next, { dataId, dataUpdate })) {
+                    return;
+                }
                 return res.status(200).json({ updatedItem: { id: dataId }, newItem: result, message: "อัปเดตข้อมูลสำเร็จ" });
             } else {
                 res.status(400).json({ updatedItem: { id: dataId }, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });

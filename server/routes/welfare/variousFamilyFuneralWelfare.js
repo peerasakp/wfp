@@ -23,6 +23,7 @@ const {
 const { funeralFamily } = require('../../middleware/pdf-management/pdfManagement.middleware');
 const esign = require('../../middleware/e-signature/esign.middleware');
 const minio = require('../../middleware/e-signature/minio.middleware');
+const { prepareAssistFamilySubmitEsign, respondDraftCreateWithoutEsign } = require('../../middleware/submitDraftWithEsign.middleware');
 
 // Get Methods
 router.get('/', authPermission, bindFilter, reimbursementsAssistController.list);
@@ -31,10 +32,10 @@ router.get('/get-file', authPermission, getFileByName);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, logReimbursementView('VARIOUS_FUNERAL_FAMILY'), reimbursementsAssistController.getById);
 router.get('/:id', authPermission, byIdMiddleWare, logReimbursementView('VARIOUS_FUNERAL_FAMILY'), reimbursementsAssistController.getById);
 // Post Methods
-router.post('/', authPermission, logReimbursementCreate('VARIOUS_FUNERAL_FAMILY'), checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.create, funeralFamily, esign.acknowledgeDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
+router.post('/', authPermission, logReimbursementCreate('VARIOUS_FUNERAL_FAMILY'), checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.create, respondDraftCreateWithoutEsign, funeralFamily, esign.acknowledgeDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 // Put Methods
-router.put('/:id', authPermission, logReimbursementUpdate('VARIOUS_FUNERAL_FAMILY'), checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.update);
+router.put('/:id', authPermission, logReimbursementUpdate('VARIOUS_FUNERAL_FAMILY'), prepareAssistFamilySubmitEsign, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsAssistController.update, funeralFamily, esign.acknowledgeDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.put('/update-welfare/:id', authPermissionEditor, logReimbursementUpdate('VARIOUS_FUNERAL_FAMILY'), checkNullValue, bindUpdate, getRemaining, checkUpdateRemaining, checkFullPerTimes, reimbursementsAssistController.update, esign.preloadFuneralVerify, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
 router.put('/delete-file/:id', authPermission, deleteFileFromRecord);
 router.put('/approve-welfare/:id', authPermissionEditor, logReimbursementUpdate('DENTAL'), checkNullValue, bindUpdate, esign.preloadAssistApprove, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsAssistController.update);
