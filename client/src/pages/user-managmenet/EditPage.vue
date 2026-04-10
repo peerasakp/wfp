@@ -203,7 +203,7 @@
               class="row items-center wrap q-col-gutter-md wrap font-medium q-pt-sm q-pb-none font-16 text-grey-9"
               v-for="(item, index) in model.child" :key="index">
               <p class="col-12 q-mb-none">บุตรคนที่ {{ index + 1 }}</p>
-              <InputGroup for-id="prefix-child" is-dense :data="item.prefix ?? '-'" is-require label="คำนำหน้า"
+              <InputGroup for-id="prefix-child" is-dense :data="item.prefix ?? '-'" label="คำนำหน้า"
                 placeholder="" type="text" :is-view="isView" :class="!isView ? 'q-pt-md q-pt-sm-none q-pb-xs' : ''">
                 <q-select use-input hide-selected hide-dropdown-icon clearable new-value-mode="add-unique" fill-input
                   input-debounce="0" popup-content-class="font-14 font-regular" class="font-14 font-regular"
