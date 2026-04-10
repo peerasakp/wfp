@@ -31,7 +31,7 @@ router.get('/get-file', authPermission, getFileByName);
 router.get('/:id', authPermission, byIdMiddleWare, logReimbursementView('FUNERAL_EMPLOYEE'), reimbursementsEmployeeDeceasedController.getById);
 router.get('/get-welfare/:id', authPermissionEditor, byIdMiddleWare, logReimbursementView('FUNERAL_EMPLOYEE'), reimbursementsEmployeeDeceasedController.getById);
 // Post Methods
-router.post('/', authPermission, logReimbursementCreate('FUNERAL_EMPLOYEE'), checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.create, respondDraftCreateWithoutEsign, funeralEmployee, esign.acknowledgeDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsEmployeeDeceasedController.update);
+router.post('/', authPermission, logReimbursementCreate('FUNERAL_EMPLOYEE'), checkNullValue, bindCreate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.create, respondDraftCreateWithoutEsign, funeralEmployee, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsEmployeeDeceasedController.update);
 router.post('/upload-file/:id', authPermission, handleFileUpload, uploadFilesForRecord);
 // Put Methods
 router.put('/:id', authPermission, logReimbursementUpdate('FUNERAL_EMPLOYEE'), prepareFuneralEmployeeSubmitEsign, checkNullValue, bindUpdate, getRemaining, checkRemaining, checkFullPerTimes, reimbursementsEmployeeDeceasedController.update, funeralEmployee, esign.acknowledgeDisburse, minio.putFile, esign.stamper, minio.getPublicFile, minio.deleteFile, esign.nornalize, reimbursementsEmployeeDeceasedController.update);
