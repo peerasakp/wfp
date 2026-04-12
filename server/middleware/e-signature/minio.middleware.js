@@ -111,8 +111,6 @@ class minio {
     // This function is used to authen and put pdf file to Minio (Object Store) 
     putFile = async (req, res, next) => {
         try {
-            console.log('==================== putfile ===================')
-            console.log('==== client: ', this.client)
             const token = await this.auth('write', this.provisionKey.putFile, 'put');
             const filePath = req.esign.filePath
             const data = new formData();
@@ -144,7 +142,6 @@ class minio {
     // This function is used to get pdf file form Minio
     getPublicFile = async (req, res, next) => {
         try {
-            console.log('Getfile Success :::::::::::::')
             const token = await this.auth('read', this.provisionKey.getPublicFile, 'get')
             const data = {
                 filePath:
@@ -203,7 +200,6 @@ class minio {
             )
             const relativePath = path.join(__dirname, '../../documents', req.esign.filePath)
             fs.unlinkSync(req.esign.filePath);
-            console.log('=================== delete success =================', req.esign)
             next();
         } catch (error) {
             next(error);

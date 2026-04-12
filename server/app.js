@@ -1,10 +1,6 @@
 const result = require('dotenv').config({
     path: `.env.${process.env.NODE_ENV || 'development'}`
 })
-console.log('Loading env from:', `.env.${process.env.sign}`)
-console.log('find config', `${process.env.ePersonKey}`)
-console.log('NODE_ENV:', process.env.NODE_ENV)
-console.log('PORT:', process.env.PORT)
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");

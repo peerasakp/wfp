@@ -1017,7 +1017,6 @@ class esign {
                 filePath: fullFilePath,
                 sum: this.toThaiNumeric(data?.fund_sum_request) || null
             }
-            console.log('===== preload :', req.esign);
             next();
         } catch (error) {
             next(error)
