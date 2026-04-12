@@ -1,5 +1,5 @@
 const { permissionsHasRoles, childrenInfomation, subCategories, reimbursementsChildrenEducationHasChildrenInfomation, reimbursementsChildrenEducation, users } = require('../models/mariadb')
-const { isNullOrEmpty, getFiscalYear, getYear2Digits, formatNumber, isInvalidNumber } = require('../middleware/utility');
+const { isNullOrEmpty, getFiscalYear, getYear2Digits, formatNumber, isInvalidNumber, canApplicantEditReimbursement, editorUpdateAllowedStatuses } = require('../middleware/utility');
 const permissionType = require('../enum/permission')
 const { Op, literal, col, fn } = require("sequelize");
 const { initLogger } = require('../logger');
@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
     filename: (req, file, cb) => {
         const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
         const timestamp = Date.now();
-        cb(null, `${timestamp}-${originalname}`);
+        cb(null, `${timestamp}-${file.fieldname}-${originalname}`);
     }
 });
 
@@ -201,23 +201,25 @@ const deleteFileFromRecord = async (req, res, next) => {
 const authPermission = async (req, res, next) => {
     const method = 'AuthPermission';
     const { roleId } = req.user;
+    if (roleId === 4) {
+        req.isEditor = true;
+        return next();
+    }
     try {
         const isAccess = await permissionsHasRoles.count({
             where: {
                 [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.childrenEdWelfare }],
             },
         });
-        if (!isAccess) {
+        const isEditor = await permissionsHasRoles.count({
+            where: {
+                [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.welfareManagement }],
+            },
+        });
+        if (!isAccess && !isEditor) {
             throw Error("You don't have access to this API");
         }
-        else {
-            const isEditor = await permissionsHasRoles.count({
-                where: {
-                    [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.childrenEdWelfare }],
-                },
-            });
-            if (isEditor) req.isEditor = true;
-        }
+        if (isEditor) req.isEditor = true;
         next();
     }
     catch (error) {
@@ -273,7 +275,7 @@ const getRemaining = async (req, res, next) => {
     const method = 'RemainingMiddleware';
     try {
         const { id } = req.user || {};
-        const { createFor } = req.query || {};
+        const { createFor, subCategoriesId } = req.query || {};
         const { created_by, createByData} = req.body || {};
 
         if(req.access && (req.body.status === statusType.NotApproved || req.body.status === statusType.approve) && !isNullOrEmpty(req.body.status)){
@@ -311,7 +313,20 @@ const getRemaining = async (req, res, next) => {
         req.query.filter[Op.and].push(
             {'$reimbursements_children_education_has_children_infomations.reimbursements_children_education.status$': { [Op.eq]: statusType.approve }},
             { '$reimbursements_children_education_has_children_infomations.reimbursements_children_education.request_date$': getFiscalYearWhere, },
-    );
+        );
+
+        // Filter by selected sub category when frontend sends subCategoriesId
+        if (!isNullOrEmpty(subCategoriesId)) {
+            const normalizedSubCategoriesId = Array.isArray(subCategoriesId)
+                ? subCategoriesId.map(Number).filter(item => !isNaN(item))
+                : [Number(subCategoriesId)].filter(item => !isNaN(item));
+
+            if (normalizedSubCategoriesId.length > 0) {
+                req.query.filter[Op.and].push({
+                    sub_categories_id: { [Op.in]: normalizedSubCategoriesId }
+                });
+            }
+        }
 
         next();
     } catch (error) {
@@ -482,7 +497,13 @@ const bindCreate = async (req, res, next) => {
         } = req.body;
 
         const { id, roleId } = req.user;
+        if (roleId === 4) {
+            return res.status(403).json({ message: "ไม่มีสิทธิ์สร้างสวัสดิการ" });
+        }
 
+        if (roleId === roleType.financialUser && !isNullOrEmpty(createFor) && createFor !== id) {
+            return res.status(400).json({ message: "เจ้าหน้าที่การเงินสามารถสร้างคำร้องของตนเองเท่านั้น" });
+        }
         if (!isNullOrEmpty(createFor) && roleId !== roleType.financialUser) {
             return res.status(400).json({ message: "ไม่มีสิทธิ์สร้างให้คนอื่นได้" });
         }
@@ -601,8 +622,11 @@ const bindUpdate = async (req, res, next) => {
             eligible
         } = req.body;
 
-
+        console.log('========bindUpdate===========')
         const { id, roleId } = req.user;
+        if (roleId === 4) {
+            return res.status(403).json({ message: "ไม่มีสิทธิ์แก้ไขสวัสดิการ" });
+        }
         if (!isNullOrEmpty(createFor) && roleId !== roleType.financialUser) {
             return res.status(400).json({
                 message: "ไม่มีสิทธิ์แก้ไขให้คนอื่นได้",
@@ -615,7 +639,7 @@ const bindUpdate = async (req, res, next) => {
         }
         const dataId = req.params['id'];
         const results = await reimbursementsChildrenEducation.findOne({
-            attributes: ["status", "created_by"],
+            attributes: ["status", "created_by", "document_path"],
             where: { id: dataId },
         });
         var createByData;
@@ -627,20 +651,41 @@ const bindUpdate = async (req, res, next) => {
                     message: "ไม่มีสิทธิ์แก้ไขให้คนอื่นได้",
                 });
             }
-            if (!req.access && datas.status !== statusText.draft) {
+            if (!req.access && !canApplicantEditReimbursement(datas, statusText)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
-            if (req.access && (datas.status != statusText.waitApprove)) {
+            const allowStatusByRole = roleId === roleType.deanUser
+                ? [statusText.waitFinalApprove]
+                : roleId === roleType.financialUser
+                    ? [statusText.waitApprove, statusText.waitPayment]
+                    : [statusText.waitApprove];
+            const editorAllowed = editorUpdateAllowedStatuses(allowStatusByRole, statusText);
+            if (req.access && !editorAllowed.includes(datas.status)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
+                });
+            }
+            if (req.access && roleId === roleType.financialUser && (actionId !== statusType.approve && actionId !== statusType.NotApproved)) {
+                return res.status(400).json({
+                    message: "เจ้าหน้าที่การเงินสามารถทำได้เฉพาะอนุมัติ/ไม่อนุมัติ",
                 });
             }
 
             if (req.access && (actionId === statusType.NotApproved || actionId === statusType.approve) && !isNullOrEmpty(actionId)) {
+                let statusId = actionId;
+                if (actionId === statusType.approve) {
+                    if (roleId === roleType.financialUser && datas.status === statusText.waitApprove) {
+                        statusId = statusType.waitFinalApprove;
+                    } else if (roleId === roleType.deanUser && datas.status === statusText.waitFinalApprove) {
+                        statusId = statusType.waitPayment;
+                    } else if (roleId === roleType.financialUser && datas.status === statusText.waitPayment) {
+                        statusId = statusType.approve;
+                    }
+                }
                 const dataBinding = {
-                    status: actionId,
+                    status: statusId,
                     updated_by: id,
                 }
                 req.body = dataBinding;
@@ -818,7 +863,12 @@ const byIdMiddleWare = async (req, res, next) => {
 const authPermissionEditor = async (req, res, next) => {
     const method = 'AuthPermissionEditor';
     const { roleId } = req.user;
+    if (roleId === 4) {
+        req.access = true;
+        return next();
+    }
     try {
+        console.log('=======authPermissionEditor========')
         const isAccess = await permissionsHasRoles.count({
             where: {
                 [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.welfareManagement }],
@@ -838,6 +888,7 @@ const authPermissionEditor = async (req, res, next) => {
 
 const checkNullValue = async (req, res, next) => {
     try {
+        console.log('=======checkNullValue========')
         const { spouse, marryRegis, child, actionId } = req.body;
         if (req.access && (actionId === statusType.NotApproved || actionId === statusType.approve) && !isNullOrEmpty(actionId)) {
             return next();
@@ -988,7 +1039,9 @@ const checkUpdateRemaining = async (req, res, next) => {
         const dataId = req.params['id'];
         const userId = req.user?.id;
         var whereObj = { ...filter }
-        const {child} = req.body;
+        const child = Array.isArray(req.body?.child) ? req.body.child : [];
+        const currentStatus = req.body?.status;
+        console.log('========== checkUpdateRemaining ========')
         console.log("child",child)
         const welfareCheckData = await reimbursementsChildrenEducation.findOne({
             attributes: ["fund_sum_request", "reim_number"],
@@ -1007,8 +1060,12 @@ const checkUpdateRemaining = async (req, res, next) => {
             });
         }
         const oldWelfareData = JSON.parse(JSON.stringify(welfareCheckData));
-        if(req.access && (req.body.status === statusType.NotApproved || req.body.status === statusType.approve) && !isNullOrEmpty(req.body.status)){
-            sendMail(oldWelfareData.created_by_user.email,oldWelfareData.reim_number,req.body.status,oldWelfareData.created_by_user.name);
+        if (req.access && (currentStatus === statusType.NotApproved || currentStatus === statusType.approve) && !isNullOrEmpty(currentStatus)) {
+            sendMail(oldWelfareData.created_by_user.email, oldWelfareData.reim_number, currentStatus, oldWelfareData.created_by_user.name);
+            return next();
+        }
+
+        if (child.length === 0) {
             return next();
         }
 
@@ -1076,7 +1133,7 @@ const checkUpdateRemaining = async (req, res, next) => {
                 requestsRemaining = data.requestsRemaining || 0;
                 fund = data.fund || 0;
                 perTimes = data.perTimes || 0;
-                if (status !== statusType.draft) {
+                if (currentStatus !== statusType.draft) {
                     if (fundRemaining === 0 || requestsRemaining === 0) {
                         logger.info(`No Remaining for child ${childName}`, { method });
                         return res.status(400).json({
@@ -1138,7 +1195,7 @@ const checkUpdateRemaining = async (req, res, next) => {
             }
 
         }
-        sendMail(oldWelfareData.created_by_user.email,oldWelfareData.reim_number,req.body.status,oldWelfareData.created_by_user.name);
+        sendMail(oldWelfareData.created_by_user.email, oldWelfareData.reim_number, currentStatus, oldWelfareData.created_by_user.name);
         next();
     }
     catch (error) {

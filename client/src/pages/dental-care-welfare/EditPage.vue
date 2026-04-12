@@ -630,7 +630,7 @@ function getFileName(filename) {
 function getFileType(filename) {
   if (!filename) return 'unknown';
   const ext = filename.split('.').pop().toLowerCase();
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+  if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return 'image';
   if (ext === 'pdf') return 'pdf';
   return 'unknown';
 }
@@ -933,7 +933,7 @@ async function submit(actionId) {
     },
   }).then(async (result) => {
     if (isValid && result.isConfirmed) {
-      const newRecordId = fetch.data?.newItem?.id || route.params.id;
+      const newRecordId = fetch.data?.newItem?.id || fetch.data?.updatedItem?.id || route.params.id;
       if (newRecordId && (fileReceipt.value.file || fileMedical.value.file || fileSocial.value.file)) {
         try {
           const formData = new FormData();

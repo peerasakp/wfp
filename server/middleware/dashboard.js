@@ -9,6 +9,9 @@ const { getFiscalYear, betweenFiscalByYear } = require('../middleware/utility');
 const authPermission = async (req, res, next) => {
 	const method = 'AuthPermission';
 	const { roleId } = req.user;
+	if (roleId === 4) {
+		return next();
+	}
 	try {
 		const isAccess = await permissionsHasRoles.count({
 			where: {

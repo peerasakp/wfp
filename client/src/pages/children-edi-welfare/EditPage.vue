@@ -1,4 +1,4 @@
-<template>
+q-btn<template>
   <PageLayout title="เบิกสวัสดิการเกี่ยวกับการศึกษาของบุตร">
     <template v-slot:page>
       <!--General Information Section -->
@@ -906,6 +906,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  isLoading.value = false;
+  isLoadings.value = false;
   if (previewUrl.value) {
     URL.revokeObjectURL(previewUrl.value);
   }
@@ -1524,9 +1526,10 @@ function abortFilterFn() {
 }
 
 async function fetchDataEdit() {
-  try {
-    const result = await reimbursementChildrenEducationService.dataById(route.params.id);
-    const returnedData = result.data.datas;
+  setTimeout(async () => {
+    try {
+      const result = await reimbursementChildrenEducationService.dataById(route.params.id);
+      const returnedData = result.data.datas;
 
       if (returnedData) {
         let prefix = null;
@@ -1590,13 +1593,15 @@ async function fetchDataEdit() {
         model.value.eligibleSubSenefits.push(returnedData?.eligibleSubSenefits);
       }
 
-  } catch (error) {
-    Notify.create({
-      message: error?.response?.data?.message ?? "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง",
-      position: "bottom-left",
-      type: "negative",
-    });
-  }
+    } catch (error) {
+      Notify.create({
+        message: error?.response?.data?.message ?? "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง",
+        position: "bottom-left",
+        type: "negative",
+      });
+    }
+    isLoading.value = false;
+  }, 100);
 }
 
 function removeChildForm(index) {
@@ -1954,7 +1959,6 @@ async function submit(actionId) {
   let isValid = false;
 
   let payload = {
-    ...(canCreateFor.value ? { createFor: model.value.createFor } : {}),
     prefix: model.value.prefix,
     fundSumReceipt: model.value.fundSumReceipt,
     fundEligible: model.value.fundEligible,
@@ -2112,10 +2116,9 @@ async function init() {
     }
   }
   catch (error) {
-    console.error("init children-edi-welfare error:", error);
-  } finally {
-    isLoading.value = false;
+    Promise.reject(error);
   }
+  isLoading.value = false;
 }
 </script>
 <style scoped>

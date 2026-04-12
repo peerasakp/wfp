@@ -1,4 +1,4 @@
-const { isNullOrEmpty, getFiscalYear, getYear2Digits, formatNumber, isInvalidNumber, dynamicCheckRemaining } = require('../middleware/utility');
+const { isNullOrEmpty, getFiscalYear, getYear2Digits, formatNumber, isInvalidNumber, dynamicCheckRemaining, canApplicantEditReimbursement, editorUpdateAllowedStatuses } = require('../middleware/utility');
 const { initLogger } = require('../logger');
 const logger = initLogger('UserValidator');
 const { Op, literal, col, fn } = require('sequelize')
@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, fileFolder),
     filename: (req, file, cb) => {
         const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
-        cb(null, Date.now() + '-' + originalname);
+        cb(null, Date.now() + '-' + file.fieldname + '-' + originalname);
     }
 });
 const fileFilter = (req, file, cb) => {
@@ -41,23 +41,25 @@ const uploadFiles = multer({
 const authPermission = async (req, res, next) => {
     const method = 'AuthPermission';
     const { roleId } = req.user;
+    if (roleId === 4) {
+        req.isEditor = true;
+        return next();
+    }
     try {
         const isAccess = await permissionsHasRoles.count({
             where: {
                 [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.generalWelfare }],
             },
         });
-        if (!isAccess) {
+        const isEditor = await permissionsHasRoles.count({
+            where: {
+                [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.welfareManagement }],
+            },
+        });
+        if (!isAccess && !isEditor) {
             throw Error("You don't have access to this API");
         }
-        else {
-            const isEditor = await permissionsHasRoles.count({
-                where: {
-                    [Op.and]: [{ roles_id: roleId }, { permissions_id: permissionType.welfareManagement }],
-                },
-            });
-            if (isEditor) req.isEditor = true;
-        }
+        if (isEditor) req.isEditor = true;
         next();
     }
     catch (error) {
@@ -68,6 +70,10 @@ const authPermission = async (req, res, next) => {
 const authPermissionEditor = async (req, res, next) => {
     const method = 'AuthPermissionEditor';
     const { roleId } = req.user;
+    if (roleId === 4) {
+        req.access = true;
+        return next();
+    }
     try {
         const isAccess = await permissionsHasRoles.count({
             where: {
@@ -287,7 +293,15 @@ const bindCreate = async (req, res, next) => {
         const {
             fundReceipt, decease, fundDecease, fundReceiptWreath, fundWreathUniversity, fundWreathArrange, fundSumReceipt,
             fundReceiptVechicle, fundVechicle, selectedWreath, selectedVechicle, fundSumRequest, createFor, actionId, deceasedType } = req.body;
-        const { id } = req.user;
+        const { id, roleId } = req.user;
+        if (roleId === 4) {
+            return res.status(403).json({ message: "ไม่มีสิทธิ์สร้างสวัสดิการ" });
+        }
+        if (roleId === 2 && !isNullOrEmpty(createFor) && createFor !== id) {
+            return res.status(400).json({
+                message: "เจ้าหน้าที่การเงินสามารถสร้างคำร้องของตนเองเท่านั้น",
+            });
+        }
         if (!isNullOrEmpty(createFor) && !req.isEditor) {
             return res.status(400).json({
                 message: "ไม่มีสิทธิ์สร้างให้คนอื่นได้",
@@ -343,7 +357,10 @@ const bindUpdate = async (req, res, next) => {
         const {
             fundReceipt, decease, fundDecease, fundReceiptWreath, fundWreathUniversity, fundWreathArrange, fundSumReceipt,
             fundReceiptVechicle, fundVechicle, selectedWreath, selectedVechicle, fundSumRequest, createFor, actionId, deceasedType } = req.body;
-        const { id } = req.user;
+        const { id, roleId } = req.user;
+        if (roleId === 4) {
+            return res.status(403).json({ message: "ไม่มีสิทธิ์แก้ไขสวัสดิการ" });
+        }
         if (!isNullOrEmpty(createFor) && !req.isEditor) {
             return res.status(400).json({
                 message: "ไม่มีสิทธิ์แก้ไขให้คนอื่นได้",
@@ -356,7 +373,7 @@ const bindUpdate = async (req, res, next) => {
         }
         const dataId = req.params['id'];
         const results = await reimbursementsAssist.findOne({
-            attributes: ["status", "created_by"],
+            attributes: ["status", "created_by", "document_path"],
             where: { id: dataId, categories_id: category.variousFuneralFamily },
         });
         var createByData;
@@ -368,19 +385,40 @@ const bindUpdate = async (req, res, next) => {
                     message: "ไม่มีสิทธิ์แก้ไขให้คนอื่นได้",
                 });
             }
-            if (!req.access && datas.status !== statusText.draft) {
+            if (!req.access && !canApplicantEditReimbursement(datas, statusText)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
                 });
             }
-            if (req.access && (datas.status != statusText.waitApprove)) {
+            const allowStatusByRole = roleId === 5
+                ? [statusText.waitFinalApprove]
+                : roleId === 2
+                    ? [statusText.waitApprove, statusText.waitPayment]
+                    : [statusText.waitApprove];
+            const editorAllowed = editorUpdateAllowedStatuses(allowStatusByRole, statusText);
+            if (req.access && !editorAllowed.includes(datas.status)) {
                 return res.status(400).json({
                     message: "ไม่สามารถแก้ไขได้ เนื่องจากสถานะไม่ถูกต้อง",
+                });
+            }
+            if (req.access && roleId === 2 && (actionId !== status.approve && actionId !== status.NotApproved)) {
+                return res.status(400).json({
+                    message: "เจ้าหน้าที่การเงินสามารถทำได้เฉพาะอนุมัติ/ไม่อนุมัติ",
                 });
             }
             if (req.access && (actionId === status.NotApproved || actionId === status.approve) && !isNullOrEmpty(actionId)) {
+                let statusId = actionId;
+                if (actionId === status.approve) {
+                    if (roleId === 2 && datas.status === statusText.waitApprove) {
+                        statusId = status.waitFinalApprove;
+                    } else if (roleId === 5 && datas.status === statusText.waitFinalApprove) {
+                        statusId = status.waitPayment;
+                    } else if (roleId === 2 && datas.status === statusText.waitPayment) {
+                        statusId = status.approve;
+                    }
+                }
                 const dataBinding = {
-                    status: actionId,
+                    status: statusId,
                     updated_by: id,
                 }
                 req.body = dataBinding;
@@ -1113,10 +1151,16 @@ const sanitizeFileName = (name) => {
 // Field name to file prefix mapping
 const fieldPrefixMap = {
     fileReceipt: 'receipt',
-    fileDocument: 'document',
     fileDeathCertificate: 'death-certificate',
     filePhoto: 'photo',
     fileHouseRegistration: 'house-registration',
+};
+
+const documentPrefixByDeceasedType = {
+    3: 'house-registration',
+    4: 'house-registration',
+    5: 'marriage-certificate',
+    6: 'birth-certificate',
 };
 
 // Generate filename: {prefix}-{date}-{userName}.{extension}
@@ -1176,15 +1220,25 @@ const uploadFilesForRecord = async (req, res, next) => {
         const requestDate = currentData.request_date || null;
 
         const updateData = {};
+        console.log('[uploadFilesForRecord] req.files keys:', req.files ? Object.keys(req.files) : 'NO FILES');
+        console.log('[uploadFilesForRecord] deceased_type:', currentData.deceased_type);
         for (const [fieldName, dbColumn] of Object.entries(fileFieldMap)) {
             if (req.files && req.files[fieldName] && req.files[fieldName][0]) {
                 if (record[dbColumn]) deleteFileFromDisk(record[dbColumn]);
                 const tempFileName = req.files[fieldName][0].filename;
-                const prefix = fieldPrefixMap[fieldName] || fieldName;
+                let prefix;
+                if (fieldName === 'fileDocument') {
+                    prefix = documentPrefixByDeceasedType[currentData.deceased_type] || 'document';
+                } else {
+                    prefix = fieldPrefixMap[fieldName] || fieldName;
+                }
                 const newFileName = generateFileName(tempFileName, userName, requestDate, prefix);
-                updateData[dbColumn] = renameFile(tempFileName, newFileName) || tempFileName;
+                const renamedFile = renameFile(tempFileName, newFileName);
+                console.log('[uploadFilesForRecord]', fieldName, ':', tempFileName, '->', newFileName, '| rename result:', renamedFile);
+                updateData[dbColumn] = renamedFile || tempFileName;
             }
         }
+        console.log('[uploadFilesForRecord] updateData:', updateData);
 
         if (Object.keys(updateData).length > 0) {
             await reimbursementsAssist.update(updateData, { where: { id: dataId } });

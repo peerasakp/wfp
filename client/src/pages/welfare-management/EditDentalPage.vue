@@ -3,7 +3,7 @@
     <template v-slot:page>
       <!--General Information Section -->
       <div class="row q-col-gutter-md q-pl-md q-pt-md">
-        <div :class="isView ? 'col' : 'col-md-9 col-12'">
+        <div :class="isFormFieldsReadOnly ? 'col' : 'col-md-9 col-12'">
           <q-card flat bordered class="full-height">
             <q-card-section class="font-18 font-bold">
               <p class="q-mb-none">ข้อมูลผู้เบิกสวัสดิการ</p>
@@ -35,7 +35,7 @@
             </q-card-section>
           </q-card>
         </div>
-        <div class="col-md-3 col-12" v-if="!isView">
+        <div class="col-md-3 col-12" v-if="!isFormFieldsReadOnly">
           <q-card flat bordered class="full-height">
             <q-card-section class="q-px-md font-18 font-bold">
               <p class="q-mb-none">สิทธิ์คงเหลือ</p>
@@ -56,13 +56,13 @@
             <q-card-section class="flex justify-between q-px-md q-pt-md q-pb-md font-18 font-bold">
               <p class="q-mb-none">ข้อมูลการเบิกสวัสดิการ</p>
               <a class="q-mb-none font-regular font-16 text-blue-7 cursor-pointer"
-                v-if="isView && (model.status == 'รอตรวจสอบ')" @click.stop.prevent="
+                v-if="isFormFieldsReadOnly && ['รอตรวจสอบ', 'รออนุมัติ', 'รอจ่ายเงิน', 'อนุมัติ'].includes(model.status)" @click.stop.prevent="
                   downloadData()">
                 <q-icon :name="outlinedDownload" />
                 <span> Export</span>
               </a>
             </q-card-section>
-            <q-card-section v-show="isView || isEdit" class="row wrap font-medium q-pb-xs font-16 text-grey-9">
+            <q-card-section v-show="isFormFieldsReadOnly || isEdit" class="row wrap font-medium q-pb-xs font-16 text-grey-9">
               <p class="col-md-4 col-12 q-mb-none">เลขที่ใบเบิก : {{ model.reimNumber ?? "-" }}</p>
               <p class="col-md-4 col-12 q-mb-none">วันที่ร้องขอ : {{ formatDateThaiSlash(model.requestDate) ?? "-" }}
               </p>
@@ -72,14 +72,14 @@
               <div class="col-12 col-lg">
                 <InputGroup for-id="fund-receipt" is-dense v-model="model.fundReceipt" :data="model.fundReceipt ?? '-'"
                   is-require label="จำนวนเงินตามใบเสร็จ (บาท)" placeholder="บาท" type="number" class=""
-                  :is-view="isView" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบเสร็จ']"
+                  :is-view="isFormFieldsReadOnly" :rules="[(val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินตามใบเสร็จ']"
                   :error-message="isError?.fundReceipt" :error="!!isError?.fundReceipt">
                 </InputGroup>
               </div>
               <div class="col-12 col-lg">
                 <InputGroup for-id="fund-claim" is-dense v-model="model.fundSumRequest"
                   :data="model.fundSumRequest ?? '-'" is-require label="จำนวนเงินที่ต้องการเบิก (บาท)" placeholder="บาท"
-                  type="number" class="q-py-xs-md q-py-lg-none" :is-view="isView" :rules="[
+                  type="number" class="q-py-xs-md q-py-lg-none" :is-view="isFormFieldsReadOnly" :rules="[
                     (val) => !!val || 'กรุณากรอกข้อมูลจำนวนเงินที่ต้องการเบิก',
                     (val) => !isOver || 'จำนวนเงินที่ต้องการเบิกห้ามมากกว่าจำนวนเงินตามใบเสร็จ',
                     (val) => isOverfundRemaining !== 2 || 'จำนวนที่ขอเบิกเกินจำนวนที่สามารถเบิกได้',
@@ -90,7 +90,7 @@
 
               </div>
               <div class="col-12 col-lg">
-                <InputGroup label="วัน/เดือน/ปี (ตามใบเสร็จ)" :is-view="isView" clearable
+                <InputGroup label="วัน/เดือน/ปี (ตามใบเสร็จ)" :is-view="isFormFieldsReadOnly" clearable
                   :data="model.dateReceipt ?? '-'" is-require>
                   <DatePicker class="col-12" is-dense v-model:model="model.dateReceipt"
                     v-model:dateShow="model.dateReceipt" for-id="date" :no-time="true"
@@ -165,13 +165,13 @@
           style="background : #BFBFBF;" label="ย้อนกลับ" no-caps :to="{ name: 'welfare_management_list' }" />
         <q-btn :disable="isValidate" id="button-draft"
           class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
-          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading" />
+          label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal && !isFinancialApprover" />
         <q-btn id="button-approve"
         class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #E52020"
-        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="!isView && !isLoading" />
-        <q-btn :disable="!canRequest || isValidate" id="button-approve"
+        label="ไม่อนุมัติ" no-caps @click="submit(4)" v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
+        <q-btn :disable="isFinancialWaitPayment ? false : (!canRequest || isValidate)" id="button-approve"
           class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #43a047"
-          label="อนุมัติ" no-caps @click="submit(3)" v-if="!isView && !isLoading" />
+          label="อนุมัติ" no-caps @click="submit(3)" v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
       </div>
     </template>
   </PageLayout>
@@ -225,6 +225,15 @@ defineOptions({
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
+const isFinancialPendingFinal = computed(
+  () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
+);
+const isFinancialApprover = computed(
+  () => authStore.roleId === 2 || authStore.roleId === 5
+);
+const isFinancialWaitPayment = computed(
+  () => authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน"
+);
 const model = ref({
   createFor: null,
   dateReceipt: null,
@@ -243,6 +252,9 @@ let options = ref([]);
 const isLoading = ref(false);
 const canRequest = ref(false);
 const isView = ref(false);
+const isFormFieldsReadOnly = computed(
+  () => isView.value || isFinancialApprover.value
+);
 const isFetchRemaining = ref(false);
 const isEdit = computed(() => {
   return !isNaN(route.params.id);
@@ -299,7 +311,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  model.value = null;
+  isLoading.value = false;
 });
 watch(
   model,
@@ -594,7 +606,11 @@ async function submit(actionId) {
     preConfirm: async () => {
       try {
         if (isEdit.value) {
-          fetch = await welfareManagementService.updateDental(route.params.id, payload);
+          fetch = await welfareManagementService.updateDental(route.params.id, {
+            ...payload,
+            isFinalApprove: authStore.roleId === 5,
+            isDisburseApprove: authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน",
+          });
         }
         else {
           fetch = await dentalWelfareService.create(payload);
@@ -721,7 +737,7 @@ function getFileName(filename) {
 function getFileType(filename) {
   if (!filename) return 'unknown';
   const ext = filename.split('.').pop().toLowerCase();
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+  if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return 'image';
   if (ext === 'pdf') return 'pdf';
   return 'unknown';
 }

@@ -4,6 +4,7 @@ const { Op, fn, col, literal } = require("sequelize");
 const { initLogger } = require('../logger');
 const logger = initLogger('variousWelfareController');
 const { isNullOrEmpty } = require('./utility');
+const { tryContinueSubmitDraftEsign } = require('../middleware/submitDraftWithEsign.middleware');
 
 class Controller extends BaseController {
     constructor() {
@@ -246,6 +247,29 @@ class Controller extends BaseController {
             next(error);
         }
     }
+
+    update = async (req, res, next) => {
+        const method = 'UpdateVariousWelfare';
+        const { id } = req.user;
+        const dataId = req.params['id'];
+        try {
+            const dataUpdate = req.body;
+            const [updated] = await reimbursementsAssist.update(dataUpdate, { where: { id: dataId } });
+            if (updated) {
+                if (tryContinueSubmitDraftEsign(req, res, next, { dataId, dataUpdate })) {
+                    return;
+                }
+                const updatedItem = await reimbursementsAssist.findByPk(dataId);
+                logger.info('Completed', { method, data: { id, dataId } });
+                return res.status(200).json({ updatedItem, message: 'สำเร็จ' });
+            }
+            logger.info('No Modify', { method, data: { id, dataId } });
+            return res.status(404).json({ message: 'ไม่มีข้อมูลที่ถูกแก้ไข' });
+        } catch (error) {
+            logger.error(`Error ${error.message}`, { method, data: { id, dataId } });
+            next(error);
+        }
+    };
 
 }
 

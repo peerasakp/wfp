@@ -3,7 +3,7 @@
         <template v-slot:page>
             <!--General Information Section -->
             <div class="row q-col-gutter-md q-pl-md q-pt-md">
-                <div :class="isView ? 'col-md-12 col-12' : 'col-md-9 col-12'">
+                <div :class="isFormFieldsReadOnly ? 'col-md-12 col-12' : 'col-md-9 col-12'">
                     <q-card flat bordered class="full-height">
 
                         <q-card-section class="font-18 font-bold">
@@ -43,7 +43,7 @@
 
                 </div>
 
-                <div v-if="!isView" class="col-md-3 col-12">
+                <div v-if="!isFormFieldsReadOnly" class="col-md-3 col-12">
                     <q-card flat bordered class="full-height">
                         <q-card-section class="q-px-md q-py-md font-18 font-bold">
                             <p class="q-mb-none">จำนวนเงินที่เบิกไปแล้ว</p>
@@ -65,7 +65,7 @@
                         <q-card-section class="flex justify-between q-px-md q-pt-md q-pb-md font-18 font-bold">
                             <p class="q-mb-none font-18 font-bold">ข้อมูลการเบิกสวัสดิการ</p>
                             <a class="q-mb-none font-regular font-16 text-blue-7 cursor-pointer"
-                                v-if="isView && (model.status == 'รอตรวจสอบ')" @click.stop.prevent="
+                                v-if="(isFormFieldsReadOnly || authStore.roleId === 5) && ['รอตรวจสอบ', 'รออนุมัติ', 'รอจ่ายเงิน', 'อนุมัติ'].includes(model.status)" @click.stop.prevent="
                                     downloadData()">
                                 <q-icon :name="outlinedDownload" />
                                 <span> Export</span>
@@ -74,7 +74,7 @@
 
                         <q-card-section class="q-px-md q-pb-none font-18 font-bold q-pt-none">
 
-                            <q-card-section v-show="isView || isEdit"
+                            <q-card-section v-show="isFormFieldsReadOnly || isEdit"
                                 class="row wrap font-medium q-pb-xs q-pl-none q-pt-none q-mb-md font-16 text-grey-9">
                                 <p class="col-md-3 col-12 q-mb-none">เลขที่ใบเบิก : {{ model.reimNumber ?? "-" }}</p>
                                 <p class="col-md-3 col-12 q-mb-none">วันที่ร้องขอ : {{
@@ -87,30 +87,30 @@
                             </q-card-section>
 
 
-                            <div v-if="isView" class="row q-mt-lg q-mb-none">
+                            <div v-if="isFormFieldsReadOnly" class="row q-mt-lg q-mb-none">
 
-                                <div v-if="isView" class="col-md-3 col-12 q-mb-none">
+                                <div v-if="isFormFieldsReadOnly" class="col-md-3 col-12 q-mb-none">
                                     <p class="font-16 require font-medium text-grey-9">สถานะ (ผู้เบิกที่มีต่อบุตร)</p>
                                     <div class="font-14 font-regular text-grey-9">
                                         {{ selectedparentalStatusLabel || '-' }}
                                     </div>
                                 </div>
 
-                                <div v-if="isView" class="col-md-3 col-12 q-mb-none">
+                                <div v-if="isFormFieldsReadOnly" class="col-md-3 col-12 q-mb-none">
                                     <p class="font-16 require font-medium text-grey-9">คู่สมรส</p>
                                     <div class="font-14 font-regular text-grey-9">
                                         {{ fullNameSpouse || '-' }}
                                     </div>
                                 </div>
 
-                                <div v-if="isView" class="col-md-3 col-12 q-mb-none">
+                                <div v-if="isFormFieldsReadOnly" class="col-md-3 col-12 q-mb-none">
                                     <p class="font-16 require font-medium text-grey-9">จดทะเบียนสมรส</p>
                                     <div class="font-14 font-regular text-grey-9">
                                         {{ selectedMarryLabel || '-' }}
                                     </div>
                                 </div>
 
-                                <div v-if="isView" class="col-md-3 col-12 q-mb-none">
+                                <div v-if="isFormFieldsReadOnly" class="col-md-3 col-12 q-mb-none">
                                     <p class="font-16 require font-medium text-grey-9 ">ประเภทบุคลากรคู่สมรส</p>
                                     <div class="font-14 font-regular text-grey-9">
                                         {{ selectedRoleLabel }}
@@ -121,13 +121,13 @@
                         </q-card-section>
 
                         <!-- User information request section -->
-                        <q-card-section v-if="!isView" class="q-pt-none">
-                            <p v-if="!isView" class="font-16 font-medium q-mb-none">ข้อมูลผู้เบิก</p>
+                        <q-card-section v-if="!isFormFieldsReadOnly" class="q-pt-none">
+                            <p v-if="!isFormFieldsReadOnly" class="font-16 font-medium q-mb-none">ข้อมูลผู้เบิก</p>
                             <div class="row q-py-md">
-                                <div v-if="!isView" class="col-lg-4 col-12 q-mr-lg-xl q-mr-sm-none q-pl-sm">
+                                <div v-if="!isFormFieldsReadOnly" class="col-lg-4 col-12 q-mr-lg-xl q-mr-sm-none q-pl-sm">
                                     <InputGroup for-id="parentalStatus" more-class="font-16 font-medium text-grey-9"
                                         label="สถานะที่มีต่อบุตร" is-require clearable
-                                        :data="model.parentalStatus ?? '-'" :is-view="isView">
+                                        :data="model.parentalStatus ?? '-'" :is-view="isFormFieldsReadOnly">
                                         <q-select hide-bottom-space
                                             popup-content-class="font-14 font-regular text-grey-9"
                                             v-model="model.parentalStatus" is-dense :loading="isLoading"
@@ -140,10 +140,10 @@
                                     </InputGroup>
                                 </div>
 
-                                <div v-if="!isView" class="col-lg-4 col-12 ">
+                                <div v-if="!isFormFieldsReadOnly" class="col-lg-4 col-12 ">
                                     <InputGroup for-id="marriageRegistration"
                                         more-class="font-16 font-medium text-grey-9" label="จดทะเบียนสมรส" is-require
-                                        clearable :data="model.marryRegis ?? '-'" :is-view="isView">
+                                        clearable :data="model.marryRegis ?? '-'" :is-view="isFormFieldsReadOnly">
                                         <q-select hide-bottom-space
                                             popup-content-class="font-14 font-regular text-grey-9"
                                             v-model="model.marryRegis" is-dense :loading="isLoading"
@@ -159,12 +159,12 @@
                         </q-card-section>
 
                         <!-- Spouse information request section -->
-                        <q-card-section v-if="!isView && model.marryRegis === 'YES'" class="q-pt-none">
-                            <p v-if="!isView" class="font-16 font-medium q-mb-none ">ข้อมูลคู่สมรส</p>
+                        <q-card-section v-if="!isFormFieldsReadOnly && model.marryRegis === 'YES'" class="q-pt-none">
+                            <p v-if="!isFormFieldsReadOnly" class="font-16 font-medium q-mb-none ">ข้อมูลคู่สมรส</p>
                             <div class="row q-py-md">
-                                <div v-if="!isView" class="col-lg-4 col-12 q-mr-xl  q-pl-sm">
+                                <div v-if="!isFormFieldsReadOnly" class="col-lg-4 col-12 q-mr-xl  q-pl-sm">
                                     <InputGroup for-id="prefix" is-dense :data="model.prefix ?? '-'" is-require
-                                        label="คำนำหน้า" placeholder="" type="text" :is-view="isView">
+                                        label="คำนำหน้า" placeholder="" type="text" :is-view="isFormFieldsReadOnly">
                                         <q-select use-input hide-selected hide-bottom-space hide-dropdown-icon clearable
                                             new-value-mode="add-unique" fill-input input-debounce="0"
                                             popup-content-class="font-14 font-regular" class="font-14 font-regular"
@@ -182,10 +182,10 @@
                                     </InputGroup>
                                 </div>
 
-                                <div v-if="!isView" class="col-lg-5 col-12">
+                                <div v-if="!isFormFieldsReadOnly" class="col-lg-5 col-12">
                                     <InputGroup for-id="spouse" is-dense v-model="model.spouse"
                                         :data="model.spouse ?? '-'" is-require label="คู่สมรส" placeholder="ชื่อ-สกุล"
-                                        type="text" class="font-16 font-regular" :is-view="isView"
+                                        type="text" class="font-16 font-regular" :is-view="isFormFieldsReadOnly"
                                         :error="!!isError?.spouse">
                                     </InputGroup>
                                 </div>
@@ -204,14 +204,14 @@
                                         <q-input for="officer-position" v-model="spouseData.officer.position" outlined
                                             dense :data="spouseData.officer.position ?? '-'"
                                             :disable="model.role !== 'ข้าราชการ'" class="col-md-8 col-12 q-mx-md"
-                                            :is-view="isView" />
+                                            :is-view="isFormFieldsReadOnly" />
                                     </div>
                                     <div class="col-lg-4 col-12 row items-center q-col-gutter-y-md">
                                         <p class="q-mb-none q-mx-md q-mt-xs-md q-mt-lg-none col-md-1 col-12">สังกัด</p>
                                         <q-input for="officer-belongTo" v-model="spouseData.officer.department" outlined
                                             dense :data="spouseData.officer.department ?? '-'"
                                             :disable="model.role !== 'ข้าราชการ'" class="col-md-8 col-12 q-mx-md"
-                                            :is-view="isView" />
+                                            :is-view="isFormFieldsReadOnly" />
                                     </div>
                                 </div>
 
@@ -229,7 +229,7 @@
                                         <q-input for="enterprises-position" v-model="spouseData.enterprises.position"
                                             outlined dense :data="spouseData.enterprises.position ?? '-'"
                                             :disable="model.role !== 'พนักงานหรือลูกจ้างในรัฐวิสาหกิจ'"
-                                            class="col-md-8 col-12 q-mx-md" :is-view="isView" />
+                                            class="col-md-8 col-12 q-mx-md" :is-view="isFormFieldsReadOnly" />
                                     </div>
 
                                     <div class="col-lg-4 col-12 row items-center q-col-gutter-y-md">
@@ -237,7 +237,7 @@
                                         <q-input for="enterprises-belongTo" v-model="spouseData.enterprises.department"
                                             outlined dense :data="spouseData.enterprises.department ?? '-'"
                                             :disable="model.role !== 'พนักงานหรือลูกจ้างในรัฐวิสาหกิจ'"
-                                            class="col-md-8 col-12 q-mx-md" :is-view="isView" />
+                                            class="col-md-8 col-12 q-mx-md" :is-view="isFormFieldsReadOnly" />
                                     </div>
                                 </div>
 
@@ -246,26 +246,26 @@
                         </q-card-section>
 
                         <!-- Rights exercise information request  section -->
-                        <q-card-section v-if="!isView" class="q-pt-none">
-                            <p v-if="!isView" class="font-16 font-medium q-mb-none">ข้อมูลการใช้สิทธิ</p>
-                            <p v-if="!isView" class="require q-pt-lg q-mb-none">ขอใช้สิทธิ</p>
-                            <div v-if="!isView" class="q-py-md ">
+                        <q-card-section v-if="!isFormFieldsReadOnly" class="q-pt-none">
+                            <p v-if="!isFormFieldsReadOnly" class="font-16 font-medium q-mb-none">ข้อมูลการใช้สิทธิ</p>
+                            <p v-if="!isFormFieldsReadOnly" class="require q-pt-lg q-mb-none">ขอใช้สิทธิ</p>
+                            <div v-if="!isFormFieldsReadOnly" class="q-py-md ">
                                 <div>
-                                    <q-checkbox v-if="!isView" v-model="model.eligibleBenefits"
+                                    <q-checkbox v-if="!isFormFieldsReadOnly" v-model="model.eligibleBenefits"
                                         label="(ก) สำหรับผู้ปฏิบัติงานที่เริ่มปฏิบัติงานตั้งแต่วันที่ 26 มีนาคม พ.ศ. 2561 หรือ ผู้ปฏิบัติงานที่ปฏิบัติงานก่อนประกาศนี้มีผลใช้บังคับและมีบุตรที่เริ่มเข้าศึกษาตั้งแต่ ปีการศึกษา 2561"
                                         color="primary" val="ก" class=" text-grey-9 items-start"
-                                        :disable="model.eligibleBenefits.includes('ข')" :is-view="isView" />
+                                        :disable="model.eligibleBenefits.includes('ข')" :is-view="isFormFieldsReadOnly" />
                                 </div>
 
-                                <div> <q-checkbox v-if="!isView" v-model="model.eligibleBenefits"
+                                <div> <q-checkbox v-if="!isFormFieldsReadOnly" v-model="model.eligibleBenefits"
                                         label="(ข) สำหรับผู้ปฏิบัติงานที่เริ่มปฏิบัติงานก่อนวันที่ 26 มีนาคม พ.ศ. 2561 หรือ ผู้ปฏิบัติงานที่ปฏิบัติงานก่อนประกาศนี้มีผลใช้บังคับ"
                                         color="primary" val="ข" class=" text-grey-9 items-start"
-                                        :disable="model.eligibleBenefits.includes('ก')" :is-view="isView" />
+                                        :disable="model.eligibleBenefits.includes('ก')" :is-view="isFormFieldsReadOnly" />
                                 </div>
 
-                                <div> <q-checkbox v-if="!isView" v-model="model.eligibleSubSenefits"
+                                <div> <q-checkbox v-if="!isFormFieldsReadOnly" v-model="model.eligibleSubSenefits"
                                         label="(ค) สำหรับผู้ปฏิบัติงานที่มีบุตร ที่เริ่มเข้าศึกษาในโรงเรียนสาธิต “พิบูลบำเพ็ญ” มหาวิทยาลัยบูรพา โดยเข้าศึกษาตั้งแต่ภาคปลายปีการศึกษา 2560 เป็นต้นไป"
-                                        color="primary" val="ค" class=" text-grey-9 items-start" :is-view="isView" />
+                                        color="primary" val="ค" class=" text-grey-9 items-start" :is-view="isFormFieldsReadOnly" />
                                 </div>
                             </div>
                             <q-separator />
@@ -278,12 +278,12 @@
                         <!-- is-views -->
 
 
-                        <q-card-section v-if="isView">
+                        <q-card-section v-if="isFormFieldsReadOnly">
 
-                            <div v-if="isView" class="row q-py-md">
+                            <div v-if="isFormFieldsReadOnly" class="row q-py-md">
                                 <div class="col-md-3">
                                     <p class="font-16 require font-medium text-grey-9 ">ขอรับเงินสวัสดิการ</p>
-                                    <div v-if="isView">
+                                    <div v-if="isFormFieldsReadOnly">
                                         <p class="font-14 font-regular text-grey-9 text">
                                             {{ model.eligible || '-' }}
                                         </p>
@@ -292,7 +292,7 @@
 
                                 <div class="col-md-9">
                                     <p class="font-16 require font-medium text-grey-9 ">ขอใช้สิทธิ</p>
-                                    <div v-if="isView">
+                                    <div v-if="isFormFieldsReadOnly">
                                         <p class="font-14 font-regular text-grey-9 text ">
                                             {{ selectedEligibleBenefits || '-' }}
                                         </p>
@@ -308,7 +308,7 @@
                         <q-card-section class="q-pt-none">
                             <div class="row justify-between q-pb-sm font-18 font-bold">
                                 <p class="q-mb-none">ข้อมูลบุตร</p>
-                                <q-btn v-if="!isView" style="border-radius: 8px;" @click="addChildForm"
+                                <q-btn v-if="!isFormFieldsReadOnly" style="border-radius: 8px;" @click="addChildForm"
                                     class="q-mb-md bg-blue-10 text-white" icon="add">
                                     เพิ่ม</q-btn>
                             </div>
@@ -319,8 +319,8 @@
                                             <p class="q-mb-lg font-18 font-bold ">{{ index + 1 }}.
                                             </p>
                                             <q-btn
-                                                v-if="(index > 0 && !isView && !isLoading) ||
-                                                    (isEdit && !isView && child?.id && !isLoading && model.child.length > 1)"
+                                                v-if="(index > 0 && !isFormFieldsReadOnly && !isLoading) ||
+                                                    (isEdit && !isFormFieldsReadOnly && child?.id && !isLoading && model.child.length > 1)"
                                                 color="red" @click="removeChildForm(index)" class="q-ml-md">ลบ</q-btn>
                                         </div>
 
@@ -328,7 +328,7 @@
                                             <div class="col-md-5 col-12 q-mr-xl">
                                                 <InputGroup for-id="name" more-class="font-16 font-medium text-grey-9"
                                                     label="ชื่อ-นามสกุล" compclass="col-6" is-require clearable
-                                                    :data="child.childName ?? '-'" :is-view="isView">
+                                                    :data="child.childName ?? '-'" :is-view="isFormFieldsReadOnly">
                                                     <q-select hide-bottom-space is-dense v-model="child.childName"
                                                         is-require :loading="isLoading" id="selected-status"
                                                         popup-content-class="font-14 font-regular"
@@ -347,7 +347,7 @@
                                                     v-model="formattedChildBirthDay[index].formattedBirthDay"
                                                     more-class="font-16 font-medium text-grey-9"
                                                     :data="formattedChildBirthDay[index].formattedBirthDay ?? '-'"
-                                                    label="เกิดเมื่อ" placeholder="" type="text" :is-view="isView"
+                                                    label="เกิดเมื่อ" placeholder="" type="text" :is-view="isFormFieldsReadOnly"
                                                     disable color="dark">
                                                 </InputGroup>
 
@@ -361,7 +361,7 @@
                                                     more-class="font-16 font-medium text-grey-9"
                                                     :data="child.childFatherNumber ?? '-'" is-require
                                                     label="บุตรลำดับที่ (ของบิดา)" placeholder="" type="number" class=""
-                                                    :is-view="isView" :error="!!isError[index]?.childFatherNumber"
+                                                    :is-view="isFormFieldsReadOnly" :error="!!isError[index]?.childFatherNumber"
                                                     :error-message="isError[index]?.childFatherNumber"
                                                     :rules="[(val) => !!val || 'กรุณากรอกบุตรลำดับที (ของบิดา)']"
                                                     lazy-rules>
@@ -374,7 +374,7 @@
                                                     more-class="font-16 font-medium text-grey-9"
                                                     :data="child.childMotherNumber ?? '-'" is-require
                                                     label="บุตรลำดับที่ (ของมารดา)" placeholder="" type="number"
-                                                    class="" :is-view="isView"
+                                                    class="" :is-view="isFormFieldsReadOnly"
                                                     :error="!!isError[index]?.childMotherNumber"
                                                     :error-message="isError[index]?.childMotherNumber"
                                                     :rules="[(val) => !!val || 'กรุณากรอกบุตรลำดับที่ (ของมารดา)']"
@@ -386,7 +386,7 @@
                                             <q-separator v-if="child.childPassedAway" />
                                         </div>
 
-                                        <div v-if="isView">
+                                        <div v-if="isFormFieldsReadOnly">
 
                                         </div>
 
@@ -405,7 +405,7 @@
                                                         more-class="font-16 font-medium text-grey-9"
                                                         :data="child.delegateNumber ?? '-'" is-require
                                                         label="แทนที่บุตรลำดับที่" type="number" class="font-14"
-                                                        :is-view="isView" placeholder=""
+                                                        :is-view="isFormFieldsReadOnly" placeholder=""
                                                         :error="!!isError[index]?.delegateNumber"
                                                         :error-message="isError[index]?.delegateNumber"
                                                         :rules="[(val) => !!val || 'กรุณากรอกแทนที่บุตรลำดับที่']"
@@ -417,7 +417,7 @@
                                                         v-model="child.delegateName"
                                                         more-class="font-16 font-medium text-grey-9"
                                                         :data="child.delegateName ?? '-'" label="ชื่อ - นามสุกล"
-                                                        placeholder="" type="text" :is-view="isView" disable
+                                                        placeholder="" type="text" :is-view="isFormFieldsReadOnly" disable
                                                         color="dark">
                                                     </InputGroup>
                                                 </div>
@@ -429,7 +429,7 @@
                                                         v-model="child.delegateBirthDay"
                                                         more-class="font-16 font-medium text-grey-9"
                                                         :data="child.delegateBirthDay ?? '-'" label="เกิดเมื่อ"
-                                                        placeholder="" type="text" disable :is-view="isView"
+                                                        placeholder="" type="text" disable :is-view="isFormFieldsReadOnly"
                                                         color="dark">
                                                     </InputGroup>
                                                 </div>
@@ -438,7 +438,7 @@
                                                     <InputGroup for-id="delegateDeathDay"
                                                         more-class="font-16 font-medium text-grey-9"
                                                         label="ถึงแก่กรรมเมื่อ" compclass="col-6 q-pr-none" clearable
-                                                        :is-view="isView" :data="child.delegateDeathDay ?? '-'">
+                                                        :is-view="isFormFieldsReadOnly" :data="child.delegateDeathDay ?? '-'">
                                                         <DatePicker is-dense v-model:model="child.delegateDeathDay"
                                                             v-model:dateShow="child.delegateDeathDay"
                                                             for-id="start-date" :no-time="true"
@@ -460,17 +460,17 @@
                                                 <p class="require q-mb-none font-16 font-medium text-grey-9">สถานศึกษา
                                                 </p>
 
-                                                <q-input v-if="isView" v-model="child.schoolName" for="general-school"
+                                                <q-input v-if="isFormFieldsReadOnly" v-model="child.schoolName" for="general-school"
                                                     :data="child.schoolName ?? '-'" type="text"
-                                                    class="col-md-5 col-12 no-border q-mt-none" :is-view="isView" />
+                                                    class="col-md-5 col-12 no-border q-mt-none" :is-view="isFormFieldsReadOnly" />
 
-                                                <div v-if="!isView" class="row">
-                                                    <q-radio v-if="!isView" v-model="child.schoolType"
+                                                <div v-if="!isFormFieldsReadOnly" class="row">
+                                                    <q-radio v-if="!isFormFieldsReadOnly" v-model="child.schoolType"
                                                         :data="child.schoolType ?? '-'" val="ทั่วไป"
                                                         label="โรงเรียนทั่วไป" class="col-md-5 col-12"
                                                         :disable="!model.eligibleBenefits.includes('ก') && !model.eligibleBenefits.includes('ข')" />
 
-                                                    <q-input v-if="!isView" v-model="child.schoolNamegeneral" outlined
+                                                    <q-input v-if="!isFormFieldsReadOnly" v-model="child.schoolNamegeneral" outlined
                                                         dense type="text" :data="child.schoolNamegeneral ?? '-'"
                                                         :disable="child.schoolType !== 'ทั่วไป'" class="col-md-6 col-12"
                                                         :error="!!isError[index]?.schoolNamegeneral"
@@ -480,13 +480,13 @@
 
                                                 </div>
 
-                                                <div v-if="!isView" class="row">
-                                                    <q-radio v-if="!isView" v-model="child.schoolType"
+                                                <div v-if="!isFormFieldsReadOnly" class="row">
+                                                    <q-radio v-if="!isFormFieldsReadOnly" v-model="child.schoolType"
                                                         :data="child.schoolType ?? '-'" val="สาธิตพิบูลบําเพ็ญ"
                                                         label="โรงเรียนสาธิตพิบูลบําเพ็ญ" class="col-md-5 col-12"
                                                         :disable="!model.eligibleSubSenefits.includes('ค')" />
 
-                                                    <q-select v-if="!isView" hide-bottom-space
+                                                    <q-select v-if="!isFormFieldsReadOnly" hide-bottom-space
                                                         popup-content-class="font-14 font-regular text-grey-9"
                                                         v-model="child.schoolNameDemonstration" is-dense
                                                         :loading="isLoading" id="selected-status"
@@ -507,14 +507,14 @@
                                             <div class="col-md-5 col-12 ">
                                                 <InputGroup more-class="font-16 font-medium text-grey-9"
                                                     label="ระดับชั้นที่ศึกษา" is-require clearable
-                                                    :data="child.subCategoriesName ?? '-'" :is-view="isView">
+                                                    :data="child.subCategoriesName ?? '-'" :is-view="isFormFieldsReadOnly">
                                                     <q-select hide-bottom-space v-model="child.subCategoriesId"
                                                         :loading="isLoading" id="selected-status"
                                                         popup-content-class="font-14 font-regular"
                                                         class="font-14 font-regular" outlined
                                                         :options="child.subCategories || []" dense clearable
                                                         option-value="value" emit-value map-options option-label="label"
-                                                        v-if="!isView" :error="!!isError[index]?.subCategoriesId"
+                                                        v-if="!isFormFieldsReadOnly" :error="!!isError[index]?.subCategoriesId"
                                                         :error-message="isError[index]?.subCategoriesId"
                                                         :rules="[(val) => !!val || 'กรุณาเลือกระดับชั้น']" lazy-rules>
                                                         <template v-slot:no-option>
@@ -533,7 +533,7 @@
                                             <div class="col-md-5 col-12 q-mr-lg-xl q-mr-sm-none">
                                                 <InputGroup for-id="province" is-dense :data="child.province ?? '-'"
                                                     is-require label="จังหวัด" placeholder="" type="text"
-                                                    :is-view="isView">
+                                                    :is-view="isFormFieldsReadOnly">
                                                     <q-select hide-bottom-space @filter="filterFnProvince"
                                                         @filter-abort="abortFilterFn" use-input input-debounce="100"
                                                         clearable popup-content-class="font-14 font-regular"
@@ -557,7 +557,7 @@
                                             <div class="col-md-5 col-12 ">
                                                 <InputGroup for-id="district" is-dense :data="child.district ?? '-'"
                                                     more-class="font-16 font-medium text-grey-9" is-require
-                                                    label="อำเภอ" placeholder="" type="text" class="" :is-view="isView"
+                                                    label="อำเภอ" placeholder="" type="text" class="" :is-view="isFormFieldsReadOnly"
                                                     :error="!!isError?.district">
                                                     <q-select hide-bottom-space
                                                         @filter="(val, update) => filterFnDistrict(val, update, index)"
@@ -593,7 +593,7 @@
                                                     more-class="font-16 font-medium text-grey-9"
                                                     :data="child.fundReceipt ?? '-'" is-require
                                                     label="จำนวนเงินตามใบเสร็จ (บาท)" placeholder="" type="number"
-                                                    class="" :is-view="isView" :error="!!isError[index]?.fundReceipt"
+                                                    class="" :is-view="isFormFieldsReadOnly" :error="!!isError[index]?.fundReceipt"
                                                     :error-message="isError[index]?.fundReceipt"
                                                     :rules="[(val) => !!val || 'กรุณากรอกจำนวนเงินตามใบเสร็จ']"
                                                     lazy-rules>
@@ -605,7 +605,7 @@
                                                     :data="child.fundOther ?? '-'"
                                                     more-class="font-16 font-medium text-grey-9"
                                                     label="เบิกจากหน่วยงานอื่นแล้ว เป็นจำนวนเงิน (บาท)" placeholder=""
-                                                    type="number" class="" :is-view="isView">
+                                                    type="number" class="" :is-view="isFormFieldsReadOnly">
                                                 </InputGroup>
                                             </div>
                                         </div>
@@ -616,7 +616,7 @@
                                                     more-class="font-16 font-medium text-grey-9"
                                                     :data="child.fundUniversity ?? '-'" is-require
                                                     label="ขอเบิกจากสวัสดิการมหาวิทยาลัย 5(8) จำนวนเงิน (บาท)"
-                                                    placeholder="" type="number" class="" :is-view="isView"
+                                                    placeholder="" type="number" class="" :is-view="isFormFieldsReadOnly"
                                                     :error="!!isError[index]?.fundUniversity"
                                                     :error-message="isError[index]?.fundUniversity"
                                                     :rules="[(val) => !!val || 'กรุณากรอกจำนวนเงินตามเบิกจากสวัสดิการมหาวิทยาลัย 5(8)']"
@@ -632,7 +632,7 @@
                                                     label="ขอเบิกจากสวัสดิการมหาวิทยาลัย 5(9),(10) จำนวนเงิน (บาท)"
                                                     placeholder="" type="number"
                                                     :disable="child.schoolType !== 'สาธิตพิบูลบําเพ็ญ'" class=""
-                                                    :is-view="isView" :error="!!isError[index]?.fundSubUniversity"
+                                                    :is-view="isFormFieldsReadOnly" :error="!!isError[index]?.fundSubUniversity"
                                                     :error-message="isError[index]?.fundSubUniversity"
                                                     :rules="[(val) => !!val || 'กรุณากรอกจำนวนเงินตามเบิกจากสวัสดิการมหาวิทยาลัย 5(9),(10)']"
                                                     lazy-rules>
@@ -647,7 +647,7 @@
                                                     more-class="font-16 font-medium text-grey-9"
                                                     :data="child.fundSumRequest ?? '-'" is-require
                                                     label="รวมเป็นจำนวนเงิน (บาท)" placeholder="" type="text" class=""
-                                                    :is-view="isView" :error-message="isError[index]?.fundSumRequest"
+                                                    :is-view="isFormFieldsReadOnly" :error-message="isError[index]?.fundSumRequest"
                                                     :error="!!isError[index]?.fundSumRequest" :disable="true">
                                                 </InputGroup>
                                             </div>
@@ -698,7 +698,7 @@
                             <div class="col-12">
                                 <div class="row items-center justify-between q-mb-xs">
                                     <span>1. ใบเสร็จรับเงินฯ</span>
-                                    <div v-if="!isView">
+                                    <div v-if="!isFormFieldsReadOnly">
                                         <input ref="fileReceiptInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'receipt')" />
                                         <q-btn v-if="!fileData.receipt.name && !model.fileReceipt" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด"
                                             @click="$refs.fileReceiptInput.click()" />
@@ -709,12 +709,12 @@
                                             <q-btn v-if="model.fileReceipt" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceipt)" title="ดาวน์โหลด" />
                                         </div>
                                     </div>
-                                    <div v-else-if="isView && model.fileReceipt" class="row items-center q-gutter-x-sm">
+                                    <div v-else-if="isFormFieldsReadOnly && model.fileReceipt" class="row items-center q-gutter-x-sm">
                                         <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileReceipt)" class="q-ma-none" size="sm" />
                                         <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileReceipt)" title="ดูตัวอย่าง" />
                                         <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileReceipt)" title="ดาวน์โหลด" />
                                     </div>
-                                    <span v-else-if="isView && !model.fileReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                                    <span v-else-if="isFormFieldsReadOnly && !model.fileReceipt" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                                 </div>
                             </div>
 
@@ -722,7 +722,7 @@
                             <div class="col-12">
                                 <div class="row items-center justify-between q-mb-xs">
                                     <span>2. สำเนาบัตรประชาชน</span>
-                                    <div v-if="!isView">
+                                    <div v-if="!isFormFieldsReadOnly">
                                         <input ref="fileIdCardInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'id_card')" />
                                         <q-btn v-if="!fileData.id_card.name && !model.fileIdCard" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด"
                                             @click="$refs.fileIdCardInput.click()" />
@@ -733,12 +733,12 @@
                                             <q-btn v-if="model.fileIdCard" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileIdCard)" title="ดาวน์โหลด" />
                                         </div>
                                     </div>
-                                    <div v-else-if="isView && model.fileIdCard" class="row items-center q-gutter-x-sm">
+                                    <div v-else-if="isFormFieldsReadOnly && model.fileIdCard" class="row items-center q-gutter-x-sm">
                                         <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileIdCard)" class="q-ma-none" size="sm" />
                                         <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileIdCard)" title="ดูตัวอย่าง" />
                                         <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileIdCard)" title="ดาวน์โหลด" />
                                     </div>
-                                    <span v-else-if="isView && !model.fileIdCard" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                                    <span v-else-if="isFormFieldsReadOnly && !model.fileIdCard" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                                 </div>
                             </div>
 
@@ -746,7 +746,7 @@
                             <div class="col-12">
                                 <div class="row items-center justify-between q-mb-xs">
                                     <span>3. สำเนาสูติบัตร</span>
-                                    <div v-if="!isView">
+                                    <div v-if="!isFormFieldsReadOnly">
                                         <input ref="fileBirthCertInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'birth_certificate')" />
                                         <q-btn v-if="!fileData.birth_certificate.name && !model.fileBirthCertificate" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด"
                                             @click="$refs.fileBirthCertInput.click()" />
@@ -757,12 +757,12 @@
                                             <q-btn v-if="model.fileBirthCertificate" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileBirthCertificate)" title="ดาวน์โหลด" />
                                         </div>
                                     </div>
-                                    <div v-else-if="isView && model.fileBirthCertificate" class="row items-center q-gutter-x-sm">
+                                    <div v-else-if="isFormFieldsReadOnly && model.fileBirthCertificate" class="row items-center q-gutter-x-sm">
                                         <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileBirthCertificate)" class="q-ma-none" size="sm" />
                                         <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileBirthCertificate)" title="ดูตัวอย่าง" />
                                         <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileBirthCertificate)" title="ดาวน์โหลด" />
                                     </div>
-                                    <span v-else-if="isView && !model.fileBirthCertificate" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                                    <span v-else-if="isFormFieldsReadOnly && !model.fileBirthCertificate" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                                 </div>
                             </div>
 
@@ -770,7 +770,7 @@
                             <div v-if="model.parentalStatus === 'บิดา'" class="col-12">
                                 <div class="row items-center justify-between q-mb-xs">
                                     <span>4. {{ model.marryRegis === 'YES' ? 'สำเนาทะเบียนสมรส' : 'สำเนาทะเบียนรับรองบุตร' }}</span>
-                                    <div v-if="!isView">
+                                    <div v-if="!isFormFieldsReadOnly">
                                         <input ref="fileDocumentInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display: none" @change="handleFileChange($event, 'document')" />
                                         <q-btn v-if="!fileData.document.name && !model.fileDocument" outline color="primary" size="sm" no-caps icon="upload" label="อัปโหลด"
                                             @click="$refs.fileDocumentInput.click()" />
@@ -781,12 +781,12 @@
                                             <q-btn v-if="model.fileDocument" flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileDocument)" title="ดาวน์โหลด" />
                                         </div>
                                     </div>
-                                    <div v-else-if="isView && model.fileDocument" class="row items-center q-gutter-x-sm">
+                                    <div v-else-if="isFormFieldsReadOnly && model.fileDocument" class="row items-center q-gutter-x-sm">
                                         <q-chip color="blue-2" text-color="blue-9" :label="getFileName(model.fileDocument)" class="q-ma-none" size="sm" />
                                         <q-btn flat dense round icon="visibility" color="primary" size="sm" @click="previewFile(null, model.fileDocument)" title="ดูตัวอย่าง" />
                                         <q-btn flat dense round icon="download" color="primary" size="sm" @click="downloadFile(model.fileDocument)" title="ดาวน์โหลด" />
                                     </div>
-                                    <span v-else-if="isView && !model.fileDocument" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
+                                    <span v-else-if="isFormFieldsReadOnly && !model.fileDocument" class="text-grey-5 font-14">ไม่มีไฟล์แนบ</span>
                                 </div>
                             </div>
                         </q-card-section>
@@ -802,13 +802,13 @@
                     style="background : #BFBFBF;" label="ย้อนกลับ" no-caps :to="{ name: 'welfare_management_list' }" />
                 <q-btn :disable="validate" id="button-draft"
                     class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
-                    label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading" />
+                    label="บันทึก" no-caps @click="submit()" v-if="!isView && !isLoading && !isFinancialPendingFinal && !isFinancialApprover" />
                 <q-btn id="button-approve" class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit"
                     style="background-color: #E52020" label="ไม่อนุมัติ" no-caps @click="submit(4)"
-                    v-if="!isView && !isLoading" />
-                <q-btn :disable="validate" id="button-approve" class="font-medium font-16 weight-8 text-white q-px-md"
+                    v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
+                <q-btn :disable="isFinancialWaitPayment ? false : validate" id="button-approve" class="font-medium font-16 weight-8 text-white q-px-md"
                     dense type="submit" style="background-color: #43a047" label="อนุมัติ" no-caps @click="submit(3)"
-                    v-if="!isView && !isLoading" />
+                    v-if="isFinancialApprover && !isView && !isLoading && !isFinancialPendingFinal" />
             </div>
         </template>
     </PageLayout>
@@ -839,6 +839,7 @@ import { formatDateThaiSlash, formatDateSlash, formatDateServer } from "src/comp
 import DatePicker from "src/components/DatePicker.vue";
 import { ref, watch, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "src/stores/authStore";
 import userManagementService from "src/boot/service/userManagementService";
 import reimbursementChildrenEducationService from "src/boot/service/reimbursementChildrenEducationService";
 import data from 'src/components/api_province_with_amphure_tambon.json';
@@ -853,6 +854,19 @@ const isError = ref({});
 const isView = ref(false);
 const isLoadings = ref(false);
 const router = useRouter();
+const authStore = useAuthStore();
+const isFinancialPendingFinal = computed(
+    () => authStore.roleId === 2 && model.value.status === "รออนุมัติ"
+);
+const isFinancialApprover = computed(
+    () => authStore.roleId === 2 || authStore.roleId === 5
+);
+const isFinancialWaitPayment = computed(
+    () => authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน"
+);
+const isFormFieldsReadOnly = computed(
+    () => isView.value || isFinancialApprover.value
+);
 
 // File upload state
 const fileData = ref({
@@ -969,7 +983,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-    model.value = null;
+    isLoading.value = false;
+    isLoadings.value = false;
 });
 const optionsProvince = computed(() => {
     if (!isView.value) return data;
@@ -2111,11 +2126,15 @@ async function submit(actionId) {
         preConfirm: async () => {
             try {
                 if (isEdit.value) {
-                    fetch = await welfareManagementService.updateChildren(route.params.id, payload);
+                    fetch = await welfareManagementService.updateChildren(route.params.id, {
+                        ...payload,
+                        isFinalApprove: authStore.roleId === 5,
+                        isDisburseApprove: authStore.roleId === 2 && model.value.status === "รอจ่ายเงิน",
+                    });
                     await uploadFiles(route.params.id);
                 } else {
                     fetch = await reimbursementChildrenEducationService.create(payload);
-                    const newId = fetch?.data?.newItem?.id;
+                    const newId = fetch?.data?.newItem?.id || fetch?.data?.updatedItem?.id;
                     if (newId) await uploadFiles(newId);
                 }
                 isValid = true;

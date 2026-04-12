@@ -1,19 +1,33 @@
 const { initLogger } = require('../../logger');
 const logger = initLogger('ExportAssistCreate');
+const puppeteer = require('puppeteer');
+const path = require('path');
 const ejs = require("ejs");
+const fs = require('fs');
 const { bahttext } = require('bahttext');
 require('dotenv').config();
-const { renderHtmlToPdfBuffer } = require('./puppeteerExportHelper');
 
 const createPdfAssist = async (req, res, next) => {
     const method = 'CreateAssistData';
     const { id } = req.user;
+    let browser;
 
     try {
+        const outDoucment_Directory = path.join(__dirname, '../../documents')
+        if (!fs.existsSync(outDoucment_Directory)) {
+            fs.mkdirSync(outDoucment_Directory, { recursive: true });
+        }
+
+        browser = await puppeteer.launch()
+        //     {
+        //     executablePath: '/usr/bin/chromium-browser',
+        //     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-file-access-from-files'],
+        //     // timeout: 5000,
+        //     headless: true,
+        // }
+        //);
         const data = {
             body: req.body.datas,
-            sign: req.body.esign,
-            signedAt: req.body.signedAt,
             bahttext,
             path: process.env.fileAccess
         }
@@ -22,12 +36,11 @@ const createPdfAssist = async (req, res, next) => {
             fontSize: 14,
             textColor: '#333',
         });
+
         const receipt = await ejs.renderFile('./templateExport/receiptExport.html.ejs', data, { async: true });
         const receiptFuneralSupport = await ejs.renderFile('./templateExport/receiptFuneralSupportExport.html.ejs', data, { async: true });
         const html = await ejs.renderFile('./templateExport/assistExport.html.ejs', {
             body: req.body.datas,
-            sign: req.body.esign,
-            signedAt: req.body.signedAt,
             receipt: receipt,
             receiptFuneralSupport: receiptFuneralSupport,
             async: true,
@@ -35,16 +48,27 @@ const createPdfAssist = async (req, res, next) => {
             cssStyles: `<style>${cssData}</style>`,
         });
 
-        const pdfBuffer = await renderHtmlToPdfBuffer(html);
+        const fileName = `welfare_${req.body?.datas?.reimNumber}.pdf`;
+        const filePath = path.join(outDoucment_Directory, fileName);
 
-        res.writeHead(200, {
-            "Content-Type": "application/pdf",
-            "Content-Disposition": `attachment; filename="welfare_${req.body?.datas?.reimNumber}.pdf"`,
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.pdf({
+            path: filePath,
+            format: 'A4'
         });
-        res.end(pdfBuffer);
+        await browser.close();
 
         logger.info('Complete', { method, data: { id } });
+        req.esign = {
+            method: 'standard',
+            filePath: filePath
+        }
+        next();
     } catch (error) {
+        if (browser) {
+            await browser.close();
+        }
         logger.error(`Error ${error.message}`, {
             method,
             data: { id },

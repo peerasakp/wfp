@@ -7,6 +7,7 @@ const logger = initLogger('variousWelfareFuneralFamilyController');
 const { getFiscalYearDynamic, getFiscalYear, dynamicCheckRemaining } = require('../middleware/utility');
 const { isNullOrEmpty } = require('./utility');
 const status = require('../enum/status');
+const { tryContinueSubmitDraftEsign } = require('../middleware/submitDraftWithEsign.middleware');
 
 class Controller extends BaseController {
     constructor() {
@@ -546,12 +547,14 @@ class Controller extends BaseController {
                     console.log("Invalid DeceasedType:", deceasedType);
                 }
 
-                if (selectedWreath || selectedVechicle || deceasedType) {
-                    return itemsReturned;
-                }
-                return newItem;
+                // if (selectedWreath || selectedVechicle || deceasedType) {
+                //     return itemsReturned;
+                // }
+                //return newItem;
+                req.createdId = newItem.id;
             });
-            res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+            next();
+            //res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
         }
         catch (error) {
             logger.error(`Error ${error.message}`, {
@@ -672,9 +675,12 @@ class Controller extends BaseController {
 
             if (result) {
                 logger.info('Complete', { method, data: { id } });
-                return res.status(200).json({ newItem: result, message: "อัปเดตข้อมูลสำเร็จ" });
+                if (tryContinueSubmitDraftEsign(req, res, next, { dataId, dataUpdate })) {
+                    return;
+                }
+                return res.status(200).json({ updatedItem: { id: dataId }, newItem: result, message: "อัปเดตข้อมูลสำเร็จ" });
             } else {
-                res.status(400).json({ message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
+                res.status(400).json({ updatedItem: { id: dataId }, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
             }
         } catch (error) {
             logger.error(`Error ${error.message}`, { method, data: { id } });

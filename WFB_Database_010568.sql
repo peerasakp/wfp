@@ -353,7 +353,7 @@ CREATE TABLE `reimbursements_assist` (
   `fund_receipt_vechicle` decimal(10,2) DEFAULT NULL,
   `fund_vechicle` decimal(10,2) DEFAULT NULL,
   `document_path` varchar(255) DEFAULT NULL,
-  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ') NOT NULL, -- รออนุมัติ
+  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ','รอจ่ายเงิน') NOT NULL,
   `deceased` varchar(255) DEFAULT NULL,
   `deceased_type` int(11) DEFAULT NULL,
   `request_date` date DEFAULT NULL,
@@ -427,7 +427,7 @@ CREATE TABLE `reimbursements_children_education` (
   `fund_sum_receipt` decimal(10,2) NOT NULL,
   `fund_university` decimal(10,2) NOT NULL,
   `fund_other` decimal(10,2) DEFAULT NULL,
-  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ') NOT NULL,
+  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ','รอจ่ายเงิน') NOT NULL,
   `spouse` varchar(255) DEFAULT NULL,
   `marry_regis` enum('YES','NO') NOT NULL,
   `role` varchar(255) DEFAULT NULL,
@@ -512,7 +512,7 @@ CREATE TABLE `reimbursements_employee_deceased` (
   `fund_receipt_vehicle` decimal(10,2) DEFAULT NULL,
   `fund_vehicle` decimal(10,2) DEFAULT NULL,
   `document_path` varchar(255) DEFAULT NULL,
-  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ') NOT NULL,
+  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ','รอจ่ายเงิน') NOT NULL,
   `organizer` varchar(255) DEFAULT NULL,
   `deceased` bigint(20) NOT NULL,
   `request_date` date DEFAULT NULL,
@@ -593,7 +593,7 @@ CREATE TABLE `reimbursements_general` (
   `end_date` date DEFAULT NULL,
   `date_receipt` date DEFAULT NULL,
   `request_date` date DEFAULT NULL,
-  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ') NOT NULL,
+  `status` enum('บันทึกฉบับร่าง','รอตรวจสอบ','อนุมัติ','ไม่อนุมัติ','รออนุมัติ','รอจ่ายเงิน') NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_by` bigint(20) NOT NULL,
@@ -764,6 +764,7 @@ CREATE TABLE `users` (
   `departments_id` bigint(20) NOT NULL,
   `roles_id` bigint(20) NOT NULL,
   `sector_id` bigint(20) DEFAULT NULL,
+  `psn_id` varchar(8) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email_UNIQUE` (`email`),
   KEY `fk_users_employee_types1_idx` (`employee_types_id`),
@@ -785,7 +786,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'นาย แอดมินจ้า เอาไว้ทดสอบ','64160289@buu.ac.th','admin','$2y$12$Sh7lfGBRiEe5yspam6bc9.XTpYPYnRl1Hr35IkN3nqOEX2OndNFFi','2025-01-24',0,0,'2025-01-24 10:10:32','2025-05-01 04:12:31',NULL,'205','-','เมืองชลบุรี','แสนสุข','ชลบุรี','12345',1,1,1,4,1),(2,'นาย เจ้าหน้าที่ฝ่ายการเงิน','64160284@go.buu.ac.th','financial','$2y$12$lD7pIgjemlUfV9gVPsvzcOsZ7.srIaIiXif0LVzU294tLm3yiQPs.','2025-01-29',0,34,'2025-02-02 05:27:58','2025-05-01 04:13:06',NULL,'111','-','สนามชัยเขต','ท่ากระดาน','ฉะเชิงเทรา','24160',1,1,1,2,1);
+INSERT INTO `users` VALUES (1,'นาย แอดมินจ้า เอาไว้ทดสอบ','64160289@buu.ac.th','admin','$2y$12$Sh7lfGBRiEe5yspam6bc9.XTpYPYnRl1Hr35IkN3nqOEX2OndNFFi','2025-01-24',0,0,'2025-01-24 10:10:32','2025-05-01 04:12:31',NULL,'205','-','เมืองชลบุรี','แสนสุข','ชลบุรี','12345',1,1,1,4,1,'00000000'),(2,'นาย เจ้าหน้าที่ฝ่ายการเงิน','64160284@go.buu.ac.th','financial','$2y$12$lD7pIgjemlUfV9gVPsvzcOsZ7.srIaIiXif0LVzU294tLm3yiQPs.','2025-01-29',0,34,'2025-02-02 05:27:58','2025-05-01 04:13:06',NULL,'111','-','สนามชัยเขต','ท่ากระดาน','ฉะเชิงเทรา','24160',1,1,1,2,1,'00000000');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 

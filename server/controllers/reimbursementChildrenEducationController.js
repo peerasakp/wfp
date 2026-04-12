@@ -7,6 +7,7 @@ const logger = initLogger('reimbursementChildrenEducationController');
 const childType = require('../enum/childType');
 const sub_categories = require('../models/mariadb/sub_categories');
 const { dynamicCheckRemaining } = require("../middleware/utility");
+const { tryContinueSubmitDraftEsign } = require("../middleware/submitDraftWithEsign.middleware");
 const status = require('../enum/status');
 
 class Controller extends BaseController {
@@ -119,19 +120,14 @@ class Controller extends BaseController {
                 ],
             });
 
-            if (results && results.length > 0) {
-                const datas = JSON.parse(JSON.stringify(results));
+            const datas = JSON.parse(JSON.stringify(results || []));
+            const canRequest = !dynamicCheckRemaining(datas);
 
-                if (dynamicCheckRemaining(datas)) datas.canRequest = false;
-                var reimChildrenEducation = {};
-                reimChildrenEducation.datas = {
-                    ...datas,
-                    canRequest: datas.canRequest ?? true
-                };
-
-                logger.info('Complete', { method, data: { id } });
-                return res.status(200).json(reimChildrenEducation);
-            }
+            logger.info('Complete', { method, data: { id } });
+            return res.status(200).json({
+                datas,
+                canRequest
+            });
 
         } catch (error) {
             console.error("Error:", error);
@@ -196,19 +192,14 @@ class Controller extends BaseController {
                 ],
             });
 
-            if (results && results.length > 0) {
-                const datas = JSON.parse(JSON.stringify(results));
+            const datas = JSON.parse(JSON.stringify(results || []));
+            const canRequest = !dynamicCheckRemaining(datas);
 
-                if (dynamicCheckRemaining(datas)) datas.canRequest = false;
-                var reimChildrenEducation = {};
-                reimChildrenEducation.datas = {
-                    ...datas,
-                    canRequest: datas.canRequest ?? true
-                };
-
-                logger.info('Complete', { method, data: { id } });
-                return res.status(200).json(reimChildrenEducation);
-            }
+            logger.info('Complete', { method, data: { id } });
+            return res.status(200).json({
+                datas,
+                canRequest
+            });
 
         } catch (error) {
             console.error("Error:", error);
@@ -311,15 +302,17 @@ class Controller extends BaseController {
 
                 // if (!isNullOrEmpty(child)) return itemsReturned;
                 // return newReimbursementsChild;
-                return {
-                    id: newReimbursementsChild.id
-                };
+                // return {
+                //     id: newReimbursementsChild.id
+                // };
+                req.createdId = createdId;
+                next()
             });
             logger.info('Complete', { method, data: { id } });
-            return res.status(201).json({
-                newItem: { id: createdId ?? results?.id },
-                message: "บันทึกข้อมูลสำเร็จ"
-            });
+            // return res.status(201).json({
+            //     newItem: { id: createdId ?? results?.id },
+            //     message: "บันทึกข้อมูลสำเร็จ"
+            // });
         } catch (error) {
             logger.error(`Error ${error.message}`, {
                 method,
@@ -358,6 +351,12 @@ class Controller extends BaseController {
 
                 if (updated === 0 && isNullOrEmpty(child)) {
                     return { updated: false };
+                }
+
+                // Support update paths that only modify reimbursement fields
+                // (e.g. document_path from e-sign flow) without child payload.
+                if (isNullOrEmpty(child) && isNullOrEmpty(deletedChild)) {
+                    return { updated: updated > 0 };
                 }
 
                 if (!isNullOrEmpty(deletedChild)) {
@@ -515,6 +514,9 @@ class Controller extends BaseController {
 
             if (result) {
                 logger.info('Complete', { method, data: { id } });
+                if (tryContinueSubmitDraftEsign(req, res, next, { dataId, dataUpdate })) {
+                    return;
+                }
                 return res.status(201).json({ updatedItem: { id: dataId }, newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
             }
 

@@ -8,7 +8,14 @@ export default {
 
     updateHealthCheckUp(id, options) {
         try {
-            return api.put(`health-check-up-welfare/update-welfare/${id}`, options);
+            const { isFinalApprove, isDisburseApprove, ...payload } = options ?? {};
+            const endpoint =
+              isDisburseApprove && payload?.actionId === 3
+                ? `health-check-up-welfare/disburse-welfare/${id}`
+                : isFinalApprove && payload?.actionId === 3
+                ? `health-check-up-welfare/approve-welfare/${id}`
+                : `health-check-up-welfare/update-welfare/${id}`;
+            return api.put(endpoint, payload);
         }
         catch (error) {
             Promise.reject(error);
@@ -19,7 +26,14 @@ export default {
     },
     updateMedical(id, options) {
         try {
-            return api.put(`medical-welfare/update-welfare/${id}`, options);
+            const { isFinalApprove, isDisburseApprove, ...payload } = options ?? {};
+            const endpoint =
+              isDisburseApprove && payload?.actionId === 3
+                ? `medical-welfare/disburse-welfare/${id}`
+                : isFinalApprove && payload?.actionId === 3
+                ? `medical-welfare/approve-welfare/${id}`
+                : `medical-welfare/update-welfare/${id}`;
+            return api.put(endpoint, payload);
         }
         catch (error) {
             Promise.reject(error);
@@ -30,7 +44,14 @@ export default {
     },
     updateDental(id, options) {
         try {
-            return api.put(`dental-welfare/update-welfare/${id}`, options);
+            const { isFinalApprove, isDisburseApprove, ...payload } = options ?? {};
+            const endpoint =
+              isDisburseApprove && payload?.actionId === 3
+                ? `dental-welfare/disburse-welfare/${id}`
+                : isFinalApprove && payload?.actionId === 3
+                ? `dental-welfare/approve-welfare/${id}`
+                : `dental-welfare/update-welfare/${id}`;
+            return api.put(endpoint, payload);
         }
         catch (error) {
             Promise.reject(error);
@@ -41,7 +62,14 @@ export default {
     },
     updateFuneral(id, options) {
         try {
-            return api.put(`funeral-welfare/update-welfare/${id}`, options);
+            const { isFinalApprove, isDisburseApprove, ...payload } = options ?? {};
+            const endpoint =
+              isDisburseApprove && payload?.actionId === 3
+                ? `funeral-welfare/disburse-welfare/${id}`
+                : isFinalApprove && payload?.actionId === 3
+                ? `funeral-welfare/approve-welfare/${id}`
+                : `funeral-welfare/update-welfare/${id}`;
+            return api.put(endpoint, payload);
         }
         catch (error) {
             Promise.reject(error);
@@ -52,7 +80,14 @@ export default {
     },
     updateFamilyFuneral(id, options) {
         try {
-            return api.put(`various-welfare-funeral-family/update-welfare/${id}`, options);
+            const { isFinalApprove, isDisburseApprove, ...payload } = options ?? {};
+            const endpoint =
+              isDisburseApprove && payload?.actionId === 3
+                ? `various-welfare-funeral-family/disburse-welfare/${id}`
+                : isFinalApprove && payload?.actionId === 3
+                ? `various-welfare-funeral-family/approve-welfare/${id}`
+                : `various-welfare-funeral-family/update-welfare/${id}`;
+            return api.put(endpoint, payload);
         }
         catch (error) {
             Promise.reject(error);
@@ -63,7 +98,14 @@ export default {
     },
     updateVarious(id, options) {
         try {
-            return api.put(`various-welfare/update-welfare/${id}`, options);
+            const { isFinalApprove, isDisburseApprove, ...payload } = options ?? {};
+            const endpoint =
+              isDisburseApprove && payload?.actionId === 3
+                ? `various-welfare/disburse-welfare/${id}`
+                : isFinalApprove && payload?.actionId === 3
+                ? `various-welfare/approve-welfare/${id}`
+                : `various-welfare/update-welfare/${id}`;
+            return api.put(endpoint, payload);
         }
         catch (error) {
             Promise.reject(error);
@@ -75,7 +117,14 @@ export default {
     },
     updateChildren(id, options) {
         try {
-            return api.put(`reimbursement-children-education/update-welfare/${id}`, options);
+            const { isFinalApprove, isDisburseApprove, ...payload } = options ?? {};
+            const endpoint =
+              isDisburseApprove && payload?.actionId === 3
+                ? `reimbursement-children-education/disburse-welfare/${id}`
+                : isFinalApprove && payload?.actionId === 3
+                ? `reimbursement-children-education/approve-welfare/${id}`
+                : `reimbursement-children-education/update-welfare/${id}`;
+            return api.put(endpoint, payload);
         }
         catch (error) {
             Promise.reject(error);

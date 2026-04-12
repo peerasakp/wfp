@@ -12,7 +12,8 @@
               class="row wrap q-col-gutter-y-md q-col-gutter-x-md font-medium q-pb-xs font-16 text-grey-9">
               <InputGroup for-id="username" is-dense v-model="model.username" :data="model.username ?? '-'" is-require
                 label="บัญชีผู้ใช้งาน" placeholder="" type="text" :is-view="isView" :error-message="isError?.username"
-                :error="!!isError?.username" :rules="[(val) => !!val || 'กรุณากรอกบัญชีผู้ใช้งาน']" lazy-rules>
+                :error="!!isError?.username" :rules="[(val) => !!val || 'กรุณากรอกบัญชีผู้ใช้งาน']" lazy-rules
+                @blur="fetchPersonData" @keyup.enter="fetchPersonData">
               </InputGroup>
               <InputGroup for-id="prefix" is-dense :data="model.prefix ?? '-'" is-require label="คำนำหน้า"
                 placeholder="" type="text" :is-view="isView">
@@ -109,6 +110,11 @@
               </InputGroup>
             </q-card-section>
             <q-card-section class="row column wrap font-medium q-pt-none font-16 text-grey-9">
+              <InputGroup for-id="psn-id" is-dense v-model="model.psn_id" :data="model.psn_id ?? '-'" is-require
+                label="หมายเลขรหัสบุคลากร" placeholder="" type="text" :is-view="isView"
+                :error-message="isError?.psn_id" :error="!!isError?.psn_id"
+                :rules="[(val) => !!val || 'กรุณากรอกหมายเลขรหัสบุคลากร']" lazy-rules>
+              </InputGroup>
               <p class="q-mb-sm require">บทบาท</p>
               <q-option-group v-if="!isView && !isLoading" v-model="model.roleId" :options="optionRole"
                 option-value="id" option-label="name" :color="isError.roleId ? 'red' : 'primary'"
@@ -197,7 +203,7 @@
               class="row items-center wrap q-col-gutter-md wrap font-medium q-pt-sm q-pb-none font-16 text-grey-9"
               v-for="(item, index) in model.child" :key="index">
               <p class="col-12 q-mb-none">บุตรคนที่ {{ index + 1 }}</p>
-              <InputGroup for-id="prefix-child" is-dense :data="item.prefix ?? '-'" is-require label="คำนำหน้า"
+              <InputGroup for-id="prefix-child" is-dense :data="item.prefix ?? '-'" label="คำนำหน้า"
                 placeholder="" type="text" :is-view="isView" :class="!isView ? 'q-pt-md q-pt-sm-none q-pb-xs' : ''">
                 <q-select use-input hide-selected hide-dropdown-icon clearable new-value-mode="add-unique" fill-input
                   input-debounce="0" popup-content-class="font-14 font-regular" class="font-14 font-regular"
@@ -285,6 +291,7 @@ const model = ref({
   sectorId: null,
   sectorName: null,
   firstWorkingDate: null,
+  psn_id: null,
   roleId: null,
   roleName: null,
   houseNumber: null,
@@ -504,6 +511,10 @@ async function submit() {
     isError.value.firstWorkingDate = 'กรุณาเลือกวันที่เข้าปฏิบัติงาน'
     validate = true
   }
+  if (!model.value.psn_id) {
+    isError.value.username = 'กรุณากรอกหมายเลข psn id'
+    validate = true
+  }
   if (!model.value.houseNumber) {
     isError.value.houseNumber = 'กรุณากรอกบ้านเลขที่'
     validate = true
@@ -707,6 +718,7 @@ async function init() {
         name: name ?? '-',
         username: dataBinding.username ?? '-',
         firstWorkingDate: convertDate,
+        psn_id: dataBinding?.psn_id ?? null,
         positionId: dataBinding?.position?.id ?? '-',
         positionsName: dataBinding?.position?.name ?? '-',
         employeeTypeId: dataBinding?.employeeType?.id ?? '-',
@@ -753,5 +765,20 @@ async function init() {
   } else {
     isLoading.value = false
   }
+}
+// fetchPersonData()
+// This function is used to fetch person's data form usm.
+async function fetchPersonData() {
+    try {
+        const result = await userManagementService.getPersonByUsername(model.value.username);
+        const person = result.data?.data;
+        if (person) {
+            model.value.psn_id = person.psn_id
+            model.value.name = person.psn_fullname
+            model.value.prefix = person.prf_nameth
+        }
+    } catch (error) {
+        console.log(error);
+    }
 }
 </script>

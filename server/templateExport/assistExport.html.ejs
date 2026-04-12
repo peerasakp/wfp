@@ -428,22 +428,14 @@
               <div class="col row">
                 <div class="col-sign2">
                   ลงชื่อ 
-                  <div class="text-dot-no-value" style="max-width: 170px;">
-                    
-                      <img
-                        src="<%- sign.result.SIGN_BASE64 %>" 
-                        calss="sign-img"
-                        alt="signature"
-                        style="max-width: 120px;">
-                    
-                  </div>
+                  <div class="text-dot-no-value" style="max-width: 170px;"></div>
                   ผู้ขอรับเงินสวัสดิการ
                 </div>
                 <div class="col-sign2 py-sm text-center" style="padding-left: 32px; width: 100%;">
                   ( <div class="text-dot text-center" style="max-width: 80%;"><%= body?.user?.name %> </div> )
                 </div>
                 <div class="col-sign2 py-sm" style="padding-left: 32px;">
-                  วันที่<div class="text-dot-no-value" style="max-width: 50px;"><%= signedAt.day %></div>เดือน <div class="text-dot-no-value" style="max-width: 50px;"><%= signedAt.month %></div> พ.ศ. <div class="text-dot-no-value" style="max-width: 50px;"><%= signedAt.year %></div>
+                  วันที่<div class="text-dot-no-value" style="max-width: 50px;"></div>เดือน <div class="text-dot-no-value" style="max-width: 50px;"></div> พ.ศ. <div class="text-dot-no-value" style="max-width: 50px;"></div>
                 </div>
               </div>
             </div>
@@ -570,8 +562,8 @@
                 <div class="col-sign">
                   ลงชื่อ <div class="text-dot-no-value" style="max-width: 200px;"></div>ผู้รับเงิน
                 </div>
-                <div class="col-sign py-sm">
-                  ( <div class="text-dot" style="max-width: 220px;"> </div> )
+                <div class="col-sign py-sm text-center">
+                  ( <div class="text-dot" style="max-width: 220px;"> <%= body?.user?.name %> </div> )
                 </div>
               </div>
             </div>

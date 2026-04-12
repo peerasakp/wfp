@@ -10,7 +10,7 @@ const { getFiscalYearDynamic, getFiscalYear } = require('../../middleware/utilit
 const fetchDataHealthCheckup = async (req, res, next) => {
     const method = 'FetchHealthCheckupData';
     const { id } = req.user;
-    const dataId = req.params['id'];
+    const dataId = req.createdId;
     try {
         const requestData = await reimbursementsGeneral.findOne({
             attributes: [
@@ -133,7 +133,7 @@ const fetchDataHealthCheckup = async (req, res, next) => {
 const fetchDataMedical = async (req, res, next) => {
     const method = 'FetchMedicalData';
     const { id } = req.user;
-    const dataId = req.params['id'];
+    const dataId = req.createdId;
     try {
         const requestData = await reimbursementsGeneral.findOne({
             attributes: [
@@ -356,7 +356,7 @@ const fetchDataMedical = async (req, res, next) => {
 const fetchDataDental = async (req, res, next) => {
     const method = 'FetchDentalData';
     const { id } = req.user;
-    const dataId = req.params['id'];
+    const dataId = req.createdId;
     try {
         const requestData = await reimbursementsGeneral.findOne({
             attributes: [

@@ -628,7 +628,8 @@ const isEdit = computed(() => {
   return !isNaN(route.params.id);
 });
 const canCreateFor = computed(() => {
-  return authStore.isEditor;
+  // HR staff (roleId=3) can select "ผู้เบิก" instead of auto-filling HR profile.
+  return authStore.isEditor || authStore.roleId === 3;
 });
 const isFetchRemaining = ref(false);
 
@@ -1223,7 +1224,7 @@ async function submit(actionId) {
         }
         else {
           fetch = await funeralWelfareEmployeeDeceasedService.create(payload);
-          const newId = fetch?.data?.newItem?.id;
+          const newId = fetch?.data?.newItem?.id || fetch?.data?.updatedItem?.id;
           if (newId) await uploadFiles(newId);
         }
         isValid = true;

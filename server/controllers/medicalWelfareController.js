@@ -22,6 +22,7 @@ const {
   dynamicCheckRemaining
 } = require("../middleware/utility");
 const { isNullOrEmpty } = require("../controllers/utility");
+const { tryContinueSubmitDraftEsign } = require("../middleware/submitDraftWithEsign.middleware");
 
 class Controller extends BaseController {
   constructor() {
@@ -542,10 +543,12 @@ class Controller extends BaseController {
             newItemPatientVisit: newItemSub
           };
         }
-        if (selectedAccident || selectedPatientVisit) return itemsReturned;
-        return newItem;
+        // if (selectedAccident || selectedPatientVisit) return itemsReturned;
+        // return newItem;
+        req.createdId = newItem.id
       });
-      res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+      next();
+      // res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
     } catch (error) {
       logger.error(`Error ${error.message}`, {
         method,
@@ -563,6 +566,7 @@ class Controller extends BaseController {
     delete req.body.selected_patient_visit;
     const dataUpdate = req.body;
     const dataId = req.params["id"];
+    console.log(dataId, dataUpdate);
     var itemsReturned = null;
     try {
       const result = await sequelize.transaction(async (t) => {
@@ -670,13 +674,16 @@ class Controller extends BaseController {
       });
       if (result) {
         logger.info("Complete", { method, data: { id } });
+        if (tryContinueSubmitDraftEsign(req, res, next, { dataId, dataUpdate })) {
+          return;
+        }
         return res
           .status(201)
-          .json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+          .json({ updatedItem: { id: dataId }, newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
       }
       res
         .status(400)
-        .json({ newItem: result, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
+        .json({ updatedItem: { id: dataId }, newItem: result, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
     } catch (error) {
       logger.error(`Error ${error.message}`, {
         method,

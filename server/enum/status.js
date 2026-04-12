@@ -3,4 +3,6 @@ module.exports = {
     waitApprove: 2,
     approve: 3,
     NotApproved: 4,
+    waitFinalApprove: 5,
+    waitPayment: 6,
 };

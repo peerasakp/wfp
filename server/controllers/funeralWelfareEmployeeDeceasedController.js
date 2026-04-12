@@ -7,6 +7,7 @@ const logger = initLogger('funeralWelfareEmployeeDeceasedController');
 const { getFiscalYearDynamic, getFiscalYear } = require('../middleware/utility');
 const { isNullOrEmpty } = require('./utility');
 const status = require('../enum/status');
+const { tryContinueSubmitDraftEsign } = require('../middleware/submitDraftWithEsign.middleware');
 
 class Controller extends BaseController {
     constructor() {
@@ -606,13 +607,14 @@ class Controller extends BaseController {
                         newItemDecease: newItemSub,
                     };
                 }
-
-                if (selectedWreath || selectedVehicle || deceased) {
-                    return itemsReturned;
-                }
-                return newItem;
+                req.createdId = newItem.id;
+                // if (selectedWreath || selectedVehicle || deceased) {
+                //     return itemsReturned;
+                // }
+                // return newItem;
             });
-            res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+            // res.status(201).json({ newItem: result, message: "บันทึกข้อมูลสำเร็จ" });
+            next();
         }
         catch (error) {
 
@@ -716,9 +718,12 @@ class Controller extends BaseController {
 
             if (result) {
                 logger.info('Complete', { method, data: { id } });
-                return res.status(200).json({ newItem: result, message: "อัปเดตข้อมูลสำเร็จ" });
+                if (tryContinueSubmitDraftEsign(req, res, next, { dataId, dataUpdate })) {
+                    return;
+                }
+                return res.status(200).json({ updatedItem: { id: dataId }, newItem: result, message: "อัปเดตข้อมูลสำเร็จ" });
             } else {
-                res.status(400).json({ message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
+                res.status(400).json({ updatedItem: { id: dataId }, message: "ไม่มีข้อมูลที่ถูกแก้ไข" });
             }
         } catch (error) {
             logger.error(`Error ${error.message}`, { method, data: { id } });

@@ -19,6 +19,7 @@ const {
   getFiscalYear,
   dynamicCheckRemaining
 } = require("../middleware/utility");
+const { tryContinueSubmitDraftEsign } = require("../middleware/submitDraftWithEsign.middleware");
 
 class Controller extends BaseController {
   constructor() {
@@ -311,6 +312,33 @@ class Controller extends BaseController {
         method,
         data: { id }
       });
+      next(error);
+    }
+  };
+
+  update = async (req, res, next) => {
+    const method = "UpdateDentalWelfare";
+    const { id } = req.user;
+    const dataId = req.params.id;
+    try {
+      const dataUpdate = req.body;
+      const [updated] = await reimbursementsGeneral.update(dataUpdate, {
+        where: { id: dataId },
+      });
+      if (updated) {
+        if (tryContinueSubmitDraftEsign(req, res, next, { dataId, dataUpdate })) {
+          return;
+        }
+        const updatedItem = await reimbursementsGeneral.findByPk(dataId);
+        logger.info("Completed", { method, data: { id, dataId } });
+        return res.status(200).json({ updatedItem, message: "สำเร็จ" });
+      }
+      logger.info("No Modify", { method, data: { id, dataId } });
+      return res.status(404).json({
+        message: `ไม่มีข้อมูลที่ถูกแก้ไข`,
+      });
+    } catch (error) {
+      logger.error(`Error ${error.message}`, { method, data: { id, dataId } });
       next(error);
     }
   };
