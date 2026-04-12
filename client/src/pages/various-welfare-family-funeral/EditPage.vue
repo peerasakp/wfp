@@ -626,36 +626,7 @@ const isValidate = computed(() => {
   return validate;
 });
 
-const isValidateSubmit = computed(() => {
-  if (isValidate.value) return true;
-
-  const hasFileDocument = fileDocument.value instanceof File || !!model.value.fileDocument;
-  const hasFileDeathCertificate = fileDeathCertificate.value instanceof File || !!model.value.fileDeathCertificate;
-  const hasFileReceipt = fileReceipt.value instanceof File || !!model.value.fileReceipt2;
-  const hasFilePhoto = filePhoto.value instanceof File || !!model.value.filePhoto;
-  const hasFileHouseRegistration = fileHouseRegistration.value instanceof File || !!model.value.fileHouseRegistration;
-
-  if (!thisStaff.value || canCreateFor.value) {
-    if (model.value.deceasedType) {
-      if (!hasFileDocument) return true;
-      if (!hasFileDeathCertificate) return true;
-      if (!hasFileReceipt) return true;
-    }
-  }
-
-  if (thisStaff.value && !canCreateFor.value) {
-    if (model.value.selectedWreath) {
-      if (!hasFileReceipt) return true;
-      if (!hasFileDocument) return true;
-    }
-    if (model.value.selectedVechicle) {
-      if (!hasFilePhoto) return true;
-      if (!hasFileHouseRegistration) return true;
-    }
-  }
-
-  return false;
-});
+const isValidateSubmit = computed(() => isValidate.value);
 const isOverfundRemaining = computed(() => {
   const fundSumRequest = Number(model.value.fundDecease ?? 0);
   let fundRemaining = 0;
@@ -1227,32 +1198,6 @@ async function submit(actionId) {
       validate = true;
     }
   }
-  if (actionId === 2) {
-    const hasFileDocument = fileDocument.value instanceof File || !!model.value.fileDocument;
-    const hasFileDeathCertificate = fileDeathCertificate.value instanceof File || !!model.value.fileDeathCertificate;
-    const hasFileReceipt = fileReceipt.value instanceof File || !!model.value.fileReceipt2;
-    const hasFilePhoto = filePhoto.value instanceof File || !!model.value.filePhoto;
-    const hasFileHouseRegistration = fileHouseRegistration.value instanceof File || !!model.value.fileHouseRegistration;
-
-    if (!thisStaff.value || canCreateFor.value) {
-      if (model.value.deceasedType) {
-        if (!hasFileDocument) { isError.value.fileDocument = "กรุณาอัปโหลดเอกสาร"; validate = true; }
-        if (!hasFileDeathCertificate) { isError.value.fileDeathCertificate = "กรุณาอัปโหลดสำเนาใบมรณะบัตร"; validate = true; }
-        if (!hasFileReceipt) { isError.value.fileReceipt = "กรุณาอัปโหลดใบสำคัญรับเงิน"; validate = true; }
-      }
-    }
-    if (thisStaff.value && !canCreateFor.value) {
-      if (model.value.selectedWreath) {
-        if (!hasFileReceipt) { isError.value.fileReceipt = "กรุณาอัปโหลดใบสำคัญรับเงิน"; validate = true; }
-        if (!hasFileDocument) { isError.value.fileDocument = "กรุณาอัปโหลดใบสำคัญรับเงิน (โดยเจ้าหน้าที่ฯ)"; validate = true; }
-      }
-      if (model.value.selectedVechicle) {
-        if (!hasFilePhoto) { isError.value.filePhoto = "กรุณาอัปโหลดใบสำคัญรับเงิน (โดยเจ้าหน้าที่ฯ)"; validate = true; }
-        if (!hasFileHouseRegistration) { isError.value.fileHouseRegistration = "กรุณาอัปโหลดใบสำคัญรับเงินหรือหลักฐานอื่น"; validate = true; }
-      }
-    }
-  }
-
   if (validate === true) {
     Notify.create({
       message: "กรุณากรอกข้อมูลให้ครบถ้วน",

@@ -776,7 +776,13 @@ const uploadFilesForRecord = async (req, res, next) => {
         }
 
         if (Object.keys(updateData).length === 0) {
-            return res.status(400).json({ message: 'กรุณาอัปโหลดไฟล์' });
+            return res.status(200).json({
+                message: 'ไม่มีไฟล์ให้อัปโหลดในครั้งนี้',
+                files: {
+                    fileReceipt: currentData.file_receipt,
+                    fileMedicalCertificate: currentData.file_medical_certificate,
+                },
+            });
         }
 
         updateData.updated_by = id;

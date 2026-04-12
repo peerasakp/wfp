@@ -1,34 +1,15 @@
 const { initLogger } = require('../../logger');
 const logger = initLogger('ExportChildrenEducationCreate');
-var htmlToPdf = require("html-pdf-node");
 const ejs = require("ejs");
-const path = require('path');
 const { bahttext } = require('bahttext');
-const fs = require('fs');
 require('dotenv').config();
-
-// Detect Chromium path based on environment
-const getChromiumPath = () => {
-    if (fs.existsSync('/usr/bin/chromium-browser')) return '/usr/bin/chromium-browser';
-    if (fs.existsSync('/usr/bin/chromium')) return '/usr/bin/chromium';
-    return undefined;
-};
+const { renderHtmlToPdfBuffer } = require('./puppeteerExportHelper');
 
 const createPdfChildrenEducation = async (req, res, next) => {
     const method = 'CreateGeneralData';
     const { id } = req.user;
-    let browser;
 
     try {
-        const puppeteer = require('puppeteer');
-        const chromiumPath = getChromiumPath();
-        browser = await puppeteer.launch({
-            ...(chromiumPath && { executablePath: chromiumPath }),
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security', '--allow-file-access-from-files'],
-            // timeout: 5000,
-            headless: true,
-        });
-
         const cssData = await ejs.renderFile('./templateExport/template.css.ejs', {
             fontPath: process.env.fileAccess,
             fontSize: 14,
@@ -50,10 +31,7 @@ const createPdfChildrenEducation = async (req, res, next) => {
             cssStyles: `<style>${cssData}</style>`,
         });
 
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: 'networkidle0' });
-        const pdfBuffer = await page.pdf({ format: 'A4' });
-        await browser.close();
+        const pdfBuffer = await renderHtmlToPdfBuffer(html);
 
         res.writeHead(200, {
             "Content-Type": "application/pdf",
@@ -63,9 +41,6 @@ const createPdfChildrenEducation = async (req, res, next) => {
 
         logger.info('Complete', { method, data: { id } });
     } catch (error) {
-        if (browser) {
-            await browser.close();
-        }
         logger.error(`Error ${error.message}`, {
             method,
             data: { id },

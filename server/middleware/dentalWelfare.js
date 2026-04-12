@@ -688,7 +688,16 @@ const uploadFilesForRecord = async (req, res, next) => {
                 updateData[dbColumn] = renameFile(tempFileName, newFileName) || tempFileName;
             }
         }
-        if (Object.keys(updateData).length === 0) return res.status(400).json({ message: 'กรุณาอัปโหลดไฟล์' });
+        if (Object.keys(updateData).length === 0) {
+            return res.status(200).json({
+                message: 'ไม่มีไฟล์ให้อัปโหลดในครั้งนี้',
+                files: {
+                    fileReceipt: currentData.file_receipt,
+                    fileMedicalCertificate: currentData.file_medical_certificate,
+                    fileSocialSecurity: currentData.file_social_security,
+                },
+            });
+        }
         updateData.updated_by = id;
         await reimbursementsGeneral.update(updateData, { where: { id: dataId } });
         logger.info('Files uploaded successfully', { method, data: { id, dataId } });

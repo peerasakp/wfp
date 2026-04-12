@@ -266,10 +266,10 @@
       <div class="justify-end row q-py-xs font-medium q-gutter-lg">
         <q-btn id="button-back" class="text-white font-medium font-16 weight-8 q-px-lg" dense type="button"
           style="background : #BFBFBF;" label="ย้อนกลับ" no-caps :to="{ name: 'various_welfare_list' }" />
-        <q-btn :disable="isButtonDisabled || isValidate" id="button-draft"
+        <q-btn :disable="isButtonDisabled " id="button-draft"
           class="text-white font-medium bg-blue-9 text-white font-16 weight-8 q-px-lg" dense type="submit"
           label="บันทึกฉบับร่าง" no-caps @click="submit(1)" v-if="!isView && !isLoading" />
-        <q-btn :disable="isButtonDisabled || isValidate" id="button-approve"
+        <q-btn :disable="isButtonDisabled " id="button-approve"
           class="font-medium font-16 weight-8 text-white q-px-md" dense type="submit" style="background-color: #43a047"
           label="ส่งคำร้องขอ" no-caps @click="submit(2)" v-if="!isView && !isLoading" />
       </div>
@@ -419,29 +419,6 @@ watch(
     }
   }
 );
-
-const isValidate = computed(() => {
-  let validate = false;
-  if (!model.value.categoryId) {
-    validate = true;
-  }
-  if (!model.value.fundReceipt) {
-    validate = true;
-  }
-  if (!model.value.fundEligible) {
-    validate = true;
-  }
-  if (isOverfundRemaining.value) {
-    validate = true;
-  }
-  if (!model.value.createFor && canCreateFor.value) {
-    validate = true;
-  }
-  if (isOver.value) {
-    validate = true;
-  }
-  return validate;
-});
 
 const isOver = computed(() => {
   return Number(model.value.fundEligible) > Number(model.value.fundReceipt);

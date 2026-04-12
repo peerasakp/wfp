@@ -751,7 +751,17 @@ const uploadFilesForRecord = async (req, res, next) => {
             }
         }
 
-        if (Object.keys(updateData).length === 0) return res.status(400).json({ message: 'กรุณาอัปโหลดไฟล์' });
+        if (Object.keys(updateData).length === 0) {
+            return res.status(200).json({
+                message: 'ไม่มีไฟล์ให้อัปโหลดในครั้งนี้',
+                files: {
+                    fileReceipt: currentData.file_receipt,
+                    fileDocument: currentData.file_document,
+                    filePhoto: currentData.file_photo,
+                    fileHouseRegistration: currentData.file_house_registration,
+                },
+            });
+        }
         updateData.updated_by = id;
         await reimbursementsAssist.update(updateData, { where: { id: dataId } });
         logger.info('Files uploaded successfully', { method, data: { id, dataId } });
