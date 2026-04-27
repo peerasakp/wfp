@@ -1367,12 +1367,19 @@ const getSubCategory = async () => {
       }
 
       if (isDemoSchool && model.value.eligibleSubSenefits.includes('ค')) {
+        const hasGeneralBenefitSelected =
+          model.value.eligibleBenefits.includes('ก') || model.value.eligibleBenefits.includes('ข');
+
+        // If user selects only (ค), treat it as (ข) for class-level options.
+        const useBenefitKor = model.value.eligibleBenefits.includes('ก');
+        const useBenefitKhor = model.value.eligibleBenefits.includes('ข') || !hasGeneralBenefitSelected;
+
         if (isDemoNormal) {
-          if (model.value.eligibleBenefits.includes('ก')) categoriesIds.push(15);
-          if (model.value.eligibleBenefits.includes('ข')) categoriesIds.push(16);
+          if (useBenefitKor) categoriesIds.push(15);
+          if (useBenefitKhor) categoriesIds.push(16);
         } else if (isDemoInter) {
-          if (model.value.eligibleBenefits.includes('ก')) categoriesIds.push(17);
-          if (model.value.eligibleBenefits.includes('ข')) categoriesIds.push(18);
+          if (useBenefitKor) categoriesIds.push(17);
+          if (useBenefitKhor) categoriesIds.push(18);
         }
       }
 
