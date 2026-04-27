@@ -31,7 +31,7 @@ exports.authPermissionEditor = async (req, res, next) => {
   }
 };
 
-const fileFolder = path.join(__dirname, "..", "public", "upload");
+const fileFolder = path.join(__dirname, "..", "public", "WelfareRegulations");
 
 const storage = multer.diskStorage({
   destination: function (req, file, callback) {
