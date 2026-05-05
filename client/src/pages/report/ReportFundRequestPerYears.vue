@@ -35,22 +35,22 @@
         <div class="col-12 col-md-4 row q-gutter-y-md font-16">
           <q-card class="col-12 text-h6 text-bold row text-center d-flex items-center">
             <q-card-section class="col " style="color: #007BFF;">
-              สวัสดิการทั่วไป = {{ formatNumber(dataFundRequestPerYearEachType[0]?.total_fund ?? 0) }}
+              สวัสดิการทั่วไป = {{ formatNumber(fundMap.get('สวัสดิการทั่วไป') ?? 0) }}
             </q-card-section>
           </q-card>
           <q-card class="col-12 text-h6 text-bold row text-center d-flex items-center">
             <q-card-section class="col" style="color: #FF3D57;">
-              สวัสดิการค่าสงเคราะห์ต่าง ๆ = {{ formatNumber(dataFundRequestPerYearEachType[1]?.total_fund ?? 0) }}
+              สวัสดิการค่าสงเคราะห์ต่าง ๆ = {{ formatNumber(fundMap.get('สวัสดิการค่าสงเคราะห์ต่าง ๆ') ?? 0) }}
             </q-card-section>
           </q-card>
           <q-card class="col-12 text-h6 text-bold row text-center d-flex items-center">
             <q-card-section class="col" style="color: #28A745;">
-              สวัสดิการการเสียชีวิตของผู้ปฏิบัติงาน = {{ formatNumber(dataFundRequestPerYearEachType[2]?.total_fund ?? 0)}}
+              สวัสดิการการเสียชีวิตของผู้ปฏิบัติงาน = {{ formatNumber(fundMap.get('สวัสดิการค่าสงเคราะห์การเสียชีวิต') ?? 0) }}
             </q-card-section>
           </q-card>
           <q-card class="col-12 text-h6 text-bold row text-center d-flex items-center">
             <q-card-section class="col" style="color: #FF9800;">
-              สวัสดิการเกี่ยวกับการศึกษาของบุตร = {{ formatNumber(dataFundRequestPerYearEachType[3]?.total_fund ?? 0) }}
+              สวัสดิการเกี่ยวกับการศึกษาของบุตร = {{ formatNumber(fundMap.get('สวัสดิการเกี่ยวกับการศึกษาของบุตร') ?? 0) }}
             </q-card-section>
           </q-card>
         </div>
@@ -122,6 +122,8 @@ const dataFundRequestPerYear = ref([
 const dataFundRequestPerYearEachType = ref([
 
 ])
+
+const fundMap = ref(new Map());
 
 onMounted(async () => {
   isLoading.value = true;
@@ -196,17 +198,18 @@ async function fetchDataFundRequestPerYearEachType(filters) {
     // 🔹 เซ็ตข้อมูลหลัก
     dataFundRequestPerYearEachType.value = result.data;
     // 🔹 สร้าง Map เพื่อเก็บค่า total_fund ตาม welfare_type
-    const fundMap = new Map();
+    fundMap.value = new Map();
+
     result.data.forEach(item => {
-      fundMap.set(item.welfare_type, item.total_fund ?? 0);
+      fundMap.value.set(item.welfare_type, item.total_fund ?? 0);
     });
 
     // 🔹 อัปเดตค่า donutSeries ตามลำดับที่ถูกต้อง
     donutSeries.value = [
-      fundMap.get('สวัสดิการทั่วไป') ?? 0,
-      fundMap.get('สวัสดิการค่าสงเคราะห์ต่าง ๆ') ?? 0,
-      fundMap.get('สวัสดิการค่าสงเคราะห์การเสียชีวิต') ?? 0,
-      fundMap.get('สวัสดิการเกี่ยวกับการศึกษาของบุตร') ?? 0
+      fundMap.value.get('สวัสดิการทั่วไป') ?? 0,
+      fundMap.value.get('สวัสดิการค่าสงเคราะห์ต่าง ๆ') ?? 0,
+      fundMap.value.get('สวัสดิการค่าสงเคราะห์การเสียชีวิต') ?? 0,
+      fundMap.value.get('สวัสดิการเกี่ยวกับการศึกษาของบุตร') ?? 0
     ];
 
     return result.data;
