@@ -209,17 +209,6 @@ function onRequest(props) {
         { name: "createdByName", label: "ชื่อ - สกุล", align: "left", field: (row) => row.userName ?? "-" },
       ]);
 
-      console.table(
-  viewDashboardData
-    .filter(item => item.created_by === 39)
-    .map(item => ({
-      id: item.id,
-      reim_number: item.reim_number,
-      welfare_type: item.welfare_type,
-      fund_sum_request: item.fund_sum_request,
-      created_by_name: item.created_by_name,
-    }))
-);
       // Push columns based on the conditions only once
       for (let i = 0; i < allWelfareData.length - 21; i++) {
         if (
