@@ -178,6 +178,7 @@ async function init() {
 
 function onRequest(props) {
   dataTable.value = [];
+  model.value = [];
   const { page, rowsPerPage, sortBy, descending } = props.pagination;
   listStore.setState(rowsPerPage);
   isLoading.value = true;
@@ -208,6 +209,17 @@ function onRequest(props) {
         { name: "createdByName", label: "ชื่อ - สกุล", align: "left", field: (row) => row.userName ?? "-" },
       ]);
 
+      console.table(
+  viewDashboardData
+    .filter(item => item.created_by === 39)
+    .map(item => ({
+      id: item.id,
+      reim_number: item.reim_number,
+      welfare_type: item.welfare_type,
+      fund_sum_request: item.fund_sum_request,
+      created_by_name: item.created_by_name,
+    }))
+);
       // Push columns based on the conditions only once
       for (let i = 0; i < allWelfareData.length - 21; i++) {
         if (
@@ -388,40 +400,60 @@ function onRequest(props) {
 
       for (let i = 0; i < dataTable.value.length; i++) {
         for (let j = 0; j < viewDashboardData.length; j++) {
-          if (dataTable.value[i].userId == viewDashboardData[j].created_by) {
-            if (viewDashboardData[j].welfare_type === "สวัสดิการค่าสงเคราะห์การเสียชีวิต") {
-              if (viewDashboardData[j].welfare_type == viewDashboardData[j - 1].welfare_type
-                && viewDashboardData[j].id == viewDashboardData[j - 1].id
-              ) {
-                continue;
-              }
-              else {
-                dataTable.value[i].สวัสดิการผู้ปฏิบัติงานเสียชีวิตfund
-                  = (Number(dataTable.value[i].สวัสดิการผู้ปฏิบัติงานเสียชีวิตfund) || 0) + viewDashboardData[j].fund_sum_request;
-              }
-            }
 
-            if (viewDashboardData[j].welfare_type === "สวัสดิการเกี่ยวกับการศึกษาของบุตร") {
-              if (viewDashboardData[j].welfare_type == viewDashboardData[j - 1].welfare_type
-                && viewDashboardData[j].id == viewDashboardData[j - 1].id
-              ) {
-                continue;
-              }
-              else {
-                dataTable.value[i].สวัสดิการการศึกษาของบุตรfund
-                  = (Number(dataTable.value[i].สวัสดิการการศึกษาของบุตรfund) || 0) + viewDashboardData[j].fund_sum_request;
-              }
-            }
-            if (j > 0 && viewDashboardData[j].welfare_type == viewDashboardData[j - 1].welfare_type
-              && viewDashboardData[j].id == viewDashboardData[j - 1].id
-            ) {
+          if (dataTable.value[i].userId == viewDashboardData[j].created_by) {
+            const item = viewDashboardData[j];
+
+            if (dataTable.value[i].userId != item.created_by) {
               continue;
             }
-            else {
-              const categoryForDataTable = viewDashboardData[j].category_name + "fund";
-              dataTable.value[i][categoryForDataTable]
-                = (Number(dataTable.value[i][categoryForDataTable]) || 0) + viewDashboardData[j].fund_sum_request;
+
+            const isDuplicate =
+              j > 0 &&
+              item.welfare_type === viewDashboardData[j - 1].welfare_type &&
+              item.id === viewDashboardData[j - 1].id;
+
+            if (isDuplicate) {
+              continue;
             }
+
+            // กรณีสวัสดิการเสียชีวิตคนในครอบครัว
+            if (item.category_name === "สวัสดิการเสียชีวิตคนในครอบครัว") {
+              dataTable.value[i].สวัสดิการเสียชีวิตคนในครอบครัวfund =
+                (Number(dataTable.value[i].สวัสดิการเสียชีวิตคนในครอบครัวfund) || 0) +
+                Number(item.fund_sum_request || 0);
+
+              continue;
+            }
+
+            // กรณีสวัสดิการการศึกษาของบุตร
+            if (item.welfare_type === "สวัสดิการเกี่ยวกับการศึกษาของบุตร") {
+              dataTable.value[i].สวัสดิการการศึกษาของบุตรfund =
+                (Number(dataTable.value[i].สวัสดิการการศึกษาของบุตรfund) || 0) +
+                Number(item.fund_sum_request || 0);
+
+              continue;
+            }
+
+            // กรณีสวัสดิการผู้ปฏิบัติงานเสียชีวิต
+            if (item.category_name === "สวัสดิการผู้ปฏิบัติงานเสียชีวิต") {
+              dataTable.value[i].สวัสดิการผู้ปฏิบัติงานเสียชีวิตfund =
+                (Number(dataTable.value[i].สวัสดิการผู้ปฏิบัติงานเสียชีวิตfund) || 0) +
+                Number(item.fund_sum_request || 0);
+
+              continue;
+            }
+
+            // กรณีทั่วไป
+            const categoryForDataTable = item.category_name + "fund";
+
+            dataTable.value[i][categoryForDataTable] =
+              (Number(dataTable.value[i][categoryForDataTable]) || 0) +
+              Number(item.fund_sum_request || 0);
+
+
+
+
           }
         }
       }
