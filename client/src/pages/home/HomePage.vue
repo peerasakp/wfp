@@ -574,24 +574,26 @@ function goto(requestId, categoryName, welfareType) {
 }
 
 function viewData(requestId, categoryName, welfareType) {
-  if (categoryName == "ตรวจสุขภาพ") {
+
+  if (categoryName == "สวัสดิการค่าตรวจสุขภาพประจำปี") {
     router.push({
       name: "financial_health_check_up_welfare_view",
       params: { id: requestId },
     });
   }
-  else if (categoryName == "กรณีเจ็บป่วย") {
+  else if (categoryName == "สวัสดิการกรณีเจ็บป่วย") {
     router.push({
       name: "financial_medical_welfare_view",
       params: { id: requestId },
     });
   }
-  else if (categoryName == "ทำฟัน") {
+  else if (categoryName == "สวัสดิการค่าทำฟันเพื่อการรักษา ยกเว้นทันตกรรมเพื่อความสวยงาม") {
     router.push({
       name: "financial_dental_welfare_view",
       params: { id: requestId },
     });
   }
+
   else if (welfareType == "สวัสดิการค่าสงเคราะห์ต่าง ๆ") {
     if (categoryName == "เสียชีวิตคนในครอบครัว") {
       router.push({
@@ -609,6 +611,12 @@ function viewData(requestId, categoryName, welfareType) {
   else if (welfareType == "สวัสดิการค่าสงเคราะห์การเสียชีวิต") {
     router.push({
       name: "financial_funeral_welfare_view",
+      params: { id: requestId },
+    });
+  }
+  else if (welfareType == "สวัสดิการเกี่ยวกับการศึกษาของบุตร") {
+    router.push({
+      name: "financial_children_welfare_view",
       params: { id: requestId },
     });
   }
@@ -646,17 +654,17 @@ async function downloadData(requestId, categoryName, welfareType) {
     type: 'info',
   });
   try {
-    if (categoryName == "ตรวจสุขภาพ") {
+    if (categoryName == "สวัสดิการค่าตรวจสุขภาพประจำปี") {
       fileData.value = await exportService.healthCheckup(requestId);
     }
-    else if (categoryName == "กรณีเจ็บป่วย") {
+    else if (categoryName == "สวัสดิการกรณีเจ็บป่วย") {
       fileData.value = await exportService.medical(requestId);
     }
-    else if (categoryName == "ทำฟัน") {
+    else if (categoryName == "สวัสดิการค่าทำฟันเพื่อการรักษา ยกเว้นทันตกรรมเพื่อความสวยงาม") {
       fileData.value = await exportService.dental(requestId);
     }
     else if (welfareType == "สวัสดิการค่าสงเคราะห์ต่าง ๆ") {
-      if (categoryName == "เสียชีวิตคนในครอบครัว") {
+      if (categoryName == "สวัสดิการเสียชีวิตคนในครอบครัว") {
         fileData.value = await exportService.variousFuneralFamily(requestId);
       }
       else {
@@ -665,6 +673,9 @@ async function downloadData(requestId, categoryName, welfareType) {
     }
     else if (welfareType == "สวัสดิการค่าสงเคราะห์การเสียชีวิต") {
       fileData.value = await exportService.funeralDeceaseEmployee(requestId);
+    }
+    else if (welfareType == "สวัสดิการเกี่ยวกับการศึกษาของบุตร") {
+      fileData.value = await exportService.childrenEnducation(requestId);
     }
     const result = fileData.value;
     let filename = null;

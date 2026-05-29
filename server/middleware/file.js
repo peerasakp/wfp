@@ -62,6 +62,9 @@ const upload = multer({
 exports.getName = async (req, res, next) => {
   const method = "getAllFile";
   try {
+    if (!fs.existsSync(fileFolder)) {
+      fs.mkdirSync(fileFolder, { recursive: true })
+    }
     fs.readdir(fileFolder, (err, files) => {
       if (err) {
         return res.status(500).json({ message: "ไม่พบโฟลเดอร์" });
