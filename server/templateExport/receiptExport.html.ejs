@@ -94,7 +94,9 @@
                 <% if (body.receiptInfo && Array.isArray(body.receiptInfo)) { %>
                   <% for (var i = 0; i < body.receiptInfo.length; i++) { %>
                     <div class="d-flex py-sm">
-                      <%= body.receiptInfo[i].categoryName %>
+                        <%= body.receiptInfo[i].categoryName === 'สวัสดิการค่าทำฟันเพื่อการรักษา ยกเว้นทันตกรรมเพื่อความสวยงาม'
+      ? 'สวัสดิการค่าทำฟันเพื่อการรักษา'
+      : body.receiptInfo[i].categoryName %>
                     </div>
                   <% } %>
                 <% } %>

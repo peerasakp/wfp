@@ -21,7 +21,7 @@
     <div class="content">
       <div class="d-flex justify-end font-14"><span class="font-semi-bold">แบบ สก.๐๒</span></div>
       <div class="d-flex justify-center font-20 pt-md">
-        <span class="font-semi-bold">ใบเบิกสวัสดิการทั่วไป กองทุนสวัสดิการมหาวิทยาลัยบูรพา</span>
+        <span class="font-semi-bold">ใบเบิกเงินสวัสดิการทั่วไป กองทุนสวัสดิการมหาวิทยาลัยบูรพา</span>
       </div>
       <div class="d-flex justify-center font-14 pt-sm pb-md">
         โปรดทำเครื่องหมาย / ลงในช่อง
@@ -45,13 +45,13 @@
                     <div class="col d-flex" >
                       <span class="font-semi-bold">ตำแหน่ง</span>
                       <span style="max-width: 103px; width: 103px; " class="<%= body?.user?.position ? 'text-dot text-center' : 'text-dot-no-value' %>">
-                        <%= body?.user?.position ?? '' %> 
+                        <%= body?.user?.position ?? '' %>
                       </span>
                     </div>
                     <div style="flex-basis: 95%" >
                       <div style="display: flex; gap: 8px; align-items: center">
                         <div  class="d-flex">
-                          <span class="font-semi-bold">สังกัด ส่วนงาน</span>
+                          <span class="font-semi-bold">สังกัด ภาควิชา / ส่วนงาน</span>
                           <span style="max-width: 300px; width: 300px;" class="<%= body?.user?.department ? 'text-dot text-center' : 'text-dot-no-value' %>">
                             <%= body?.user?.department %>
                           </span>
@@ -73,10 +73,10 @@
                   ? "checked" : "" %>
                 />
                 <label for="3">พนักงานมหาวิทยาลัย</label><br />
-                <input type="checkbox" id="4" name="พนักงานมหาวิทยาลัย" value="4" <%=body?.user?.employeeTypeId==4
+                <input type="checkbox" id="4" name="ลูกจ้งมหาวิทยาลัย" value="4" <%=body?.user?.employeeTypeId==4
                   ? "checked" : "" %>
                 />
-                <label for="4"> พนักงานมหาวิทยาลัย</label>
+                <label for="4"> ลูกจ้างมหาวิทยาลัย</label>
               </div>
             </div>
           </td>
@@ -92,7 +92,7 @@
                   </div>
                   <input type="checkbox" id="cate1" name="cate1" value="1" <%=body?.categoryId==1 ? "checked" : "" %> />
                   <span class="font-semi-bold" for="cate1">ข้าพเจ้าขอรับเงินสวัสดิการค่าตรวจสุขภาพประจำปี
-                    (เท่าที่จ่ายจริงไม่เกิน ๓,๐๐๐)</span>
+                    (เท่าที่จ่ายจริงไม่เกิน ๓,๐๐๐ บาท)</span>
                 </div>
                 <div class="d-flex">
                   <div style="width: 5%;"></div>
@@ -124,7 +124,7 @@
                         <input type="checkbox" id="cate1" name="cate1" value="1" <%=body?.categoryId==1 &&
                           body?.fundDecree ? "checked" : "" %> />
                         <span>
-                          ได้รับเงินจากสิทธิที่เบิกได้ตามพระราชกฤษฎีกาเงินสวัสดิการเกี่ยวกับการรักษาพยาบาล
+                          ได้รับเงินจากสิทธิที่เบิกได้ตามพระราชกฤษฎีกา เงินสวัสดิการเกี่ยวกับการรักษาพยาบาล
                           เป็นเงิน
                         </span>
                         <span class="<%= body?.categoryId==1 ? 'text-dot text-center' : 'text-dot-no-value text-white' %>">
@@ -174,7 +174,7 @@
                     <div class="row" style="gap: 8px">
                       <span class="px-sm text-white">---</span>
                       <div style="flex: 1">
-                        <span class="font-semi-bold">หลักฐานแนบ</span>
+                        <span class="font-semi-bold">หลักฐานที่ต้องแนบ</span>
                       </div>
                     </div>
                     <div class="row py-sm" style="gap: 8px">
@@ -235,8 +235,7 @@
                       <div style="flex: 1" class="px-sm">
                         <input type="checkbox" id="cate1" name="cate1" value="1" <%=body?.categoryId==3 &&
                           body?.fundEligible ? "checked" : "" %> />
-                        <span>ประสบอุบัติเหตุขณะปฏิบัติหน้าที่ (จ่ายคนละไม่เกิน ๑,๐๐๐
-                          บาท)</span>
+                        <span>ประสบอุบัติเหตุขณะปฏิบัติงานในหน้าที่ (จ่ายไม่เกินคนละ ๑,๐๐๐ บาท)</span>
                       </div>
                     </div>
                     <div class="row pl-md py-sm" style="gap: 8px">
@@ -366,7 +365,7 @@
                                   (วัน/เดือน/ปี)<span class="text-dot text-center">
                                     <%= toThaiNumber(body.requestData[i].dateReceipt) %>
                                   </span></span>
-                                <span class="ml-sm d-flex text-center" style="max-width: 170px; width: 170px;">จำนวนเงิน 
+                                <span class="ml-sm d-flex text-center" style="max-width: 170px; width: 170px;">จำนวนเงิน
                                   <span class="<%= body.requestData[i].fundSumRequest ? 'text-dot text-center' : '' %>">
                                   <%= toThaiNumber(Number(body.requestData[i].fundSumRequest).toLocaleString('en-US',{
                                     minimumFractionDigits: body.requestData[i].fundSumRequest % 1===0 ? 0 : 2,
@@ -397,7 +396,7 @@
                     </div>
                     <div class="row pl-md" style="gap: 8px; padding-left: 32px">
                       <div class="pl-md row d-flex" style="padding-left: 32px;">
-                        <div class="col-12">๑.ใบสำคัญรับเงิน</div>
+                        <div class="col-12">๑.ใบเสร็จรับเงิน</div>
                         <div class="col-12">๒.ใบรับรองแพทย์</div>
                         <br>
                         <div class="col-12">๓.คำสั่งประโยชน์ทดแทน หรือใบยืนยันการใช้สิทธิประโยชน์ทดแทน
@@ -471,7 +470,7 @@
               <div class="row px-md py-sm" style="gap: 8px; width: 95%;">
                 <div class="col-12">
                   ๑. ข้าพเจ้า ได้ตรวจสอบใบขอเบิกเงินสวัสดิการฉบับนี้แล้ว
-                  ขอรับรองว่าผู้ขอเบิกสวัสดิการฯ มีสิทธิเบิกสวัสดิการฯ
+                  ขอรับรองว่าผู้ขอรับเงินสวัสดิการฯ มีสิทธิเบิกเงินสวัสดิการฯ
                   ได้ตามประกาศ คณะกรรมการสวัสดิการ มหาวิทยาลัยบูรพา
                 </div>
                 <div class="col-12 pl-sm ml-sm row">
@@ -508,7 +507,7 @@
             <div class="d-flex py-sm" style="width: 100%;">
               <div style="width: 5%;"></div>
               <div style="width: 95%;" class="pl-md ml-md">
-                <div class="pl-md ml-md"> อนุมัติเบิกจ่ายได้</div>
+                <div class="pl-md ml-md"> อนุมัติให้เบิกได้</div>
               </div>
             </div>
             <div class="row px-md py-sm" style="gap: 8px; align-items: flex-end">
@@ -548,7 +547,7 @@
                   <div style="flex: 1" class="pl-md ml-md d-flex wrap">
                       <div class="row">
                           <span>จำนวนเงิน</span>
-                          <span style="max-width: 150px; width: 150px;" 
+                          <span style="max-width: 150px; width: 150px;"
                                 class="<%= body?.fundSumRequest ? 'text-dot text-center' : 'text-dot-no-value' %>">
                               <%= toThaiNumber(Number(body?.fundSumRequest).toLocaleString('en-US',{
                                   minimumFractionDigits: body?.fundSumRequest % 1 === 0 ? 0 : 2,
@@ -563,7 +562,7 @@
                           </span>
                           <span>)</span>
                           <span class="line-break <%= (bahttext(Number(body?.fundSumRequest)).length > 40) ? 'dynamic-line-break' : '' %>">
-                            ไว้ถูกต้องแล้ว/ครบถ้วนแล้ว
+                            ไว้ถูกต้อง/ครบถ้วนแล้ว
                         </span>
                       </div>
                   </div>
@@ -594,7 +593,7 @@
                   วันที่<div class="text-dot-no-value" style="max-width: 50px;"> </div>เดือน <div class="text-dot-no-value" style="max-width: 50px;"> </div> พ.ศ. <div class="text-dot-no-value" style="max-width: 50px;"> </div>
                 </div>
                 <div class="col-sign py-sm">
-                  ลงชื่อต่อเมื่อได้รับเงินแล้วเท่านั้น
+                  (ลงชื่อต่อเมื่อได้รับเงินแล้วเท่านั้น)
                 </div>
               </div>
             </div>

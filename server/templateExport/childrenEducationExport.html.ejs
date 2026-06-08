@@ -19,7 +19,7 @@
         };
         %>
         <div class="content">
-            <div class="d-flex justify-end font-14"><span class="font-semi-bold">แบบ สก.๐๒</span></div>
+            <div class="d-flex justify-end font-14"><span class="font-semi-bold">แบบ สก.๐๑</span></div>
             <div class="d-flex justify-center font-20 pt-md">
                 <span class="font-semi-bold">ใบเบิกสวัสดิการเกี่ยวกับการศึกษาของบุตร
                     กองทุนสวัสดิการมหาวิทยาลัยบูรพา</span>
@@ -168,11 +168,11 @@
                                                     value="4" <%=body?.role==='พนักงานหรือลูกจ้างในรัฐวิสาหกิจ'
                                                     ? "checked" : "" %>
                                                 />
-                                                <label for="4">พนักงานหรือลูกจ้างในรัฐวิสาหกิจ / หน่วงานของทางราชการ
+                                                <label for="4">เป็นพนักงานหรือลูกจ้างในรัฐวิสาหกิจ / หน่วงานของทางราชการ
                                                     ราชการส่วนท้องถิ่น กรุงเทพมหานคร องค์กรอิสระ </label><br />
 
                                                 <div class="row pl-md py-sm">
-                                                    <label for="5" class="pl-lg">องค์กรมหาชน หรือหน่วยงานอื่นใด</label>
+                                                    <label for="5" class="pl-lg">องค์การมหาชน หรือหน่วยงานอื่นใด</label>
                                                     <% if (body?.role==='พนักงานหรือลูกจ้างในรัฐวิสาหกิจ' ) { %>
                                                         <span class="font-semi-bold mx-sm">ตำแหน่ง</span>
                                                         <span class="text-dot pl-sm mr-lg text-center col-8">
@@ -217,7 +217,7 @@
                                     <div class=" px-sm  font-semi-bold">
                                         ๓.
                                     </div>
-                                    <span class="font-semi-bold" for="cate1">ข้าพเจ้าเป็นผู้มีสิทธิและใช้สิทธิ</span>
+                                    <span class="font-semi-bold" for="cate1">ข้าพเจ้าเป็นผู้มีสิทธิและขอใช้สิทธิ</span>
                                 </div>
 
                                 <div class="d-flex">
@@ -239,7 +239,7 @@
                                                 <input type="checkbox" id="eligible2" name="eligible2" value="2"
                                                     <%=body?.eligibleBenefits==='ข' ? "checked" : "" %> />
                                                 <span style="font-size: 12px;">(ข)
-                                                    สำหรับผู้ปฏิบัติงานที่เริ่มปฏิบัติงานก่อนวันที่ ๒๖ มีนาคม พ.ศ.
+                                                    สำหรับผู้ปฏิบัติงานที่ปฏิบัติงานก่อนวันที่ ๒๖ มีนาคม พ.ศ.
                                                     ๒๕๖๑ และมีบุตรที่เริ่มเข้าศึกษาอยู่ก่อนปีการศึกษา
                                                     ๒๕๖๑</span><br />
 
@@ -375,7 +375,7 @@
                                         ๔.
                                     </div>
                                     <span class="font-semi-bold" for="">ข้าพเจ้าได้จ่ายเงินสำหรับการศึกษาของบุตร
-                                        และขอเบิกเงินจากสวัสดิการมหาลัย ดังนี้ </span>
+                                        และขอเบิกเงินจากสวัสดิการมหาวิทยาลัย ดังนี้ </span>
                                 </div>
 
                                 <div style="display: flex; flex-direction: column; gap: 10px;margin-top: 8px;"
@@ -416,7 +416,7 @@
                                             <div class="row"
                                                 style="gap: 8px; flex-wrap: wrap; padding-left: 5%; width: 660px; font-size: 12px;">
                                                 <span class="font-semi-bold ">(กรณีเป็นบุตรแทนที่บุตรซึ่งถึงแก่กรรมแล้ว)
-                                                    แทนบุตรลำดับที่</span>
+                                                    แทนที่บุตรลำดับที่</span>
                                                 <span class="text-dot pl-sm text-center">
                                                     <%= child.delegateNumber ? child.delegateNumber : " " %>
                                                 </span>
@@ -514,7 +514,7 @@
 
                                             <div class="row"
                                                 style="gap: 8px; flex-wrap: wrap; padding-left: 58%; width: 278px; font-size: 12px;">
-                                                <span class="font-semi-bold">รวมเป็นเงินจำนวนเงิน</span>
+                                                <span class="font-semi-bold">รวมเป็นจำนวนเงิน</span>
                                                 <span class="text-dot pl-sm text-center">
                                                     <%= toThaiNumber(Number(child?.fundSumRequest).toLocaleString('en-US',{
                                                         minimumFractionDigits: child?.fundSumRequest % 1===0 ? 0 : 2,
@@ -651,8 +651,8 @@
 
                                             <div class="row"
                                             style="gap: 8px; flex-wrap: wrap; padding-left: 47%; width: 358px; font-size: 12px;">
-                                                <span class="font-semi-bold ">ขอเบิกจากสวัสดิการมหาวิทยาลัย
-                                                    5(8)</span>
+                                                <span class="font-semi-bold ">ขอเบิกจากสวัสดิการมหาวิทยาลัย ข้อ  ๕(๘)
+                                                    </span>
                                                 <span class="font-semi-bold" style="margin-left: 20px;">จำนวน</span>
                                                 <span class="text-dot pl-sm text-center">
                                                     <%= toThaiNumber(Number(child?.fundUniversity).toLocaleString('en-US',{
@@ -664,7 +664,7 @@
 
                                             <div class="row"
                                                 style="gap: 8px; flex-wrap: wrap; padding-left:47%; width: 358px; font-size: 12px;">
-                                                <span class="font-semi-bold">ขอเบิกจากสวัสดิการมหาวิทยาลัย 5(9),(10)
+                                                <span class="font-semi-bold">ขอเบิกจากสวัสดิการมหาวิทยาลัย ข้อ ๕(๙),(๑๐)
                                                 </span>
                                                 <span class="font-semi-bold">จำนวน</span>
                                                 <span class="text-dot pl-sm text-center">
@@ -677,7 +677,7 @@
 
                                             <div class="row"
                                                 style="gap: 8px; flex-wrap: wrap; padding-left: 58%; width: 278px; font-size: 12px;">
-                                                <span class="font-semi-bold">รวมเป็นเงินจำนวนเงิน</span>
+                                                <span class="font-semi-bold">รวมเป็นจำนวนเงิน</span>
                                                 <span class="text-dot pl-sm text-center">
                                                     <%= toThaiNumber(Number(child?.fundSumRequest).toLocaleString('en-US',{
                                                         minimumFractionDigits: child?.fundSumRequest % 1===0 ? 0 : 2,
@@ -716,7 +716,7 @@
                                             <div class="row"
                                                 style="gap: 8px; flex-wrap: wrap; padding-left: 5%; width: 660px; font-size: 12px;">
                                                 <span class="font-semi-bold ">(กรณีเป็นบุตรแทนที่บุตรซึ่งถึงแก่กรรมแล้ว)
-                                                    แทนบุตรลำดับที่</span>
+                                                    แทนที่บุตรลำดับที่</span>
                                                 <span class="text-dot-no-value pl-sm text-center">
 
                                                 </span>
@@ -781,8 +781,7 @@
 
                                         <div class="row"
                                         style="gap: 8px; flex-wrap: wrap; padding-left: 47%; width: 358px; font-size: 12px;">
-                                            <span class="font-semi-bold ">ขอเบิกจากสวัสดิการมหาวิทยาลัย
-                                                5(8)</span>
+                                            <span class="font-semi-bold ">ขอเบิกจากสวัสดิการมหาวิทยาลัย ข้อ ๕(๘)</span>
                                             <span class="font-semi-bold" style="margin-left: 20px;">จำนวน</span>
                                             <span class="text-dot pl-sm text-center">
 
@@ -792,7 +791,7 @@
 
                                         <div class="row"
                                             style="gap: 8px; flex-wrap: wrap; padding-left:47%; width: 358px; font-size: 12px;">
-                                            <span class="font-semi-bold">ขอเบิกจากสวัสดิการมหาวิทยาลัย 5(9),(10)
+                                            <span class="font-semi-bold">ขอเบิกจากสวัสดิการมหาวิทยาลัย ข้อ ๕​ (๙),(๑๐)
                                             </span>
                                             <span class="font-semi-bold">จำนวน</span>
                                             <span class="text-dot pl-sm text-center">
@@ -803,7 +802,7 @@
 
                                         <div class="row"
                                             style="gap: 8px; flex-wrap: wrap; padding-left: 58%; width: 278px; font-size: 12px;">
-                                            <span class="font-semi-bold">รวมเป็นเงินจำนวนเงิน</span>
+                                            <span class="font-semi-bold">รวมเป็นจำนวนเงิน</span>
                                             <span class="text-dot pl-sm text-center">
 
                                             </span>
@@ -854,7 +853,7 @@
                                         <div class="row"
                                             style="gap: 8px; flex-wrap: wrap; padding-left: 5%; width: 660px; font-size: 12px;">
                                             <span class="font-semi-bold ">(กรณีเป็นบุตรแทนที่บุตรซึ่งถึงแก่กรรมแล้ว)
-                                                แทนบุตรลำดับที่</span>
+                                                แทนที่บุตรลำดับที่</span>
                                             <span class="text-dot pl-sm text-center">
                                                 <%= child.delegateNumber ? child.delegateNumber : " " %>
 
@@ -926,8 +925,7 @@
 
                                     <div class="row"
                                     style="gap: 8px; flex-wrap: wrap; padding-left: 47%; width: 358px; font-size: 12px;">
-                                        <span class="font-semi-bold ">ขอเบิกจากสวัสดิการมหาวิทยาลัย
-                                            5(8)</span>
+                                        <span class="font-semi-bold ">ขอเบิกจากสวัสดิการมหาวิทยาลัย ข้อ ๕(๘)</span>
                                         <span class="font-semi-bold" style="margin-left: 20px;">จำนวน</span>
                                         <span class="text-dot pl-sm text-center">
                                             <%= toThaiNumber(Number(child?.fundUniversity).toLocaleString('en-US',{
@@ -939,7 +937,7 @@
 
                                     <div class="row"
                                         style="gap: 8px; flex-wrap: wrap; padding-left:47%; width: 358px; font-size: 12px;">
-                                        <span class="font-semi-bold">ขอเบิกจากสวัสดิการมหาวิทยาลัย 5(9),(10)
+                                        <span class="font-semi-bold">ขอเบิกจากสวัสดิการมหาวิทยาลัย ข้อ ๕​ (๙), (๑๐)
                                         </span>
                                         <span class="font-semi-bold">จำนวน</span>
                                         <span class="text-dot pl-sm text-center">
@@ -952,7 +950,7 @@
 
                                     <div class="row"
                                         style="gap: 8px; flex-wrap: wrap; padding-left: 58%; width: 278px; font-size: 12px;">
-                                        <span class="font-semi-bold">รวมเป็นเงินจำนวนเงิน</span>
+                                        <span class="font-semi-bold">รวมเป็นจำนวนเงิน</span>
                                         <span class="text-dot pl-sm text-center">
                                             <%= toThaiNumber(Number(child?.fundSumRequest).toLocaleString('en-US',{
                                                 minimumFractionDigits: child?.fundSumRequest % 1===0 ? 0 : 2,
@@ -1078,7 +1076,7 @@
 
                                         <div class="row"
                                             style="gap: 8px; flex-wrap: wrap; padding-left: 58%; width: 278px; font-size: 12px;">
-                                            <span class="font-semi-bold">รวมเป็นเงินจำนวนเงิน</span>
+                                            <span class="font-semi-bold">รวมเป็นเำนวนเงิน</span>
                                             <span class="text-dot pl-sm text-center">
 
                                             </span>
@@ -1178,7 +1176,7 @@
                                                     หน่วยงานของทางราชการ ราชการส่วนท้องถิ่น </label><br />
                                                 <label style="padding-left: 4.8%;" for="">กรุงเทพมหานคร องค์กรอิสระ
                                                     องค์การมหาชน หรือหน่วยงานอื่นใด
-                                                    ต่ำกว่าจำนวนที่ได้รับจากกองทุนสวัสติการ</label><br />
+                                                    ต่ำกว่าจำนวนที่ได้รับจากทางกองทุนสวัสติการ</label><br />
                                                 <span style="padding-left: 4.8%;" class="font-semi-bold">จำนวน</span>
                                                 <span class="text-dot pl-sm text-center">
                                                     <%= toThaiNumber(Number(body?.fundOther).toLocaleString('en-US',{
@@ -1287,7 +1285,7 @@
                                     <div class="d-flex py-sm" style="width: 100%;">
                                         <div style="width: 5%;"></div>
                                         <div style="width: 100%;" class="pl-md ml-md">
-                                            <div class="pl-md ml-md"> อนุมัติเบิกจ่ายได้</div>
+                                            <div class="pl-md ml-md"> อนุมัติให้เบิกได้</div>
                                         </div>
                                     </div>
                                     <div class="row px-md py-sm"
@@ -1387,7 +1385,7 @@
                                             class="text-dot-no-value" style="max-width: 50px;"> </div>
                                     </div>
                                     <div class="col-sign py-sm">
-                                        ลงชื่อต่อเมื่อได้รับเงินแล้วเท่านั้น
+                                        (ลงชื่อต่อเมื่อได้รับเงินแล้วเท่านั้น)
                                     </div>
                                 </div>
                             </div>
