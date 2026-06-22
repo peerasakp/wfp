@@ -18,7 +18,7 @@
     font-family: 'Baijamjuree' !important;
 }
 font-bold {
-    font-family: 'BaijamjureeBold' !important; 
+    font-family: 'BaijamjureeBold' !important;
 }
 font-medium{
     font-family: 'BaijamjureeMedium' !important;
@@ -29,7 +29,7 @@ font-semi-bold{
 }
 div{
     font-family: 'Baijamjuree';
-    font-size : 14px;
+    font-size : 13px;
 }
 .font-20{
     font-size : 20px !important;
@@ -44,9 +44,9 @@ div{
     font-size : 12px !important;
 }
 .page-break {
-    page-break-inside: avoid !important; 
+    page-break-inside: avoid !important;
     page-break-before: always !important;
-    break-before: page !important; 
+    break-before: page !important;
 }
 @media print {
     .page-break {
@@ -150,12 +150,12 @@ div{
     max-width: 100%;
 }
 .col-5 {
-    flex: 0 0 40%;  
+    flex: 0 0 40%;
     max-width: 40%;
 }
 
 .col-4 {
-    flex: 0 0 34.5%;  
+    flex: 0 0 34.5%;
     max-width: 34.5%;
 }
 
@@ -182,10 +182,15 @@ div{
 .text-center {
     text-align: center;
 }
+.text-dot,
+.text-dot-no-value {
+    font-size: 12px;
+}
+
 .text-dot {
     position: relative;
     flex-grow: 1;
-    min-width: fit-content; 
+    min-width: fit-content;
 }
 .text-dot::after {
     content: "";
@@ -200,7 +205,7 @@ div{
 .text-dot-no-value {
     position: relative;
     flex-grow: 1;
-    min-width: fit-content; 
+    min-width: fit-content;
     padding : 0 4px 0 4px;
     margin : 0 4px 0 4px;
 }
@@ -217,7 +222,7 @@ div{
 .text-dot-pl {
     position: relative;
     flex-grow: 1;
-    min-width: fit-content; 
+    min-width: fit-content;
     padding : 0 4px 0 4px;
     margin : 0 4px 0 4px;
 }
@@ -252,7 +257,7 @@ td, th {
     font-size : 14px;
     border: 1px solid black;
     text-align: left;
-    padding: 8px 8px 8px 16px; 
+    padding: 8px 8px 8px 16px;
 }
 
 .bor{
@@ -272,4 +277,15 @@ td, th {
 .dynamic-line-break {
     display: block;
     margin-top: 8px;
+}
+
+.position-field {
+    width: 180px !important;
+    max-width: 180px !important;
+    min-width: 0 !important;
+    flex-grow: 0 !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
 }

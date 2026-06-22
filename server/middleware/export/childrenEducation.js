@@ -123,9 +123,7 @@ const fetchDatareimChildrenEducation = async (req, res, next) => {
                             as: "reimbursements_children_education",
                             required: true,
                             attributes: [],
-                            where: {
-                                created_by: id
-                            }
+
                         }
                     ]
                 }
@@ -138,7 +136,7 @@ const fetchDatareimChildrenEducation = async (req, res, next) => {
             });
         }
         const datas = JSON.parse(JSON.stringify(requestData));
-        const child = childrenData.map(c => c.get({ plain: true })); 
+        const child = childrenData.map(c => c.get({ plain: true }));
         var welfareData = {
             ...datas,
             user: {
@@ -184,7 +182,7 @@ const fetchDatareimChildrenEducation = async (req, res, next) => {
                 categoryName: c.childName,
                 fundSumRequest: c.fundSumRequest,
             })),
-            
+
             total: datas.fundSumRequest,
         }
         delete welfareData.categoryName;

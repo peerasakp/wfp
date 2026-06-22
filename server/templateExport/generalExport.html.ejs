@@ -38,21 +38,24 @@
                   <div class="col-10 wrap row pl-sm " style="gap:8px; flex-wrap: wrap; width: 90%;">
                     <div class="d-flex">
                       <span class="font-semi-bold">ข้าพเจ้า</span>
-                      <span style="max-width: 180px; width: 180px;" class="<%= body?.user?.name ? 'text-dot text-center' : 'text-dot-no-value' %>">
+                      <span style="max-width: 150px; width: 150px;" class="<%= body?.user?.name ? 'text-dot text-center' : 'text-dot-no-value' %>">
                         <%= body?.user?.name ?? '' %>
                       </span>
                     </div>
                     <div class="col d-flex" >
                       <span class="font-semi-bold">ตำแหน่ง</span>
-                      <span style="max-width: 103px; width: 103px; " class="<%= body?.user?.position ? 'text-dot text-center' : 'text-dot-no-value' %>">
-                        <%= body?.user?.position ?? '' %>
+
+                      <span style="max-width: 103px; width: 103px; "
+  class="<%= body?.user?.position ? 'text-dot text-center' : 'text-dot-no-value' %>">
+                      <%= body?.user?.position ?? '' %>
+
                       </span>
                     </div>
                     <div style="flex-basis: 95%" >
                       <div style="display: flex; gap: 8px; align-items: center">
                         <div  class="d-flex">
                           <span class="font-semi-bold">สังกัด ภาควิชา / ส่วนงาน</span>
-                          <span style="max-width: 300px; width: 300px;" class="<%= body?.user?.department ? 'text-dot text-center' : 'text-dot-no-value' %>">
+                          <span style="max-width: 250px; width: 250px;" class="<%= body?.user?.department ? 'text-dot text-center' : 'text-dot-no-value' %>">
                             <%= body?.user?.department %>
                           </span>
                         </div>
@@ -507,7 +510,7 @@
             <div class="d-flex py-sm" style="width: 100%;">
               <div style="width: 5%;"></div>
               <div style="width: 95%;" class="pl-md ml-md">
-                <div class="pl-md ml-md"> อนุมัติให้เบิกได้</div>
+                <div class="pl-md ml-md"> อนุมัติให้เบิกจ่ายได้</div>
               </div>
             </div>
             <div class="row px-md py-sm" style="gap: 8px; align-items: flex-end">
