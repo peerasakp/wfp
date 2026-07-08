@@ -334,15 +334,15 @@
                     <div class="row py-sm px-md" style="gap: 8px">
                       <div class="col-12 px-sm d-flex">
                         <span>จำนวนเงิน</span>
-                        <span style="max-width: 200px; width: 200px;" class="<%= body?.categoryId==2 && body?.fundSumRequest ? 'text-dot text-center' : 'text-dot-no-value' %>">
-                          <%= body?.categoryId==2 && body?.fundSumRequest ?
-                            toThaiNumber(Number(body?.fundSumRequest).toLocaleString('en-US',{ minimumFractionDigits:
-                            body?.fundSumRequest % 1===0 ? 0 : 2, maximumFractionDigits: 2, })) : ""
+                        <span style="max-width: 200px; width: 200px;" class="<%= body?.categoryId==2 && body?.fundReceipt ? 'text-dot text-center' : 'text-dot-no-value' %>">
+                          <%= body?.categoryId==2 && body?.fundReceipt ?
+                            toThaiNumber(Number(body?.fundReceipt).toLocaleString('en-US',{ minimumFractionDigits:
+                            body?.fundReceipt % 1===0 ? 0 : 2, maximumFractionDigits: 2, })) : ""
                             %>
                         </span>
                         <span>บาท</span>
-                        (<span style="max-width: 200px; width: 200px;" class="<%= body?.categoryId==2 && body?.fundSumRequest ? 'text-dot text-center' : 'text-dot-no-value' %>">
-                          <%= body?.categoryId==2 && body?.fundSumRequest ? bahttext(Number(body?.fundSumRequest))
+                        (<span style="max-width: 200px; width: 200px;" class="<%= body?.categoryId==2 && body?.fundReceipt ? 'text-dot text-center' : 'text-dot-no-value' %>">
+                          <%= body?.categoryId==2 && body?.fundReceipt ? bahttext(Number(body?.fundReceipt))
                             : "" %>
                         </span>)
                       </div>

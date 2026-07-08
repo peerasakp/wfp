@@ -827,6 +827,89 @@ async function downloadFile(fileName) {
   }
 }
 
+function safeFormatDateServer(value) {
+  if (!value) return null;
+
+  // กรณีเป็น Date object
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const text = value.trim();
+
+  // กรณีเป็น YYYY-MM-DD หรือ ISO string เช่น 2026-07-09 หรือ 2026-07-09T00:00:00.000Z
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+    return text.slice(0, 10);
+  }
+
+  // กรณีเป็น DD/MM/YYYY หรือ DD/MM/BBBB เช่น 09/07/2026 หรือ 09/07/2569
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(text)) {
+    const [dayRaw, monthRaw, yearRaw] = text.split("/");
+    let year = Number(yearRaw);
+
+    if (year > 2400) {
+      year -= 543;
+    }
+
+    return `${year}-${monthRaw.padStart(2, "0")}-${dayRaw.padStart(2, "0")}`;
+  }
+
+  // กรณีเป็น DD/Mon/YYYY หรือ DD/Month/YYYY เช่น 09/Jul/2026 หรือ 09/July/2026
+  const monthMap = {
+    jan: "01",
+    january: "01",
+    feb: "02",
+    february: "02",
+    mar: "03",
+    march: "03",
+    apr: "04",
+    april: "04",
+    may: "05",
+    jun: "06",
+    june: "06",
+    jul: "07",
+    july: "07",
+    aug: "08",
+    august: "08",
+    sep: "09",
+    sept: "09",
+    september: "09",
+    oct: "10",
+    october: "10",
+    nov: "11",
+    november: "11",
+    dec: "12",
+    december: "12",
+  };
+
+  const englishMonthMatch = text.match(/^(\d{1,2})\/([A-Za-z]+)\/(\d{4})$/);
+
+  if (englishMonthMatch) {
+    const day = englishMonthMatch[1];
+    const monthText = englishMonthMatch[2].toLowerCase();
+    let year = Number(englishMonthMatch[3]);
+    const month = monthMap[monthText];
+
+    if (!month) return null;
+
+    if (year > 2400) {
+      year -= 543;
+    }
+
+    return `${year}-${month}-${day.padStart(2, "0")}`;
+  }
+
+  // ถ้าไม่เข้าเงื่อนไขด้านบน ให้ใช้ function เดิมของระบบ
+  return formatDateServer(value);
+}
+
 async function submit(actionId) {
   let validate = false;
   if (!model.value.fundReceipt) {
@@ -882,14 +965,40 @@ async function submit(actionId) {
     return;
   }
   let isValid = false;
-  let payload = {
-    fundReceipt: model.value.fundReceipt,
-    dateReceipt: formatDateServer(model.value.dateReceipt),
-    fundSumRequest: model.value.fundSumRequest,
-    createFor: canCreateFor.value ? model.value.createFor : null,
-    actionId: actionId
-  }
-  var fetch;
+
+const dateReceiptForServer = safeFormatDateServer(model.value.dateReceipt);
+
+if (!dateReceiptForServer) {
+
+  Notify.create({
+
+    message: "รูปแบบวันที่ตามใบเสร็จไม่ถูกต้อง กรุณาเลือกวันที่ใหม่",
+
+    position: "bottom-left",
+
+    type: "negative",
+
+  });
+
+  return;
+
+}
+
+let payload = {
+
+  fundReceipt: model.value.fundReceipt,
+
+  dateReceipt: dateReceiptForServer,
+
+  fundSumRequest: model.value.fundSumRequest,
+
+  createFor: canCreateFor.value ? model.value.createFor : null,
+
+  actionId: actionId
+
+}
+
+var fetch;
   Swal.fire({
     title: "ยืนยันการทำรายการหรือไม่ ???",
     html: `โปรดตรวจสอบข้อมูลให้แน่ใจก่อนยืนยัน`,
@@ -913,6 +1022,7 @@ async function submit(actionId) {
         }
         isValid = true;
       } catch (error) {
+        console.log("submit error response:", error?.response?.data);
         if (error?.response?.status == 400) {
           if (Object.keys(error?.response?.data?.errors ?? {}).length) {
             isError.value = {

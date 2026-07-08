@@ -362,6 +362,7 @@ const fetchDataDental = async (req, res, next) => {
             attributes: [
                 'id',
                 [col("reim_number"), "reimNumber"],
+                [col("fund_receipt"), "fundReceipt"],
                 [col("fund_sum_request"), "fundSumRequest"],
                 [col("request_date"), "requestDate"],
                 [col("created_by_user.id"), "userId"],
@@ -440,6 +441,7 @@ const fetchDataDental = async (req, res, next) => {
             receiptInfo: [
                 {
                     categoryName: datas.categoryName,
+                    fundReceipt: datas.fundReceipt,
                     fundSumRequest: datas.fundSumRequest,
                 },
             ],
