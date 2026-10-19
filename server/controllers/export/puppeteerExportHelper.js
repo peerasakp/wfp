@@ -15,6 +15,7 @@ const PUPPETEER_ARGS = [
     '--allow-file-access-from-files',
     '--disable-dev-shm-usage',
     '--disable-gpu',
+    '--ignore-certificate-errors',
 ];
 
 const NAV_TIMEOUT_MS = 120000;
@@ -40,6 +41,66 @@ async function renderHtmlToPdfBuffer(html) {
         await page.setContent(html, {
             waitUntil: 'load',
             timeout: NAV_TIMEOUT_MS,
+        });
+
+	        // DEBUG: ดูว่า resource ตัวไหนโหลดไม่ได้
+
+        page.on('requestfailed', request => {
+
+            console.log(
+
+                'REQUEST FAILED:',
+
+                request.url(),
+
+                request.failure()?.errorText
+
+            );
+
+        });
+
+        page.on('response', response => {
+
+            if (response.status() >= 400) {
+
+                console.log(
+
+                    'HTTP ERROR:',
+
+                    response.status(),
+
+                    response.url()
+
+                );
+
+            }
+
+        });
+
+        await page.setContent(html, {
+
+            waitUntil: 'load',
+
+            timeout: NAV_TIMEOUT_MS,
+
+        });
+
+        // รอ image ทุกภาพให้โหลดเสร็จ
+
+        await page.waitForFunction(() => {
+
+            const images = Array.from(document.images);
+
+            return images.every(img =>
+
+                img.complete && img.naturalWidth > 0
+
+            );
+
+        }, {
+
+            timeout: 30000
+
         });
         const pdfBuffer = await page.pdf({
             format: 'A4',
