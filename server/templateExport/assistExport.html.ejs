@@ -40,21 +40,21 @@
                   <div class="col-10 wrap row pl-sm " style="gap:8px; flex-wrap: wrap; width: 90%;">
                     <div class="d-flex">
                       <span class="font-semi-bold">ข้าพเจ้า</span>
-                      <span style="max-width: 180px; width: 180px;" class="<%= body?.user?.name ? 'text-dot text-center' : 'text-dot-no-value' %>">
+                      <span style="max-width: 150px; width: 150px;" class="<%= body?.user?.name ? 'text-dot text-center' : 'text-dot-no-value' %>">
                         <%= body?.user?.name ?? '' %>
                       </span>
                     </div>
                     <div class="col d-flex" >
                       <span class="font-semi-bold">ตำแหน่ง</span>
                       <span style="max-width: 103px; width: 103px; " class="<%= body?.user?.position ? 'text-dot text-center' : 'text-dot-no-value' %>">
-                        <%= body?.user?.position ?? '' %> 
+                        <%= body?.user?.position ?? '' %>
                       </span>
                     </div>
                     <div style="flex-basis: 95%" >
                       <div style="display: flex; gap: 8px; align-items: center">
                         <div  class="d-flex">
                           <span class="font-semi-bold">สังกัด ส่วนงาน</span>
-                          <span style="max-width: 300px; width: 300px;" class="<%= body?.user?.department ? 'text-dot text-center' : 'text-dot-no-value' %>">
+                          <span style="max-width: 250px; width: 250px;" class="<%= body?.user?.department ? 'text-dot text-center' : 'text-dot-no-value' %>">
                             <%= body?.user?.department %>
                           </span>
                         </div>
@@ -75,10 +75,10 @@
                   ? "checked" : "" %>
                 />
                 <label for="3">พนักงานมหาวิทยาลัย</label><br />
-                <input type="checkbox" id="4" name="พนักงานมหาวิทยาลัย" value="4" <%=body?.user?.employeeTypeId==4
+                <input type="checkbox" id="4" name="ลูกจ้างมหาวิทยาลัย" value="4" <%=body?.user?.employeeTypeId==4
                   ? "checked" : "" %>
                 />
-                <label for="4"> พนักงานมหาวิทยาลัย</label>
+                <label for="4"> ลูกจ้างมหาวิทยาลัย</label>
               </div>
             </div>
           </td>
@@ -304,7 +304,7 @@
                         </div>
                       </div>
                     </div>
-                    
+
                   </div>
                 </div>
               </div>
@@ -427,15 +427,17 @@
               <div class="col"></div>
               <div class="col row">
                 <div class="col-sign2">
-                  ลงชื่อ 
+                  ลงชื่อ
                   <div class="text-dot-no-value" style="max-width: 170px;">
-                    
+
+                      <% if (sign?.result?.SIGN_BASE64) { %>
                       <img
-                        src="<%- sign.result.SIGN_BASE64 %>" 
-                        calss="sign-img"
+                        src="<%= sign.result.SIGN_BASE64 %>"
+                        class="sign-img"
                         alt="signature"
                         style="max-width: 120px;">
-                    
+                      <% } %>
+
                   </div>
                   ผู้ขอรับเงินสวัสดิการ
                 </div>
@@ -443,7 +445,7 @@
                   ( <div class="text-dot text-center" style="max-width: 80%;"><%= body?.user?.name %> </div> )
                 </div>
                 <div class="col-sign2 py-sm" style="padding-left: 32px;">
-                  วันที่<div class="text-dot-no-value" style="max-width: 50px;"><%= signedAt.day %></div>เดือน <div class="text-dot-no-value" style="max-width: 50px;"><%= signedAt.month %></div> พ.ศ. <div class="text-dot-no-value" style="max-width: 50px;"><%= signedAt.year %></div>
+                  วันที่<div class="text-dot-no-value" style="max-width: 50px;"><%= signedAt?.day ?? '' %></div>เดือน <div class="text-dot-no-value" style="max-width: 50px;"><%= signedAt?.month ?? '' %></div> พ.ศ. <div class="text-dot-no-value" style="max-width: 50px;"><%= signedAt?.year ?? '' %></div>
                 </div>
               </div>
             </div>
@@ -542,7 +544,7 @@
                   <div style="flex: 1" class="pl-md ml-md d-flex wrap">
                       <div class="row">
                           <span>จำนวนเงิน</span>
-                          <span style="max-width: 150px; width: 150px;" 
+                          <span style="max-width: 150px; width: 150px;"
                                 class="<%= body?.fundSumRequest ? 'text-dot text-center' : 'text-dot-no-value' %>">
                               <%= toThaiNumber(Number(body?.fundSumRequest).toLocaleString('en-US',{
                                   minimumFractionDigits: body?.fundSumRequest % 1 === 0 ? 0 : 2,
@@ -623,12 +625,12 @@
       <div class="py-sm"></div>
       <%- receipt %>
     <% } %>
-    
+
           <!-- New Page -->
     <% if (body.fundWreathUniversity || body.fundWreathArrange || body.fundVehicle) { %>
       <div class="page-break"></div>
       <div class="py-sm"></div>
-      <%- receiptFuneralSupport %> 
+      <%- receiptFuneralSupport %>
     <% } %>
 </body>
 

@@ -823,10 +823,18 @@ async function downloadData() {
     document.body.removeChild(a);
   }
   catch (error) {
-    console.log(error);
+    let errorData = error?.response?.data;
+    if (errorData instanceof Blob) {
+      try {
+        errorData = JSON.parse(await errorData.text());
+      } catch {
+        errorData = null;
+      }
+    }
+    console.error('Family funeral export failed:', errorData ?? error);
     Notify.create({
       message:
-        error?.response?.data?.message ??
+        errorData?.message ??
         "ดาวน์โหลดไม่สำเร็จกรุณาลองอีกครั้ง",
       position: "top-right",
       type: "primary",
