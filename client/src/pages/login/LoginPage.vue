@@ -1,5 +1,5 @@
 <template>
-    <div class="row bg-blue-10 justify-center" style="height: 100vh;">
+    <div class="row bg-blue-10 justify-center login-page">
         <div class="col-12 col-md-6 flex justify-center content-center">
             <q-card class="q-pa-md " :style="{
                 width: $q.screen.lt.sm ? '90%' : '60%',
@@ -32,6 +32,16 @@
 
                         <q-btn :loading="isLoading" class="full-width" type="submit" color="primary" label="Login" />
                     </q-form>
+                </q-card-section>
+                <q-separator class="q-mx-md q-mt-sm" />
+                <q-card-section class="domain-endorsement">
+                    <iframe
+                        src="https://credentials.buu.ac.th/embed/L3jEl-vheq8z7X4w72Ws5WHBtsZsx47TavKUwquk6hk"
+                        title="Domain endorsement"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        class="domain-endorsement-frame"
+                    ></iframe>
                 </q-card-section>
             </q-card>
         </div>
@@ -107,11 +117,11 @@ async function login() {
                 multiLine: true,
                 timeout: 8000,
             });
-            if(result?.data?.user?.redirectTo){
-              router.push({ name: result?.data?.user?.redirectTo });
+            if (result?.data?.user?.redirectTo) {
+                router.push({ name: result?.data?.user?.redirectTo });
             }
-            else{
-              router.push({ name: "home" });
+            else {
+                router.push({ name: "home" });
             }
             Notify.create({
                 message: "Success",
@@ -135,8 +145,8 @@ async function login() {
         });
     }
 
-  };
-  const isError = ref({
+};
+const isError = ref({
     username: null,
     password: null,
 });
@@ -150,5 +160,26 @@ function clearData() {
         model.value[key] = null;
     });
 }
-  </script>
+</script>
 
+<style scoped>
+.login-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px 0;
+}
+
+.domain-endorsement {
+    display: flex;
+    justify-content: center;
+    padding: 16px 0 0;
+}
+
+.domain-endorsement-frame {
+    display: block;
+    border: 0;
+    width: 320px;
+    max-width: 100%;
+    height: 120px;
+}
+</style>
