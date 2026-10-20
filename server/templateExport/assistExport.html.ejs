@@ -230,7 +230,7 @@
                     มารดา คู่สมรส บุตร ของผู้ปฎิบัติงาน
                     <span style="font-size: 12px;">(ให้จ่ายจริงคนละไม่เกิน ๕,๐๐๐
                       บาท)</span>
-                    และค่าสนับสนุนพวงหลีด <span
+                    และค่าสนับสนุนพวงหรีด <span
                       style="font-size: 12px;">(ในนามมหาวิทยาลัยบูรพาไม่เกิน
                       ๒,๐๐๐ บาท ในนามส่วนงานไม่เกิน ๒,๐๐๐ บาท)</span>
                   </span>
@@ -311,7 +311,7 @@
             </div>
           </td>
         </tr>
-        <!-- สวัสดิการสนับสนุนค่าพวงหลีด -->
+        <!-- สวัสดิการสนับสนุนค่าพวงหรีด -->
         <tr>
           <td>
             <div class="row" style="gap: 10px">
@@ -323,7 +323,7 @@
                   <input type="checkbox" id="cate1" name="cate1" value="1"
                     <%=body?.categoryId == 8 && (body?.fundWreathArrange ||
                     body?.fundWreathUniversity) ? "checked" : "" %> />
-                  <span class="font-semi-bold" for="cate1">ค่าสนับสนุนค่าพวงหลีด
+                  <span class="font-semi-bold" for="cate1">ค่าสนับสนุนค่าพวงหรีด
                     <span style="font-size: 12px;">(ในนามมหาวิทยาลัยบูรพาไม่เกิน
                       ๒,๐๐๐ บาท ในนามส่วนงานไม่เกิน ๒,๐๐๐ บาท)</span>
                   </span>
@@ -620,14 +620,14 @@
       </div>
     </div>
     <!-- New Page -->
-    <% if (!body.fundWreathUniversity && !body.fundWreathArrange && !body.fundVehicle) { %>
+    <% if (!body.fundWreathUniversity && !body.fundWreathArrange && !body.fundVechicle) { %>
       <div class="page-break"></div>
       <div class="py-sm"></div>
       <%- receipt %>
     <% } %>
 
           <!-- New Page -->
-    <% if (body.fundWreathUniversity || body.fundWreathArrange || body.fundVehicle) { %>
+    <% if (body.fundWreathUniversity || body.fundWreathArrange || body.fundVechicle) { %>
       <div class="page-break"></div>
       <div class="py-sm"></div>
       <%- receiptFuneralSupport %>

@@ -372,6 +372,15 @@ async function fetchDataEdit() {
     try {
       const result = await welfareManagementService.dataVariousById(route.params.id);
       var returnedData = result.data.datas;
+      if (Number(returnedData?.categoryId) === 8) {
+        await router.replace({
+          name: isView.value
+            ? "financial_family_funeral_welfare_view"
+            : "financial_family_funeral_welfare_edit",
+          params: { id: route.params.id },
+        });
+        return;
+      }
       if (returnedData) {
         model.value = {
           ...model.value,
@@ -466,6 +475,17 @@ async function fetchRemaining() {
   }
 }
 
+async function getExportErrorMessage(data) {
+  if (data instanceof Blob) {
+    try {
+      data = JSON.parse(await data.text());
+    } catch {
+      return null;
+    }
+  }
+  return typeof data?.message === "string" ? data.message : null;
+}
+
 async function downloadData() {
   const notify = Notify.create({
     message: "กรุณารอสักครู่ ระบบกำลังทำการดาวน์โหลด",
@@ -475,7 +495,14 @@ async function downloadData() {
   });
   try {
     const result = await exportService.various(route.params.id);
-    let filename = null;
+    if (!(result.data instanceof Blob) ||
+        await result.data.slice(0, 5).text() !== "%PDF-") {
+      throw new Error(
+        await getExportErrorMessage(result.data) ??
+        "ระบบไม่ได้ส่งไฟล์ PDF กลับมา กรุณารีเฟรชหน้าแล้วลองอีกครั้ง"
+      );
+    }
+    let filename = `welfare_${model.value.reimNumber || route.params.id}.pdf`;
     const contentDisposition = result.headers["content-disposition"];
     if (contentDisposition) {
       const matches = contentDisposition.match(/filename="?([^"]+)"?/);
@@ -497,13 +524,15 @@ async function downloadData() {
     document.body.removeChild(a);
   }
   catch (error) {
-    console.log(error);
+    const message = await getExportErrorMessage(error?.response?.data);
+    console.error("Various welfare export failed:", message ?? error);
     Notify.create({
       message:
-        error?.response?.data?.message ??
+        message ??
+        error?.message ??
         "ดาวน์โหลดไม่สำเร็จกรุณาลองอีกครั้ง",
       position: "top-right",
-      type: "primary",
+      type: "negative",
     });
   }
   finally {

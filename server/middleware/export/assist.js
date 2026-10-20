@@ -69,8 +69,8 @@ const fetchDataVarious = async (req, res, next) => {
         });
         if (!requestData) {
             logger.info('Data not Found', { method, data: { id } });
-            return res.status(200).json({
-                message: "ไม่พบข้อมูล"
+            return res.status(404).json({
+                message: "ไม่พบรายการที่สามารถ Export ได้ กรุณารีเฟรชหน้าและตรวจสอบว่าใบเบิกอยู่ในสถานะรอตรวจสอบ"
             });
         }
         const datas = JSON.parse(JSON.stringify(requestData));
